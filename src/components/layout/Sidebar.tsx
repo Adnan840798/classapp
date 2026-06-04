@@ -57,8 +57,10 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    // Use replace so the back button doesn't return to the dashboard.
+    // Do NOT call router.refresh() here — on mobile it races with replace()
+    // and can trigger an infinite redirect loop.
+    router.replace('/login');
   }
 
   return (

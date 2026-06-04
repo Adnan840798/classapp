@@ -58,6 +58,8 @@ export async function sendTelegramMessage(
 
 /**
  * Escapes special characters for Telegram MarkdownV2.
+ * The hyphen (-) must be at the END of the character class to be treated as a
+ * literal hyphen and not as a range operator.
  */
 function escapeMarkdown(text: string): string {
   return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');

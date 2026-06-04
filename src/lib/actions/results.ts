@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 const ResultSchema = z.object({
   university_id: z.string().min(1, 'University ID is required'),
@@ -90,7 +91,7 @@ export async function publishResult(formData: FormData) {
     return { error: `Failed to publish result: ${insertError?.message}` };
   }
 
-  // Notify that specific student
+  // Notify that specific student in-app
   await supabase.rpc('notify_single_student', {
     p_student_id: student.id,
     p_title: `Result Published: ${parsed.data.exam_name}`,
@@ -98,6 +99,23 @@ export async function publishResult(formData: FormData) {
     p_type: 'result',
     p_reference_id: result.id,
   });
+
+  // Broadcast result summary to Telegram channel (non-fatal)
+  try {
+    const telegramTitle = `📊 Result Published: ${parsed.data.exam_name}`;
+    const gradeInfo = parsed.data.grade ? `\nGrade: ${parsed.data.grade}` : '';
+    const marksInfo =
+      parsed.data.marks && parsed.data.total_marks
+        ? `\nMarks: ${parsed.data.marks}/${parsed.data.total_marks}`
+        : '';
+    const telegramBody = `Subject: ${parsed.data.subject}${marksInfo}${gradeInfo}\n\nResults have been published. Students can check their results in the app.`;
+    const telegramResult = await sendTelegramMessage(telegramTitle, telegramBody);
+    if (!telegramResult.success) {
+      console.warn('Telegram result post failed (non-fatal):', telegramResult.error);
+    }
+  } catch (err) {
+    console.warn('Telegram result post failed (non-fatal):', err);
+  }
 
   revalidatePath('/cr/results');
   redirect('/cr/results');

@@ -90,7 +90,6 @@ export default function LoginPage() {
       } else {
         router.push('/student/dashboard');
       }
-      router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);
@@ -181,7 +180,6 @@ export default function LoginPage() {
       if (signUpData.session) {
         // Logged in immediately
         router.push('/student/dashboard');
-        router.refresh();
       } else {
         // Needs email confirmation
         setIsSuccess(true);
