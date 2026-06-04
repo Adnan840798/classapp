@@ -5,10 +5,11 @@ import { Send, Loader2, AlertTriangle } from 'lucide-react';
 import { askQuestion } from '@/lib/actions/calendar';
 
 interface AskQuestionFormProps {
-  eventId: string;
+  entityId: string;
+  entityType?: 'event' | 'announcement' | 'deadline';
 }
 
-export function AskQuestionForm({ eventId }: AskQuestionFormProps) {
+export function AskQuestionForm({ entityId, entityType = 'event' }: AskQuestionFormProps) {
   const [inputText, setInputText] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export function AskQuestionForm({ eventId }: AskQuestionFormProps) {
     formData.append('question', inputText);
 
     try {
-      const res = await askQuestion(eventId, formData);
+      const res = await askQuestion(entityId, entityType, formData);
       if (res && res.error) {
         setError(res.error);
       } else {

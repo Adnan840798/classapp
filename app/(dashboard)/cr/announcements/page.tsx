@@ -130,6 +130,13 @@ export default async function CRAnnouncementsPage() {
                         Telegram Posted
                       </span>
                     )}
+                    <Link
+                      href={`/cr/announcements/${announcement.id}`}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Q&A Panel
+                    </Link>
                     <DeleteButton
                       id={announcement.id}
                       onDelete={deleteAnnouncement}

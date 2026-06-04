@@ -1,37 +1,41 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle, BookOpen } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { formatDate, formatEventType, getEventTypeColor, formatDateTime } from '@/lib/utils/formatters';
+import { formatDateTime } from '@/lib/utils/formatters';
+import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { AskQuestionForm } from './AskQuestionForm';
+import { AskQuestionForm } from '../../calendar/[id]/AskQuestionForm';
 import { TimelineQuestion } from '@/types';
 
-interface StudentCalendarDetailPageProps {
+interface StudentDeadlineDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 export const revalidate = 0; // force dynamic rendering
 
-export default async function StudentCalendarDetailPage({ params }: StudentCalendarDetailPageProps) {
+export default async function StudentDeadlineDetailPage({ params }: StudentDeadlineDetailPageProps) {
   const { id } = await params;
   const supabase = await getSupabaseServerClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Fetch event details
-  const { data: event, error: eventError } = await supabase
-    .from('calendar_events')
+  // Fetch deadline details
+  const { data: deadline, error: deadlineError } = await supabase
+    .from('deadlines')
     .select('*')
     .eq('id', id)
     .single();
 
-  if (eventError || !event) {
+  if (deadlineError || !deadline) {
     notFound();
   }
 
-  // Fetch all questions for this event
+  const enriched = enrichDeadlines([deadline])[0];
+  const colorClass = getDeadlineColorClass(enriched.color);
+
+  // Fetch all questions for this deadline
   const { data: rawQuestions, error: questionsError } = await supabase
     .from('timeline_questions')
     .select(`
@@ -42,7 +46,7 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
         answerer:profiles!answered_by(full_name, profile_pic_url)
       )
     `)
-    .eq('event_id', id)
+    .eq('deadline_id', id)
     .order('created_at', { ascending: false });
 
   if (questionsError) {
@@ -56,70 +60,71 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
     (q) => q.asked_by === user.id && !q.is_resolved
   );
 
-  const typeColor = getEventTypeColor(event.event_type);
-
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full animate-fade-in">
       {/* Page Header */}
       <div className="flex items-center gap-3">
         <Link
-          href="/student/calendar"
+          href="/student/deadlines"
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="page-header mb-0">
-          <h1 className="page-title">Event Q&A Room</h1>
-          <p className="page-subtitle">Ask questions and read answers regarding this schedule</p>
+          <h1 className="page-title">Deadline Q&A</h1>
+          <p className="page-subtitle">Ask questions and discuss details about this submission</p>
         </div>
       </div>
 
-      {/* Event Details Card */}
+      {/* Deadline Details Card */}
       <div className="glass-card p-6 flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-foreground">
-                {event.title}
-              </h2>
-              <span className={`badge px-2.5 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${typeColor}`}>
-                {formatEventType(event.event_type)}
+              <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-accent px-2.5 py-1 rounded-md border border-border">
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+                {enriched.subject}
+              </span>
+              <span className={`badge px-2 py-0.5 text-xs font-semibold border ${colorClass}`}>
+                {formatDaysRemaining(enriched.daysRemaining)}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>Event Date: {formatDate(event.event_date)}</span>
-            </div>
+            <h2 className="text-xl font-bold text-foreground mt-1">
+              {enriched.title}
+            </h2>
           </div>
         </div>
 
-        {event.description && (
+        {enriched.description && (
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3">
-            {event.description}
+            {enriched.description}
           </p>
         )}
+
+        <div className="mt-2 pt-3 border-t border-border/50 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <span>Due: {formatDateTime(enriched.due_date)}</span>
+        </div>
       </div>
 
       {/* Ask Question Input */}
-      {event.qa_enabled && (
-        <div className="mt-2">
-          {hasUnresolvedQuestion ? (
-            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this event.
-                You can ask another question once your previous question has been answered and marked resolved by a CR.
-              </div>
+      <div className="mt-2">
+        {hasUnresolvedQuestion ? (
+          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this deadline.
+              You can ask another question once your previous question has been answered and marked resolved by a CR.
             </div>
-          ) : (
-            <AskQuestionForm entityId={event.id} entityType="event" />
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <AskQuestionForm entityId={enriched.id} entityType="deadline" />
+        )}
+      </div>
 
       {/* Q&A List */}
       <div className="border-t border-border pt-6 mt-2">
-        <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+        <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
           <HelpCircle className="w-5 h-5 text-primary" />
           Questions & Answers ({questions.length})
         </h3>
@@ -129,7 +134,7 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
             <MessageSquare className="w-10 h-10 text-muted-foreground opacity-30" />
             <h4 className="text-sm font-semibold">No questions yet</h4>
             <p className="text-xs text-muted-foreground">
-              Have questions about this event? Type them above to get answers.
+              Have questions about this deadline? Ask them above to get answers from your CRs.
             </p>
           </div>
         ) : (
@@ -161,8 +166,8 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
                     </div>
                   </div>
                   {q.is_resolved && (
-                    <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-0.5">
-                      <Check className="w-3 h-3" />
+                    <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-0.5">
+                      <Check className="w-3.5 h-3.5" />
                       Resolved
                     </span>
                   )}

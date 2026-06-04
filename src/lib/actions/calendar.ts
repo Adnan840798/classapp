@@ -77,6 +77,28 @@ export async function deleteCalendarEvent(id: string) {
   return { success: true };
 }
 
+// Helper to revalidate paths for a question
+async function revalidateQuestionPaths(supabase: any, questionId: string) {
+  const { data: q } = await supabase
+    .from('timeline_questions')
+    .select('event_id, announcement_id, deadline_id')
+    .eq('id', questionId)
+    .single();
+
+  if (q) {
+    if (q.event_id) {
+      revalidatePath(`/cr/calendar/${q.event_id}`);
+      revalidatePath(`/student/calendar/${q.event_id}`);
+    } else if (q.announcement_id) {
+      revalidatePath(`/cr/announcements/${q.announcement_id}`);
+      revalidatePath(`/student/announcements/${q.announcement_id}`);
+    } else if (q.deadline_id) {
+      revalidatePath(`/cr/deadlines/${q.deadline_id}`);
+      revalidatePath(`/student/deadlines/${q.deadline_id}`);
+    }
+  }
+}
+
 // Q&A actions
 export async function answerQuestion(questionId: string, formData: FormData) {
   const supabase = await getSupabaseServerClient();
@@ -93,7 +115,8 @@ export async function answerQuestion(questionId: string, formData: FormData) {
   });
 
   if (error) return { error: error.message };
-  revalidatePath(`/cr/calendar/${(await supabase.from('timeline_questions').select('event_id').eq('id', questionId).single()).data?.event_id}`);
+  
+  await revalidateQuestionPaths(supabase, questionId);
   return { success: true };
 }
 
@@ -108,10 +131,16 @@ export async function resolveQuestion(questionId: string) {
     .eq('id', questionId);
 
   if (error) return { error: error.message };
+
+  await revalidateQuestionPaths(supabase, questionId);
   return { success: true };
 }
 
-export async function askQuestion(eventId: string, formData: FormData) {
+export async function askQuestion(
+  entityId: string,
+  entityType: 'event' | 'announcement' | 'deadline',
+  formData: FormData
+) {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -119,13 +148,31 @@ export async function askQuestion(eventId: string, formData: FormData) {
   const question = formData.get('question') as string;
   if (!question || question.length > 500) return { error: 'Question must be 1–500 characters.' };
 
-  const { error } = await supabase.from('timeline_questions').insert({
-    event_id: eventId,
+  const insertData: Record<string, any> = {
     asked_by: user.id,
     question,
-  });
+  };
+
+  if (entityType === 'event') {
+    insertData.event_id = entityId;
+  } else if (entityType === 'announcement') {
+    insertData.announcement_id = entityId;
+  } else if (entityType === 'deadline') {
+    insertData.deadline_id = entityId;
+  }
+
+  const { error } = await supabase.from('timeline_questions').insert(insertData);
 
   if (error) return { error: error.message };
-  revalidatePath(`/student/calendar/${eventId}`);
+
+  if (entityType === 'event') {
+    revalidatePath(`/student/calendar/${entityId}`);
+  } else if (entityType === 'announcement') {
+    revalidatePath(`/student/announcements/${entityId}`);
+  } else if (entityType === 'deadline') {
+    revalidatePath(`/student/deadlines/${entityId}`);
+  }
+
   return { success: true };
 }
+

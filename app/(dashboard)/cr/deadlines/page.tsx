@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus, Clock, BookOpen, Calendar, AlertCircle } from 'lucide-react';
+import { Plus, Clock, BookOpen, Calendar, AlertCircle, MessageSquare } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
@@ -83,11 +83,20 @@ export default async function CRDeadlinesPage() {
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>Due: {formatDateTime(deadline.due_date)}</span>
                   </div>
-                  <DeleteButton
-                    id={deadline.id}
-                    onDelete={deleteDeadline}
-                    confirmMessage="Are you sure you want to delete this deadline?"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/cr/deadlines/${deadline.id}`}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Q&A Panel
+                    </Link>
+                    <DeleteButton
+                      id={deadline.id}
+                      onDelete={deleteDeadline}
+                      confirmMessage="Are you sure you want to delete this deadline?"
+                    />
+                  </div>
                 </div>
               </div>
             );

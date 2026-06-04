@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 const AnnouncementSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -98,17 +99,17 @@ export async function createAnnouncement(formData: FormData) {
     console.error('broadcast_notification RPC error:', rpcError);
   }
 
-  // Post to Telegram (non-blocking, handled by internal API route)
+  // Post to Telegram (non-blocking, direct server call)
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/telegram`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: parsed.data.title,
-        body: parsed.data.body,
-        announcementId: announcement.id,
-      }),
-    });
+    const result = await sendTelegramMessage(parsed.data.title, parsed.data.body);
+    if (result.success) {
+      await supabase
+        .from('announcements')
+        .update({ telegram_posted: true })
+        .eq('id', announcement.id);
+    } else {
+      console.warn('Telegram post failed (non-fatal):', result.error);
+    }
   } catch (err) {
     console.warn('Telegram post failed (non-fatal):', err);
   }

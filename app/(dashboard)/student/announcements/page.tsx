@@ -1,4 +1,5 @@
-import { Megaphone, Calendar, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Megaphone, Calendar, Paperclip, FileText, Image as ImageIcon, MessageSquare } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -89,26 +90,35 @@ export default async function StudentAnnouncementsPage() {
 
                 {/* Attachment & Footer */}
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-4">
-                  {announcement.attachment_url ? (
-                    <a
-                      href={announcement.attachment_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-                    >
-                      {announcement.attachment_type === 'image' ? (
-                        <ImageIcon className="w-4 h-4" />
-                      ) : (
-                        <FileText className="w-4 h-4" />
-                      )}
-                      <span className="truncate max-w-[200px]">View Attachment</span>
-                    </a>
-                  ) : (
-                    <div className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                      <Paperclip className="w-3.5 h-3.5" />
-                      No attachment
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {announcement.attachment_url ? (
+                      <a
+                        href={announcement.attachment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
+                      >
+                        {announcement.attachment_type === 'image' ? (
+                          <ImageIcon className="w-4 h-4" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                        <span className="truncate max-w-[150px]">View Attachment</span>
+                      </a>
+                    ) : (
+                      <div className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                        <Paperclip className="w-3.5 h-3.5" />
+                        No attachment
+                      </div>
+                    )}
+                  </div>
+                  <Link
+                    href={`/student/announcements/${announcement.id}`}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Q&A Room
+                  </Link>
                 </div>
               </div>
             );

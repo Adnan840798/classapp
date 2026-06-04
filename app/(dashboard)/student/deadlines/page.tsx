@@ -1,4 +1,5 @@
-import { Clock, Calendar, BookOpen } from 'lucide-react';
+import Link from 'next/link';
+import { Clock, Calendar, BookOpen, MessageSquare } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
@@ -65,11 +66,18 @@ export default async function StudentDeadlinesPage() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border flex items-center">
+                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>Due: {formatDateTime(deadline.due_date)}</span>
                   </div>
+                  <Link
+                    href={`/student/deadlines/${deadline.id}`}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Q&A Room
+                  </Link>
                 </div>
               </div>
             );

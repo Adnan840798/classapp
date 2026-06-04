@@ -1,37 +1,37 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Megaphone, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { formatDate, formatEventType, getEventTypeColor, formatDateTime } from '@/lib/utils/formatters';
+import { formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { AskQuestionForm } from './AskQuestionForm';
+import { AskQuestionForm } from '../../calendar/[id]/AskQuestionForm';
 import { TimelineQuestion } from '@/types';
 
-interface StudentCalendarDetailPageProps {
+interface StudentAnnouncementDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 export const revalidate = 0; // force dynamic rendering
 
-export default async function StudentCalendarDetailPage({ params }: StudentCalendarDetailPageProps) {
+export default async function StudentAnnouncementDetailPage({ params }: StudentAnnouncementDetailPageProps) {
   const { id } = await params;
   const supabase = await getSupabaseServerClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Fetch event details
-  const { data: event, error: eventError } = await supabase
-    .from('calendar_events')
-    .select('*')
+  // Fetch announcement details
+  const { data: announcement, error: announcementError } = await supabase
+    .from('announcements')
+    .select('*, creator:profiles(full_name, profile_pic_url)')
     .eq('id', id)
     .single();
 
-  if (eventError || !event) {
+  if (announcementError || !announcement) {
     notFound();
   }
 
-  // Fetch all questions for this event
+  // Fetch all questions for this announcement
   const { data: rawQuestions, error: questionsError } = await supabase
     .from('timeline_questions')
     .select(`
@@ -42,7 +42,7 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
         answerer:profiles!answered_by(full_name, profile_pic_url)
       )
     `)
-    .eq('event_id', id)
+    .eq('announcement_id', id)
     .order('created_at', { ascending: false });
 
   if (questionsError) {
@@ -56,70 +56,99 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
     (q) => q.asked_by === user.id && !q.is_resolved
   );
 
-  const typeColor = getEventTypeColor(event.event_type);
-
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full animate-fade-in">
       {/* Page Header */}
       <div className="flex items-center gap-3">
         <Link
-          href="/student/calendar"
+          href="/student/announcements"
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="page-header mb-0">
-          <h1 className="page-title">Event Q&A Room</h1>
-          <p className="page-subtitle">Ask questions and read answers regarding this schedule</p>
+          <h1 className="page-title">Announcement Q&A</h1>
+          <p className="page-subtitle">Ask questions and discuss this announcement</p>
         </div>
       </div>
 
-      {/* Event Details Card */}
+      {/* Announcement Details Card */}
       <div className="glass-card p-6 flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-foreground">
-                {event.title}
-              </h2>
-              <span className={`badge px-2.5 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${typeColor}`}>
-                {formatEventType(event.event_type)}
-              </span>
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              profile={{
+                full_name: announcement.creator?.full_name || 'CR',
+                profile_pic_url: announcement.creator?.profile_pic_url || null,
+              }}
+              size="sm"
+            />
+            <div>
+              <p className="text-xs font-semibold text-foreground">
+                {announcement.creator?.full_name || 'Class Representative'}
+              </p>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                {formatDateTime(announcement.created_at)}
+              </p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>Event Date: {formatDate(event.event_date)}</span>
-            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {announcement.is_important && (
+              <span className="badge badge-important">Important</span>
+            )}
+            {announcement.is_public && (
+              <span className="badge badge-public">Public</span>
+            )}
           </div>
         </div>
 
-        {event.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3">
-            {event.description}
+        <div className="border-t border-border/50 pt-3 flex flex-col gap-2">
+          <h2 className="text-lg font-bold text-foreground">
+            {announcement.title}
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {announcement.body}
           </p>
+        </div>
+
+        {announcement.attachment_url && (
+          <div className="mt-2 pt-3 border-t border-border/50">
+            <a
+              href={announcement.attachment_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
+            >
+              {announcement.attachment_type === 'image' ? (
+                <ImageIcon className="w-4 h-4" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+              <span>View Attachment</span>
+            </a>
+          </div>
         )}
       </div>
 
       {/* Ask Question Input */}
-      {event.qa_enabled && (
-        <div className="mt-2">
-          {hasUnresolvedQuestion ? (
-            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this event.
-                You can ask another question once your previous question has been answered and marked resolved by a CR.
-              </div>
+      <div className="mt-2">
+        {hasUnresolvedQuestion ? (
+          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this announcement.
+              You can ask another question once your previous question has been answered and marked resolved by a CR.
             </div>
-          ) : (
-            <AskQuestionForm entityId={event.id} entityType="event" />
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <AskQuestionForm entityId={announcement.id} entityType="announcement" />
+        )}
+      </div>
 
       {/* Q&A List */}
       <div className="border-t border-border pt-6 mt-2">
-        <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+        <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
           <HelpCircle className="w-5 h-5 text-primary" />
           Questions & Answers ({questions.length})
         </h3>
@@ -129,7 +158,7 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
             <MessageSquare className="w-10 h-10 text-muted-foreground opacity-30" />
             <h4 className="text-sm font-semibold">No questions yet</h4>
             <p className="text-xs text-muted-foreground">
-              Have questions about this event? Type them above to get answers.
+              Have questions about this announcement? Ask them above to get answers from your CRs.
             </p>
           </div>
         ) : (
