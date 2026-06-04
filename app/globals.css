@@ -1,0 +1,366 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    /* ── Light mode tokens ────────────────────────── */
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 220 91% 58%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 91% 58%;
+    --radius: 0.75rem;
+
+    /* ── ClassApp brand colors ────────────────────── */
+    --brand: 220 91% 58%;
+    --brand-glow: 220 91% 58%;
+    --sidebar-bg: 220 20% 97%;
+    --sidebar-width: 260px;
+  }
+
+  .dark {
+    /* ── Dark mode tokens ─────────────────────────── */
+    --background: 224 20% 7%;
+    --foreground: 210 20% 94%;
+    --card: 224 18% 10%;
+    --card-foreground: 210 20% 94%;
+    --popover: 224 18% 10%;
+    --popover-foreground: 210 20% 94%;
+    --primary: 220 91% 62%;
+    --primary-foreground: 224 20% 7%;
+    --secondary: 224 14% 16%;
+    --secondary-foreground: 210 20% 94%;
+    --muted: 224 14% 14%;
+    --muted-foreground: 220 10% 56%;
+    --accent: 224 14% 16%;
+    --accent-foreground: 210 20% 94%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 224 14% 16%;
+    --input: 224 14% 16%;
+    --ring: 220 91% 62%;
+
+    --sidebar-bg: 224 22% 8%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer components {
+  /* ── Glass card ──────────────────────────────────── */
+  .glass-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
+
+  /* ── Gradient text ───────────────────────────────── */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(220 91% 65%), hsl(260 91% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Primary button ──────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200;
+    background: linear-gradient(135deg, hsl(220 91% 58%), hsl(240 80% 60%));
+    box-shadow: 0 4px 15px hsl(220 91% 58% / 0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px hsl(220 91% 58% / 0.4);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── Sidebar nav item ────────────────────────────── */
+  .nav-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+  .nav-item:hover {
+    background: hsl(var(--accent));
+    color: hsl(var(--foreground));
+  }
+  .nav-item.active {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
+  /* ── Stat card ───────────────────────────────────── */
+  .stat-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    @apply p-5 flex flex-col gap-1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px hsl(var(--primary) / 0.1);
+  }
+
+  /* ── Form input ──────────────────────────────────── */
+  .form-input {
+    @apply w-full rounded-lg border bg-background px-3 py-2.5 text-sm outline-none transition-all duration-200;
+    border-color: hsl(var(--border));
+  }
+  .form-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+  }
+
+  /* ── Badge ───────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold;
+  }
+  .badge-important {
+    background: hsl(0 84% 60% / 0.12);
+    color: hsl(0 84% 60%);
+    border-color: hsl(0 84% 60% / 0.3);
+  }
+  .badge-public {
+    background: hsl(142 76% 36% / 0.12);
+    color: hsl(142 76% 44%);
+    border-color: hsl(142 76% 36% / 0.3);
+  }
+
+  /* ── Page header ─────────────────────────────────── */
+  .page-header {
+    @apply mb-6 flex flex-col gap-1;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* ── Announcement card ───────────────────────────── */
+  .announcement-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    @apply p-5 flex flex-col gap-3 transition-all duration-200;
+  }
+  .announcement-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px hsl(var(--primary) / 0.08);
+  }
+  .announcement-card.important {
+    border-left: 3px solid hsl(0 84% 60%);
+  }
+
+  /* ── Timeline event ──────────────────────────────── */
+  .timeline-event {
+    @apply relative pl-8 pb-8;
+  }
+  .timeline-event::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 24px;
+    bottom: 0;
+    width: 1px;
+    background: hsl(var(--border));
+  }
+  .timeline-event:last-child::before {
+    display: none;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid hsl(var(--border));
+    background: hsl(var(--background));
+  }
+
+  /* ── Chat message ────────────────────────────────── */
+  .chat-message {
+    @apply flex gap-3 py-2 px-3 rounded-xl transition-colors duration-150;
+  }
+  .chat-message:hover {
+    background: hsl(var(--accent) / 0.5);
+  }
+  .chat-message.pinned {
+    background: hsl(var(--primary) / 0.06);
+    border-left: 2px solid hsl(var(--primary) / 0.5);
+  }
+
+  /* ── Notification item ───────────────────────────── */
+  .notif-item {
+    @apply flex gap-3 p-3 rounded-lg transition-colors duration-150 cursor-pointer;
+  }
+  .notif-item:hover {
+    background: hsl(var(--accent));
+  }
+  .notif-item.unread {
+    background: hsl(var(--primary) / 0.06);
+  }
+  .notif-item.unread::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  /* ── Loading shimmer ─────────────────────────────── */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 400% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius);
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ── Fade in animation ───────────────────────────── */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Slide in animation ──────────────────────────── */
+  .slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Progress bar animation ──────────────────────────── */
+  @keyframes slide-progress {
+    0% { transform: translateX(-100%); width: 40%; }
+    50% { transform: translateX(150%); width: 60%; }
+    100% { transform: translateX(300%); width: 40%; }
+  }
+
+  /* ── Pulse animation ─────────────────────────────────── */
+  @keyframes animate-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: animate-fade-in 0.25s ease-out;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Mono font for IDs, codes */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}

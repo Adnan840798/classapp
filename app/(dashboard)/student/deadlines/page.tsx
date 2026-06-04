@@ -1,0 +1,81 @@
+import { Clock, Calendar, BookOpen } from 'lucide-react';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { formatDateTime } from '@/lib/utils/formatters';
+import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
+
+export const revalidate = 0; // force dynamic rendering
+
+export default async function StudentDeadlinesPage() {
+  const supabase = await getSupabaseServerClient();
+
+  const { data: deadlines, error } = await supabase
+    .from('deadlines')
+    .select('*')
+    .order('due_date', { ascending: true });
+
+  if (error) {
+    console.error('Failed to load deadlines:', error);
+  }
+
+  const enriched = deadlines ? enrichDeadlines(deadlines) : [];
+
+  return (
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-fade-in">
+      <div className="page-header">
+        <h1 className="page-title">Deadlines & Submissions</h1>
+        <p className="page-subtitle">Track academic schedules, project turn-ins, and homework deadlines</p>
+      </div>
+
+      {!enriched || enriched.length === 0 ? (
+        <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
+          <Clock className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
+          <h2 className="text-lg font-semibold">No deadlines yet</h2>
+          <p className="text-sm text-muted-foreground max-w-md">
+            All caught up! There are no assignments or exams currently scheduled.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {enriched.map((deadline) => {
+            const colorClass = getDeadlineColorClass(deadline.color);
+            return (
+              <div
+                key={deadline.id}
+                className="glass-card p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-accent px-2.5 py-1 rounded-md border border-border">
+                      <BookOpen className="w-3.5 h-3.5 text-primary" />
+                      {deadline.subject}
+                    </span>
+                    <span className={`badge px-2 py-0.5 text-xs font-semibold border ${colorClass}`}>
+                      {formatDaysRemaining(deadline.daysRemaining)}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-foreground mb-2 leading-snug">
+                    {deadline.title}
+                  </h3>
+
+                  {deadline.description && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed mb-4">
+                      {deadline.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-border flex items-center">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>Due: {formatDateTime(deadline.due_date)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
