@@ -43,9 +43,17 @@ export async function createDeadline(formData: FormData) {
 
     if (error) return { error: error.message };
 
+    const redirectTo = formData.get('redirect_to') as string;
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
-    redirect('/cr/deadlines');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    if (redirectTo === 'timeline') {
+      redirect('/cr/timeline');
+    } else {
+      redirect('/cr/deadlines');
+    }
   } catch (err: any) {
     if (
       err instanceof Error &&

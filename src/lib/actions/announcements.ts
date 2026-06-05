@@ -83,6 +83,18 @@ export async function createAnnouncement(formData: FormData) {
     }
 
     // ── Insert announcement ──────────────────────────────────
+    const customDate = formData.get('custom_created_at') as string;
+    let created_at: string | undefined = undefined;
+    if (customDate) {
+      const dateObj = new Date(customDate);
+      if (!isNaN(dateObj.getTime())) {
+        if (customDate.length === 10) {
+          dateObj.setHours(12, 0, 0, 0);
+        }
+        created_at = dateObj.toISOString();
+      }
+    }
+
     const { data: announcement, error: insertError } = await supabase
       .from('announcements')
       .insert({
@@ -93,6 +105,7 @@ export async function createAnnouncement(formData: FormData) {
         attachment_url,
         attachment_type,
         created_by: user.id,
+        ...(created_at ? { created_at } : {}),
       })
       .select('id')
       .single();
@@ -137,8 +150,16 @@ export async function createAnnouncement(formData: FormData) {
         .eq('id', announcement.id);
     }
 
+    const redirectTo = formData.get('redirect_to') as string;
     revalidatePath('/cr/announcements');
-    redirect('/cr/announcements');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+    
+    if (redirectTo === 'timeline') {
+      redirect('/cr/timeline');
+    } else {
+      redirect('/cr/announcements');
+    }
   } catch (err: any) {
     if (
       err instanceof Error &&

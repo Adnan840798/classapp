@@ -82,12 +82,25 @@ export async function publishResult(formData: FormData) {
     }
 
     // ── Insert result record ─────────────────────────────────
+    const customDate = formData.get('custom_published_at') as string;
+    let published_at: string | undefined = undefined;
+    if (customDate) {
+      const dateObj = new Date(customDate);
+      if (!isNaN(dateObj.getTime())) {
+        if (customDate.length === 10) {
+          dateObj.setHours(12, 0, 0, 0);
+        }
+        published_at = dateObj.toISOString();
+      }
+    }
+
     const { data: result, error: insertError } = await supabase
       .from('exam_results')
       .insert({
         exam_name: parsed.data.exam_name,
         result_sheet_url,
         published_by: user.id,
+        ...(published_at ? { published_at } : {}),
       })
       .select('id')
       .single();
@@ -110,8 +123,16 @@ export async function publishResult(formData: FormData) {
       }
     }
 
+    const redirectTo = formData.get('redirect_to') as string;
     revalidatePath('/cr/results');
-    redirect('/cr/results');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+    
+    if (redirectTo === 'timeline') {
+      redirect('/cr/timeline');
+    } else {
+      redirect('/cr/results');
+    }
   } catch (err: any) {
     if (
       err instanceof Error &&

@@ -12,6 +12,7 @@ interface DayDetailPanelProps {
   announcements: any[];
   deadlines: any[];
   results: any[];
+  isCR?: boolean;
 }
 
 type TabType = 'overview' | 'announcements' | 'results' | 'deadlines';
@@ -77,10 +78,12 @@ export function DayDetailPanel({
   isOpen,
   onClose,
   dayName,
+  dateStr,
   dateLabel,
   announcements,
   deadlines,
   results,
+  isCR = false,
 }: DayDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
@@ -207,11 +210,23 @@ export function DayDetailPanel({
                   </button>
                 </div>
 
+
+
                 {/* Deadlines list section */}
                 <div>
-                  <h3 className="text-[14px] font-bold text-white mb-3">
-                    Deadlines ({deadlines.length})
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[14px] font-bold text-white">
+                      Deadlines ({deadlines.length})
+                    </h3>
+                    {isCR && (
+                      <a
+                        href={`/cr/deadlines/new?date=${dateStr}`}
+                        className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        + Add Deadline
+                      </a>
+                    )}
+                  </div>
                   {deadlines.length === 0 ? (
                     <EmptyState label="No deadlines due today" />
                   ) : (
@@ -243,15 +258,25 @@ export function DayDetailPanel({
                     <h3 className="text-[14px] font-bold text-white">
                       Announcements ({announcements.length})
                     </h3>
-                    {announcements.length > 0 && (
-                      <button
-                        onClick={() => setActiveTab('announcements')}
-                        className="text-[12px] font-semibold cursor-pointer"
-                        style={{ color: '#818cf8' }}
-                      >
-                        View all
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {isCR && (
+                        <a
+                          href={`/cr/announcements/new?date=${dateStr}`}
+                          className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          + Add Notice
+                        </a>
+                      )}
+                      {announcements.length > 0 && (
+                        <button
+                          onClick={() => setActiveTab('announcements')}
+                          className="text-[12px] font-semibold cursor-pointer"
+                          style={{ color: '#818cf8' }}
+                        >
+                          View all
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {announcements.length === 0 ? (
                     <EmptyState label="No announcements today" />
@@ -284,9 +309,19 @@ export function DayDetailPanel({
 
                 {/* Results list section */}
                 <div>
-                  <h3 className="text-[14px] font-bold text-white mb-3">
-                    Results ({results.length})
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[14px] font-bold text-white">
+                      Results ({results.length})
+                    </h3>
+                    {isCR && (
+                      <a
+                        href={`/cr/results/publish?date=${dateStr}`}
+                        className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        + Add Result
+                      </a>
+                    )}
+                  </div>
                   {results.length === 0 ? (
                     <EmptyState label="No results published today" />
                   ) : (
@@ -329,6 +364,16 @@ export function DayDetailPanel({
             {/* ── ANNOUNCEMENTS TAB ── */}
             {activeTab === 'announcements' && (
               <>
+                {isCR && (
+                  <a
+                    href={`/cr/announcements/new?date=${dateStr}`}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all mb-4 cursor-pointer"
+                    style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}
+                  >
+                    <MegaphoneIcon className="w-4 h-4" />
+                    + Add Announcement for this Day
+                  </a>
+                )}
                 {announcements.length === 0 ? (
                   <EmptyState label="No announcements today" />
                 ) : (
@@ -381,6 +426,16 @@ export function DayDetailPanel({
             {/* ── RESULTS TAB ── */}
             {activeTab === 'results' && (
               <>
+                {isCR && (
+                  <a
+                    href={`/cr/results/publish?date=${dateStr}`}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all mb-4 cursor-pointer"
+                    style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                  >
+                    <SquarePlusIcon className="w-4 h-4" />
+                    + Add Result for this Day
+                  </a>
+                )}
                 {results.length === 0 ? (
                   <EmptyState label="No exam results published today" />
                 ) : (
@@ -420,6 +475,16 @@ export function DayDetailPanel({
             {/* ── DEADLINES TAB ── */}
             {activeTab === 'deadlines' && (
               <>
+                {isCR && (
+                  <a
+                    href={`/cr/deadlines/new?date=${dateStr}`}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all mb-4 cursor-pointer"
+                    style={{ background: 'rgba(249,115,22,0.12)', color: '#fdba74', border: '1px solid rgba(249,115,22,0.25)' }}
+                  >
+                    <CalendarGridIcon className="w-4 h-4" />
+                    + Add Deadline for this Day
+                  </a>
+                )}
                 {deadlines.length === 0 ? (
                   <EmptyState label="No deadlines due today" />
                 ) : (

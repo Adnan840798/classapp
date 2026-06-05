@@ -6,6 +6,16 @@ export async function middleware(request: NextRequest) {
   // refresh cookies onto it. Never replace supabaseResponse inside setAll.
   let supabaseResponse = NextResponse.next({ request });
 
+  const { pathname } = request.nextUrl;
+
+  // Allow public paths and API routes through unconditionally.
+  const isPublic = pathname === '/' || pathname === '/login';
+  const isApi = pathname.startsWith('/api/');
+
+  if (isPublic || isApi) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,16 +41,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  // Allow public paths and API routes through unconditionally.
-  const isPublic = pathname === '/' || pathname === '/login';
-  const isApi = pathname.startsWith('/api/');
-
-  if (isPublic || isApi) {
-    return supabaseResponse;
-  }
 
   // Protected route — redirect to login if not authenticated.
   if (!user) {

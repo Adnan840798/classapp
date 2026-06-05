@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Send, Loader2, AlertTriangle, Calendar } from 'lucide-react';
 import { createDeadline } from '@/lib/actions/deadlines';
@@ -8,6 +8,19 @@ import { createDeadline } from '@/lib/actions/deadlines';
 export default function NewDeadlinePage() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customDate, setCustomDate] = useState<string | null>(null);
+  const [dueDateVal, setDueDateVal] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const dateParam = searchParams.get('date');
+      if (dateParam) {
+        setCustomDate(dateParam);
+        setDueDateVal(`${dateParam}T23:59`);
+      }
+    }
+  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +46,7 @@ export default function NewDeadlinePage() {
     <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <Link
-          href="/cr/deadlines"
+          href={customDate ? "/cr/timeline" : "/cr/deadlines"}
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -51,6 +64,15 @@ export default function NewDeadlinePage() {
               <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
+          )}
+
+          {customDate && (
+            <>
+              <input type="hidden" name="redirect_to" value="timeline" />
+              <div className="bg-orange-500/10 border border-orange-500/20 text-orange-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
+                <span>Adding this deadline directly to the timeline day: <strong className="text-white">{customDate}</strong></span>
+              </div>
+            </>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -100,6 +122,8 @@ export default function NewDeadlinePage() {
                 name="due_date"
                 type="datetime-local"
                 required
+                value={dueDateVal}
+                onChange={(e) => setDueDateVal(e.target.value)}
                 className="form-input pl-10"
                 disabled={isPending}
               />

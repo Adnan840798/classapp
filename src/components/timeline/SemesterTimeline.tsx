@@ -419,6 +419,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
           announcements={weekData[selectedDayIndex].announcements}
           deadlines={weekData[selectedDayIndex].deadlines}
           results={weekData[selectedDayIndex].results}
+          isCR={isCR}
         />
       )}
     </>
