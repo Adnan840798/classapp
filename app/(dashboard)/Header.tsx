@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -15,6 +15,19 @@ export function Header() {
 
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isCR = profile?.role === 'cr' || profile?.role === 'admin';
   const prefix = isCR ? '/cr' : '/student';
@@ -103,34 +116,41 @@ export function Header() {
 
           {/* Profile initials avatar */}
           {profile && (
-            <div className="relative group">
+            <div className="relative" ref={userMenuRef}>
               <button
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
                 className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-xs font-bold border border-[#6366f1]/20 transition-transform hover:scale-105 cursor-pointer"
                 aria-label="User profile menu"
               >
                 {initials}
               </button>
               
-              {/* Simple dropdown menu on hover with before pseudo-element bridge to prevent hover loss */}
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0e1c] border border-[#141b34] rounded-xl shadow-2xl p-2 hidden group-hover:block z-50 before:content-[''] before:absolute before:top-[-12px] before:left-0 before:right-0 before:h-[12px]">
-                <div className="px-3 py-2 border-b border-[#141b34] mb-1">
-                  <p className="text-xs font-bold text-white truncate">{profile.full_name}</p>
-                  <p className="text-[10px] text-slate-500 truncate mt-0.5">{profile.email}</p>
+              {/* Simple dropdown menu on click */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0e1c] border border-[#141b34] rounded-xl shadow-2xl p-2 z-50 fade-in">
+                  <div className="px-3 py-2 border-b border-[#141b34] mb-1">
+                    <p className="text-xs font-bold text-white truncate">{profile.full_name}</p>
+                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{profile.email}</p>
+                  </div>
+                  <Link
+                    href={`${prefix}/profile`}
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/40 rounded-lg transition-colors"
+                  >
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Sign Out
+                  </button>
                 </div>
-                <Link
-                  href={`${prefix}/profile`}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/40 rounded-lg transition-colors"
-                >
-                  My Profile
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sign Out
-                </button>
-              </div>
+              )}
             </div>
           )}
         </div>
