@@ -39,8 +39,8 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="page-header mb-0">
-          <h1 className="page-title">Edit Note</h1>
-          <p className="page-subtitle">Update your personal study note details</p>
+          <h1 className="page-title">Edit Resource</h1>
+          <p className="page-subtitle">Update class resource or study link details</p>
         </div>
       </div>
 

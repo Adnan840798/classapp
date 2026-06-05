@@ -23,6 +23,8 @@ export async function createNote(formData: FormData) {
       drive_link: formData.get('drive_link') as string || undefined,
     };
 
+    const isPublic = formData.get('is_public') === 'on' || formData.get('is_public') === 'true';
+
     const parsed = NoteSchema.safeParse(raw);
     if (!parsed.success) {
       return { error: parsed.error.issues[0].message };
@@ -32,6 +34,7 @@ export async function createNote(formData: FormData) {
       title: parsed.data.title,
       content: parsed.data.content ?? null,
       drive_link: parsed.data.drive_link || null,
+      is_public: isPublic,
       user_id: user.id,
     });
 
@@ -71,6 +74,8 @@ export async function updateNote(id: string, formData: FormData) {
       drive_link: formData.get('drive_link') as string || undefined,
     };
 
+    const isPublic = formData.get('is_public') === 'on' || formData.get('is_public') === 'true';
+
     const parsed = NoteSchema.safeParse(raw);
     if (!parsed.success) {
       return { error: parsed.error.issues[0].message };
@@ -82,6 +87,7 @@ export async function updateNote(id: string, formData: FormData) {
         title: parsed.data.title,
         content: parsed.data.content ?? null,
         drive_link: parsed.data.drive_link || null,
+        is_public: isPublic,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

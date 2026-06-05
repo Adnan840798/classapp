@@ -51,7 +51,7 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
       {/* Title */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="title" className="text-sm font-semibold text-foreground">
-          Note Title
+          Resource Title
         </label>
         <input
           id="title"
@@ -59,7 +59,7 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
           type="text"
           required
           defaultValue={note.title}
-          placeholder="e.g. CSE 302 Lecture Notes"
+          placeholder="e.g. CSE 302 Lecture Slides"
           maxLength={200}
           className="form-input"
           disabled={isPending}
@@ -88,18 +88,33 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
       {/* Content */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="content" className="text-sm font-semibold text-foreground">
-          Note Content
+          Resource Description / Content
         </label>
         <textarea
           id="content"
           name="content"
           rows={8}
           defaultValue={note.content || ''}
-          placeholder="Write your study notes, reminders, or outlines here..."
+          placeholder="Write resource description, study outlines, or reminders here..."
           maxLength={10000}
           className="form-input resize-none"
           disabled={isPending}
         />
+      </div>
+
+      {/* Make Public Checkbox */}
+      <div className="flex items-center gap-2.5 py-1">
+        <input
+          id="is_public"
+          name="is_public"
+          type="checkbox"
+          defaultChecked={note.is_public}
+          className="w-4.5 h-4.5 rounded border-border bg-background text-primary focus:ring-primary/20 accent-[#6366f1] cursor-pointer"
+          disabled={isPending}
+        />
+        <label htmlFor="is_public" className="text-sm font-semibold text-foreground cursor-pointer select-none">
+          Share with Class (Make Public)
+        </label>
       </div>
 
       {/* Form Actions */}

@@ -41,7 +41,7 @@ export function Header() {
     { href: `${prefix}/deadlines`, label: 'Deadlines' },
     { href: `${prefix}/announcements`, label: 'Announcements' },
     { href: `${prefix}/results`, label: 'Results' },
-    { href: `${prefix}/notes`, label: 'Notes' },
+    { href: `${prefix}/notes`, label: 'Resources' },
     { href: `${prefix}/chat`, label: 'Chat' },
   ];
 

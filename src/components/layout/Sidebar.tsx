@@ -26,7 +26,7 @@ const crNavItems = [
   { href: '/cr/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/cr/deadlines', label: 'Deadlines', icon: Clock },
   { href: '/cr/results', label: 'Results', icon: Trophy },
-  { href: '/cr/notes', label: 'Notes', icon: FileText },
+  { href: '/cr/notes', label: 'Resources', icon: FileText },
   { href: '/cr/chat', label: 'Chat', icon: MessageSquare },
 ];
 
@@ -35,7 +35,7 @@ const studentNavItems = [
   { href: '/student/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/student/deadlines', label: 'Deadlines', icon: Clock },
   { href: '/student/results', label: 'My Results', icon: Trophy },
-  { href: '/student/notes', label: 'Notes', icon: FileText },
+  { href: '/student/notes', label: 'Resources', icon: FileText },
   { href: '/student/chat', label: 'Chat', icon: MessageSquare },
   { href: '/student/profile', label: 'Profile', icon: User },
 ];

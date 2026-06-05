@@ -133,6 +133,7 @@ CREATE TABLE notes (
   title      text NOT NULL,
   content    text,
   drive_link text,
+  is_public  boolean DEFAULT false NOT NULL,
   updated_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
 );
@@ -489,7 +490,7 @@ CREATE POLICY "chat_cr_admin_update"
 CREATE POLICY "notes_own_select"
   ON notes FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id OR is_public = true);
 
 CREATE POLICY "notes_own_insert"
   ON notes FOR INSERT

@@ -124,6 +124,7 @@ export interface Note {
   title: string;
   content: string | null;
   drive_link: string | null;
+  is_public: boolean;
   updated_at: string;
   created_at: string;
 }
