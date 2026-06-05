@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { GraduationCap, ArrowRight, Megaphone, CalendarDays, Key, ExternalLink, Calendar, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
+import { GraduationCap, ArrowRight, Megaphone, CalendarDays, ExternalLink, Calendar, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime, formatDate, getEventTypeColor, formatEventType } from '@/lib/utils/formatters';
 
@@ -67,6 +67,7 @@ export default async function RootPage() {
       <div className="absolute bottom-1/3 -right-48 w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none bg-purple-600" />
 
       {/* Top Navbar */}
+      {/* Top Navbar */}
       <header className="h-16 border-b border-border/80 flex items-center justify-between px-6 lg:px-12 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div
@@ -77,22 +78,16 @@ export default async function RootPage() {
           >
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-lg gradient-text">ClassApp</span>
+          <span className="font-bold text-lg text-white">
+            Class<span className="text-[#6366f1]">App</span>
+          </span>
         </div>
-
-        <Link
-          href="/login"
-          className="btn-primary py-2 px-4 text-xs font-bold rounded-lg flex items-center gap-2"
-        >
-          <Key className="w-3.5 h-3.5" />
-          Sign In
-        </Link>
       </header>
 
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-20 px-6 max-w-4xl mx-auto w-full">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
-          Welcome to <span className="gradient-text">ClassApp</span>
+          Welcome to Class<span className="text-[#6366f1]">App</span>
         </h1>
         <p className="mt-4 text-base md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
           The central academic management and collaboration dashboard for our class. Sign in to check your personal grades, notes, ask timeline questions, and chat with classmates.
