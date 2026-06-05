@@ -87,7 +87,48 @@ export function DayDetailPanel({
 }: DayDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [translationX, setTranslationX] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
   if (!isOpen) return null;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setIsDragging(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    const touch = e.touches[0];
+    const diffX = touch.clientX - touchStart.x;
+    const diffY = touch.clientY - touchStart.y;
+
+    // Start dragging if move is horizontal and swiping right (diffX > 0)
+    if (!isDragging) {
+      if (diffX > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+        setIsDragging(true);
+      }
+    }
+
+    if (isDragging && diffX >= 0) {
+      setTranslationX(diffX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart) return;
+    
+    // Close if swipe distance exceeds 80px
+    if (isDragging && translationX > 80) {
+      onClose();
+    }
+    
+    setTouchStart(null);
+    setTranslationX(0);
+    setIsDragging(false);
+  };
 
   const fullDayNames: Record<string, string> = {
     'SAT': 'Saturday',
@@ -138,12 +179,17 @@ export function DayDetailPanel({
 
         {/* Panel */}
         <div
-          className="detail-panel absolute right-0 top-0 bottom-0 flex flex-col"
+          className={`detail-panel absolute right-0 top-0 bottom-0 flex flex-col ${isDragging ? '' : 'transition-transform duration-200'}`}
           style={{
             width: 'min(420px, 100vw)',
             background: '#060813',
             borderLeft: '1px solid #141b30',
+            transform: `translateX(${translationX}px)`,
+            touchAction: 'pan-y',
           }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Header */}
           <div
