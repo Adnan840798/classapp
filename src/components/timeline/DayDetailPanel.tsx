@@ -89,6 +89,30 @@ export function DayDetailPanel({
 
   if (!isOpen) return null;
 
+  const fullDayNames: Record<string, string> = {
+    'SAT': 'Saturday',
+    'SUN': 'Sunday',
+    'MON': 'Monday',
+    'TUE': 'Tuesday',
+    'WED': 'Wednesday',
+  };
+  
+  const displayDayName = fullDayNames[dayName.toUpperCase()] || dayName;
+
+  const displayDateLabel = dateLabel
+    .replace(/\bJan\b/g, 'January')
+    .replace(/\bFeb\b/g, 'February')
+    .replace(/\bMar\b/g, 'March')
+    .replace(/\bApr\b/g, 'April')
+    .replace(/\bMay\b/g, 'May')
+    .replace(/\bJun\b/g, 'June')
+    .replace(/\bJul\b/g, 'July')
+    .replace(/\bAug\b/g, 'August')
+    .replace(/\bSep\b/g, 'September')
+    .replace(/\bOct\b/g, 'October')
+    .replace(/\bNov\b/g, 'November')
+    .replace(/\bDec\b/g, 'December');
+
   return (
     <>
       <style>{`
@@ -128,9 +152,9 @@ export function DayDetailPanel({
           >
             <div>
               <h2 className="text-[26px] font-black text-white tracking-tight leading-none uppercase">
-                {dayName}
+                {displayDayName}
               </h2>
-              <p className="text-[15px] text-slate-400 font-semibold mt-1.5">{dateLabel}</p>
+              <p className="text-[15px] text-slate-400 font-semibold mt-1.5">{displayDateLabel}</p>
             </div>
             <button
               onClick={onClose}

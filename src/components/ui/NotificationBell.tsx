@@ -183,7 +183,7 @@ export function NotificationBell() {
                 })}
                 {remainingCount > 0 && (
                   <div className="px-4 py-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-t border-[#141b34] bg-[#0c1228]/50">
-                    + {remainingCount} more notifications (max 15 stored)
+                    + {remainingCount} more notifications
                   </div>
                 )}
               </>
