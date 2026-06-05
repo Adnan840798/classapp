@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Send, Loader2, AlertTriangle, Link as LinkIcon } from 'lucide-react';
 import { updateNote } from '@/lib/actions/notes';
 import { Note } from '@/types';
@@ -11,6 +12,10 @@ interface EditNoteFormProps {
 }
 
 export function EditNoteForm({ note }: EditNoteFormProps) {
+  const pathname = usePathname();
+  const isCR = pathname.startsWith('/cr');
+  const notesPath = isCR ? '/cr/notes' : '/student/notes';
+
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +105,7 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
       {/* Form Actions */}
       <div className="flex items-center justify-end gap-3 pt-2">
         <Link
-          href="/student/notes"
+          href={notesPath}
           className="px-4 py-2.5 rounded-lg border border-border hover:bg-accent text-sm font-semibold transition-all"
         >
           Cancel

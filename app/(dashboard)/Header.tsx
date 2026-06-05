@@ -41,13 +41,9 @@ export function Header() {
     { href: `${prefix}/deadlines`, label: 'Deadlines' },
     { href: `${prefix}/announcements`, label: 'Announcements' },
     { href: `${prefix}/results`, label: 'Results' },
+    { href: `${prefix}/notes`, label: 'Notes' },
+    { href: `${prefix}/chat`, label: 'Chat' },
   ];
-
-  // Additional student specific links
-  if (!isCR) {
-    navItems.push({ href: `${prefix}/notes`, label: 'Notes' });
-  }
-  navItems.push({ href: `${prefix}/chat`, label: 'Chat' });
 
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();

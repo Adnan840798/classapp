@@ -2,10 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, Send, Loader2, AlertTriangle, Link as LinkIcon } from 'lucide-react';
 import { createNote } from '@/lib/actions/notes';
 
 export default function NewNotePage() {
+  const pathname = usePathname();
+  const isCR = pathname.startsWith('/cr');
+  const notesPath = isCR ? '/cr/notes' : '/student/notes';
+
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +38,7 @@ export default function NewNotePage() {
     <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <Link
-          href="/student/notes"
+          href={notesPath}
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -107,7 +112,7 @@ export default function NewNotePage() {
           {/* Form Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <Link
-              href="/student/notes"
+              href={notesPath}
               className="px-4 py-2.5 rounded-lg border border-border hover:bg-accent text-sm font-semibold transition-all"
             >
               Cancel

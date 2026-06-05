@@ -26,6 +26,7 @@ const crNavItems = [
   { href: '/cr/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/cr/deadlines', label: 'Deadlines', icon: Clock },
   { href: '/cr/results', label: 'Results', icon: Trophy },
+  { href: '/cr/notes', label: 'Notes', icon: FileText },
   { href: '/cr/chat', label: 'Chat', icon: MessageSquare },
 ];
 

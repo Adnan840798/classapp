@@ -16,6 +16,7 @@ const pageTitles: Record<string, string> = {
   '/cr/deadlines': 'Deadlines',
   '/cr/calendar': 'Calendar',
   '/cr/results': 'Exam Results',
+  '/cr/notes': 'My Notes',
   '/cr/chat': 'Class Chat',
   '/student/dashboard': 'Dashboard',
   '/student/announcements': 'Announcements',

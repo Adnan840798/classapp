@@ -37,8 +37,16 @@ export async function createNote(formData: FormData) {
 
     if (error) return { error: error.message };
 
-    revalidatePath('/student/notes');
-    redirect('/student/notes');
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+    const notesPath = isCR ? '/cr/notes' : '/student/notes';
+
+    revalidatePath(notesPath);
+    redirect(notesPath);
   } catch (err: any) {
     if (
       err instanceof Error &&
@@ -81,9 +89,17 @@ export async function updateNote(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    revalidatePath('/student/notes');
-    revalidatePath(`/student/notes/${id}`);
-    redirect('/student/notes');
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+    const notesPath = isCR ? '/cr/notes' : '/student/notes';
+
+    revalidatePath(notesPath);
+    revalidatePath(`${notesPath}/${id}`);
+    redirect(notesPath);
   } catch (err: any) {
     if (
       err instanceof Error &&
@@ -111,6 +127,7 @@ export async function deleteNote(id: string) {
     if (error) return { error: error.message };
 
     revalidatePath('/student/notes');
+    revalidatePath('/cr/notes');
     return { success: true };
   } catch (err: any) {
     console.error('deleteNote error:', err);
