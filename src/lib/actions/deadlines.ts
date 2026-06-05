@@ -33,15 +33,38 @@ export async function createDeadline(formData: FormData) {
       return { error: parsed.error.issues[0].message };
     }
 
-    const { error } = await supabase.from('deadlines').insert({
-      title: parsed.data.title,
-      subject: parsed.data.subject,
-      due_date: parsed.data.due_date,
-      description: parsed.data.description ?? null,
-      created_by: user.id,
+    let due_date = parsed.data.due_date;
+    if (due_date && !due_date.includes('+') && !due_date.endsWith('Z')) {
+      due_date = due_date + '+06:00';
+    }
+
+    const { data: deadline, error } = await supabase
+      .from('deadlines')
+      .insert({
+        title: parsed.data.title,
+        subject: parsed.data.subject,
+        due_date: due_date,
+        description: parsed.data.description ?? null,
+        created_by: user.id,
+      })
+      .select('id')
+      .single();
+
+    if (error || !deadline) {
+      return { error: error?.message || 'Failed to create deadline.' };
+    }
+
+    // ── Broadcast in-app notifications to all students ───────
+    const { error: rpcError } = await supabase.rpc('broadcast_notification', {
+      p_title: parsed.data.title,
+      p_message: `New deadline for ${parsed.data.subject}.`,
+      p_type: 'deadline',
+      p_reference_id: deadline.id,
     });
 
-    if (error) return { error: error.message };
+    if (rpcError) {
+      console.error('broadcast_notification RPC error:', rpcError);
+    }
 
     const redirectTo = formData.get('redirect_to') as string;
     revalidatePath('/cr/deadlines');

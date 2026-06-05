@@ -22,11 +22,23 @@ export function useNotifications() {
         .select('*')
         .eq('user_id', profile!.id)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(30);
 
       if (data) {
-        setNotifications(data as Notification[]);
-        setUnreadCount(data.filter((n: any) => !n.is_read).length);
+        const kept = data.slice(0, 15);
+        setNotifications(kept as Notification[]);
+        setUnreadCount(kept.filter((n: any) => !n.is_read).length);
+
+        if (data.length > 15) {
+          const obsoleteIds = data.slice(15).map((n: any) => n.id);
+          supabase
+            .from('notifications')
+            .delete()
+            .in('id', obsoleteIds)
+            .then((res: any) => {
+              if (res.error) console.error('Failed to prune database notifications:', res.error);
+            });
+        }
       }
     }
 
@@ -49,7 +61,21 @@ export function useNotifications() {
         },
         (payload: any) => {
           const newNotif = payload.new as Notification;
-          setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
+          setNotifications((prev) => {
+            const updated = [newNotif, ...prev];
+            if (updated.length > 15) {
+              const obsoleteIds = updated.slice(15).map((n) => n.id);
+              supabase
+                .from('notifications')
+                .delete()
+                .in('id', obsoleteIds)
+                .then((res: any) => {
+                  if (res.error) console.error('Failed to prune database notifications in realtime:', res.error);
+                });
+              return updated.slice(0, 15);
+            }
+            return updated;
+          });
           setUnreadCount((count) => count + 1);
 
           // Play sound if enabled

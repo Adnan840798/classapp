@@ -55,10 +55,7 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    // Use replace so the back button doesn't return to the dashboard.
-    // Do NOT call router.refresh() here — on mobile it races with replace()
-    // and can trigger an infinite redirect loop.
-    router.replace('/login');
+    window.location.href = '/';
   }
 
   return (
@@ -71,20 +68,22 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
       }}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-5 border-b border-border flex-shrink-0">
-        <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
-          }}
-        >
-          <GraduationCap className="w-4 h-4 text-white" />
-        </div>
-        <span className="font-bold text-lg gradient-text">ClassApp</span>
+      <div className="flex h-16 items-center justify-between px-5 border-b border-border flex-shrink-0">
+        <Link href="/" onClick={onClose} className="flex items-center gap-3 flex-shrink-0 cursor-pointer">
+          <div
+            className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
+            }}
+          >
+            <GraduationCap className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-lg gradient-text">ClassApp</span>
+        </Link>
         {isMobile && (
           <button
             onClick={onClose}
-            className="ml-auto p-1.5 rounded-lg hover:bg-accent transition-colors"
+            className="p-1.5 rounded-lg hover:bg-accent transition-colors"
             aria-label="Close sidebar"
           >
             <ChevronLeft className="w-4 h-4" />

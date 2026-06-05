@@ -190,11 +190,26 @@ CREATE OR REPLACE FUNCTION public.broadcast_notification(
   p_reference_id uuid DEFAULT NULL
 )
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  student_record RECORD;
 BEGIN
-  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-  SELECT p.id, p_title, p_message, p_type, p_reference_id
-  FROM public.profiles p
-  WHERE p.role = 'student';
+  FOR student_record IN 
+    SELECT id FROM public.profiles WHERE role = 'student'
+  LOOP
+    INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+    VALUES (student_record.id, p_title, p_message, p_type, p_reference_id);
+
+    -- Delete notifications beyond the latest 15 for this student
+    DELETE FROM public.notifications
+    WHERE user_id = student_record.id
+      AND id NOT IN (
+        SELECT id
+        FROM public.notifications
+        WHERE user_id = student_record.id
+        ORDER BY created_at DESC
+        LIMIT 15
+      );
+  END LOOP;
 END;
 $$;
 
@@ -210,6 +225,17 @@ RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   INSERT INTO public.notifications (user_id, title, message, type, reference_id)
   VALUES (p_student_id, p_title, p_message, p_type, p_reference_id);
+
+  -- Delete notifications beyond the latest 15 for this student
+  DELETE FROM public.notifications
+  WHERE user_id = p_student_id
+    AND id NOT IN (
+      SELECT id
+      FROM public.notifications
+      WHERE user_id = p_student_id
+      ORDER BY created_at DESC
+      LIMIT 15
+    );
 END;
 $$;
 

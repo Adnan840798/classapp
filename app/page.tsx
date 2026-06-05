@@ -8,33 +8,36 @@ export const revalidate = 0; // force dynamic rendering
 
 export default async function RootPage() {
   const supabase = await getSupabaseServerClient();
-  
+
   // Try to retrieve logged-in user session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated, redirect to the correct timeline based on role.
+  let dashboardUrl = '/login';
+  let dashboardText = 'Go to Student Dashboard';
+
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile) {
-      // Profile missing (e.g. after DB reset) — redirect to login with query param.
-      redirect('/login?error=profile_missing');
-    }
-
-    if (profile.role === 'cr' || profile.role === 'admin') {
-      redirect('/cr/timeline');
+    if (profile) {
+      if (profile.role === 'cr' || profile.role === 'admin') {
+        dashboardUrl = '/cr/timeline';
+        dashboardText = 'Go to Dashboard';
+      } else {
+        dashboardUrl = '/student/timeline';
+        dashboardText = 'Go to Dashboard';
+      }
     } else {
-      redirect('/student/timeline');
+      dashboardUrl = '/login?error=profile_missing';
     }
   }
 
-  // If visitor is unauthenticated, fetch public notices & calendar events
+  // Fetch public notices & calendar events (shown to all visitors)
   const [publicNoticesRes, publicEventsRes] = await Promise.all([
     supabase
       .from('announcements')
@@ -69,7 +72,7 @@ export default async function RootPage() {
       {/* Top Navbar */}
       {/* Top Navbar */}
       <header className="h-16 border-b border-border/80 flex items-center justify-between px-6 lg:px-12 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg"
             style={{
@@ -81,7 +84,7 @@ export default async function RootPage() {
           <span className="font-bold text-lg text-white">
             Class<span className="text-[#6366f1]">App</span>
           </span>
-        </div>
+        </Link>
       </header>
 
       {/* Hero Section */}
@@ -93,8 +96,8 @@ export default async function RootPage() {
           The central academic management and collaboration dashboard for our class. Sign in to check your personal grades, notes, ask timeline questions, and chat with classmates.
         </p>
         <div className="mt-8 flex items-center justify-center gap-4">
-          <Link href="/login" className="btn-primary py-3 px-6 text-sm font-semibold rounded-xl flex items-center gap-2">
-            Go to Student Dashboard
+          <Link href={dashboardUrl} className="btn-primary py-3 px-6 text-sm font-semibold rounded-xl flex items-center gap-2">
+            {dashboardText}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -102,7 +105,7 @@ export default async function RootPage() {
 
       {/* Public Dashboard Feed */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 lg:px-12 pb-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Public Announcements (2 cols) */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <h2 className="text-xl font-extrabold flex items-center gap-2 text-foreground">

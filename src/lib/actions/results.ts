@@ -85,11 +85,14 @@ export async function publishResult(formData: FormData) {
     const customDate = formData.get('custom_published_at') as string;
     let published_at: string | undefined = undefined;
     if (customDate) {
-      const dateObj = new Date(customDate);
+      let dateStr = customDate;
+      if (dateStr.length === 10) {
+        dateStr = `${dateStr}T12:00:00+06:00`;
+      } else if (!dateStr.includes('+') && !dateStr.endsWith('Z')) {
+        dateStr = `${dateStr}+06:00`;
+      }
+      const dateObj = new Date(dateStr);
       if (!isNaN(dateObj.getTime())) {
-        if (customDate.length === 10) {
-          dateObj.setHours(12, 0, 0, 0);
-        }
         published_at = dateObj.toISOString();
       }
     }
@@ -107,6 +110,18 @@ export async function publishResult(formData: FormData) {
 
     if (insertError || !result) {
       return { error: `Failed to publish result: ${insertError?.message || 'Unknown insert error'}` };
+    }
+
+    // ── Broadcast in-app notifications to all students ───────
+    const { error: rpcError } = await supabase.rpc('broadcast_notification', {
+      p_title: `Exam Result: ${parsed.data.exam_name}`,
+      p_message: `Results have been published. Check your marksheet.`,
+      p_type: 'result',
+      p_reference_id: result.id,
+    });
+
+    if (rpcError) {
+      console.error('broadcast_notification RPC error:', rpcError);
     }
 
     // ── If no file was attached, send a text-only Telegram post ─
