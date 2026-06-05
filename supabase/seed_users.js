@@ -67,15 +67,61 @@ const TEST_USERS = [
 async function seed() {
   console.log('🌱 Seeding test users...\n');
   for (const u of TEST_USERS) {
+    let userId;
     const { data, error } = await supabase.auth.admin.createUser(u);
     if (error) {
       if (error.message.includes('already exists')) {
-        console.log(`⚠️  ${u.email} — already exists, skipping.`);
+        console.log(`⚠️  ${u.email} — already exists in Auth.`);
+        // Find the user ID by email
+        const { data: usersData, error: listError } = await supabase.auth.admin.listUsers();
+        if (listError) {
+          console.error(`❌ Failed to list users: ${listError.message}`);
+          continue;
+        }
+        const existingUser = usersData.users.find(usr => usr.email === u.email);
+        if (existingUser) {
+          userId = existingUser.id;
+        }
       } else {
         console.error(`❌ ${u.email} — ${error.message}`);
+        continue;
       }
     } else {
-      console.log(`✅ ${u.email} — created (${data.user.id})`);
+      userId = data.user.id;
+      console.log(`✅ ${u.email} — created in Auth (${userId})`);
+    }
+
+    if (userId) {
+      // Ensure profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error(`❌ Error checking profile for ${u.email}: ${profileError.message}`);
+      } else if (!profile) {
+        console.log(`🔧 Re-creating missing profile for ${u.email}...`);
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: u.email,
+            full_name: u.user_metadata.full_name,
+            university_id: u.user_metadata.university_id,
+            role: u.user_metadata.role,
+            batch: u.user_metadata.batch,
+            department: u.user_metadata.department
+          });
+        if (insertError) {
+          console.error(`❌ Failed to insert profile for ${u.email}: ${insertError.message}`);
+        } else {
+          console.log(`✅ Profile created for ${u.email}`);
+        }
+      } else {
+        console.log(`✨ Profile already exists for ${u.email}`);
+      }
     }
   }
   console.log('\n✨ Done!');

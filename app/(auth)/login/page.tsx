@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, CheckCircle } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
-  const router = useRouter();
   const captchaRef = useRef<HCaptcha>(null);
+
 
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -35,6 +35,13 @@ export default function LoginPage() {
       if (host === 'localhost' || host === '127.0.0.1') {
         setIsLocalhost(true);
         setCaptchaToken('dev-bypass-token');
+      }
+
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('error') === 'profile_missing') {
+        setError('Your profile could not be found. Please register or contact an administrator.');
+        const supabase = getSupabaseBrowserClient();
+        supabase.auth.signOut().catch(console.error);
       }
     }
   }, []);
@@ -79,17 +86,11 @@ export default function LoginPage() {
       if (signInError) throw new Error(signInError.message);
       if (!data.user) throw new Error('Login failed. Please try again.');
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
+      // Force a full page reload so the server receives the fresh session cookie.
+      // router.push() is a soft navigation — it re-uses stale request cookies,
+      // causing the server to see no session and redirect back to /login.
+      window.location.href = '/';
 
-      if (profile?.role === 'cr' || profile?.role === 'admin') {
-        router.push('/cr/dashboard');
-      } else {
-        router.push('/student/dashboard');
-      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);
@@ -178,8 +179,8 @@ export default function LoginPage() {
       if (!signUpData.user) throw new Error('Registration failed. Please try again.');
 
       if (signUpData.session) {
-        // Logged in immediately
-        router.push('/student/dashboard');
+        // Logged in immediately — force full reload so server sees the new session cookie
+        window.location.href = '/';
       } else {
         // Needs email confirmation
         setIsSuccess(true);

@@ -23,8 +23,12 @@ export default async function CRLayout({
     .eq('id', user.id)
     .single();
 
-  if (!profile || profile.role === 'student') {
-    redirect('/student/dashboard');
+  if (!profile) {
+    redirect('/login?error=profile_missing');
+  }
+
+  if (profile.role === 'student') {
+    redirect('/student/timeline');
   }
 
   return <>{children}</>;

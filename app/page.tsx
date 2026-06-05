@@ -14,7 +14,7 @@ export default async function RootPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated, redirect them to dashboard
+  // If user is authenticated, redirect to the correct timeline based on role.
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -22,10 +22,15 @@ export default async function RootPage() {
       .eq('id', user.id)
       .single();
 
-    if (profile?.role === 'cr' || profile?.role === 'admin') {
-      redirect('/cr/dashboard');
+    if (!profile) {
+      // Profile missing (e.g. after DB reset) — redirect to login with query param.
+      redirect('/login?error=profile_missing');
+    }
+
+    if (profile.role === 'cr' || profile.role === 'admin') {
+      redirect('/cr/timeline');
     } else {
-      redirect('/student/dashboard');
+      redirect('/student/timeline');
     }
   }
 

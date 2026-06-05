@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+
 import { Menu, X, LogOut, Bell } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
@@ -11,7 +12,7 @@ import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
+
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,8 +35,9 @@ export function Header() {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    router.replace('/login');
+    window.location.href = '/login';
   }
+
 
   const initials = profile ? getInitials(profile.full_name) : 'U';
 

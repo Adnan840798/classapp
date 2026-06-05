@@ -23,8 +23,12 @@ export default async function StudentLayout({
     .eq('id', user.id)
     .single();
 
-  if (!profile || profile.role === 'cr' || profile.role === 'admin') {
-    redirect('/cr/dashboard');
+  if (!profile) {
+    redirect('/login?error=profile_missing');
+  }
+
+  if (profile.role === 'cr' || profile.role === 'admin') {
+    redirect('/cr/timeline');
   }
 
   return <>{children}</>;
