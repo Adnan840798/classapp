@@ -15,66 +15,93 @@ const CalendarEventSchema = z.object({
 });
 
 export async function createCalendarEvent(formData: FormData) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  const raw = {
-    title: formData.get('title') as string,
-    description: (formData.get('description') as string) || undefined,
-    event_date: formData.get('event_date') as string,
-    event_type: formData.get('event_type') as string || 'other',
-    is_public: formData.get('is_public') === 'true',
-    qa_enabled: formData.get('qa_enabled') === 'true',
-  };
-
-  const parsed = CalendarEventSchema.safeParse(raw);
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
-
-  const { error } = await supabase.from('calendar_events').insert({
-    ...parsed.data,
-    description: parsed.data.description ?? null,
-    created_by: user.id,
-  });
-
-  if (error) return { error: error.message };
-
-  revalidatePath('/cr/calendar');
-  revalidatePath('/student/calendar');
-  redirect('/cr/calendar');
-}
-
-export async function updateCalendarEvent(id: string, formData: FormData) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const { error } = await supabase
-    .from('calendar_events')
-    .update({
+    const raw = {
       title: formData.get('title') as string,
-      description: (formData.get('description') as string) || null,
+      description: (formData.get('description') as string) || undefined,
       event_date: formData.get('event_date') as string,
       event_type: formData.get('event_type') as string || 'other',
       is_public: formData.get('is_public') === 'true',
       qa_enabled: formData.get('qa_enabled') === 'true',
-    })
-    .eq('id', id);
+    };
 
-  if (error) return { error: error.message };
+    const parsed = CalendarEventSchema.safeParse(raw);
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  revalidatePath('/cr/calendar');
-  revalidatePath('/student/calendar');
-  redirect('/cr/calendar');
+    const { error } = await supabase.from('calendar_events').insert({
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      created_by: user.id,
+    });
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/cr/calendar');
+    revalidatePath('/student/calendar');
+    redirect('/cr/calendar');
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('createCalendarEvent error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function updateCalendarEvent(id: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({
+        title: formData.get('title') as string,
+        description: (formData.get('description') as string) || null,
+        event_date: formData.get('event_date') as string,
+        event_type: formData.get('event_type') as string || 'other',
+        is_public: formData.get('is_public') === 'true',
+        qa_enabled: formData.get('qa_enabled') === 'true',
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/cr/calendar');
+    revalidatePath('/student/calendar');
+    redirect('/cr/calendar');
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('updateCalendarEvent error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
 }
 
 export async function deleteCalendarEvent(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const { error } = await supabase.from('calendar_events').delete().eq('id', id);
-  if (error) return { error: error.message };
-  revalidatePath('/cr/calendar');
-  revalidatePath('/student/calendar');
-  return { success: true };
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { error } = await supabase.from('calendar_events').delete().eq('id', id);
+    if (error) return { error: error.message };
+    revalidatePath('/cr/calendar');
+    revalidatePath('/student/calendar');
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteCalendarEvent error:', err);
+    return { error: err.message || 'An unexpected error occurred during deletion.' };
+  }
 }
 
 // Helper to revalidate paths for a question
@@ -101,39 +128,61 @@ async function revalidateQuestionPaths(supabase: any, questionId: string) {
 
 // Q&A actions
 export async function answerQuestion(questionId: string, formData: FormData) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  const answer = formData.get('answer') as string;
-  if (!answer || answer.length > 1000) return { error: 'Invalid answer.' };
+    const answer = formData.get('answer') as string;
+    if (!answer || answer.length > 1000) return { error: 'Invalid answer.' };
 
-  const { error } = await supabase.from('timeline_answers').insert({
-    question_id: questionId,
-    answered_by: user.id,
-    answer,
-  });
+    const { error } = await supabase.from('timeline_answers').insert({
+      question_id: questionId,
+      answered_by: user.id,
+      answer,
+    });
 
-  if (error) return { error: error.message };
-  
-  await revalidateQuestionPaths(supabase, questionId);
-  return { success: true };
+    if (error) return { error: error.message };
+    
+    await revalidateQuestionPaths(supabase, questionId);
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('answerQuestion error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
 }
 
 export async function resolveQuestion(questionId: string) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  const { error } = await supabase
-    .from('timeline_questions')
-    .update({ is_resolved: true, resolved_by: user.id, resolved_at: new Date().toISOString() })
-    .eq('id', questionId);
+    const { error } = await supabase
+      .from('timeline_questions')
+      .update({ is_resolved: true, resolved_by: user.id, resolved_at: new Date().toISOString() })
+      .eq('id', questionId);
 
-  if (error) return { error: error.message };
+    if (error) return { error: error.message };
 
-  await revalidateQuestionPaths(supabase, questionId);
-  return { success: true };
+    await revalidateQuestionPaths(supabase, questionId);
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('resolveQuestion error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
 }
 
 export async function askQuestion(
@@ -141,38 +190,49 @@ export async function askQuestion(
   entityType: 'event' | 'announcement' | 'deadline',
   formData: FormData
 ) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  const question = formData.get('question') as string;
-  if (!question || question.length > 500) return { error: 'Question must be 1–500 characters.' };
+    const question = formData.get('question') as string;
+    if (!question || question.length > 500) return { error: 'Question must be 1–500 characters.' };
 
-  const insertData: Record<string, any> = {
-    asked_by: user.id,
-    question,
-  };
+    const insertData: Record<string, any> = {
+      asked_by: user.id,
+      question,
+    };
 
-  if (entityType === 'event') {
-    insertData.event_id = entityId;
-  } else if (entityType === 'announcement') {
-    insertData.announcement_id = entityId;
-  } else if (entityType === 'deadline') {
-    insertData.deadline_id = entityId;
+    if (entityType === 'event') {
+      insertData.event_id = entityId;
+    } else if (entityType === 'announcement') {
+      insertData.announcement_id = entityId;
+    } else if (entityType === 'deadline') {
+      insertData.deadline_id = entityId;
+    }
+
+    const { error } = await supabase.from('timeline_questions').insert(insertData);
+
+    if (error) return { error: error.message };
+
+    if (entityType === 'event') {
+      revalidatePath(`/student/calendar/${entityId}`);
+    } else if (entityType === 'announcement') {
+      revalidatePath(`/student/announcements/${entityId}`);
+    } else if (entityType === 'deadline') {
+      revalidatePath(`/student/deadlines/${entityId}`);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('askQuestion error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
   }
-
-  const { error } = await supabase.from('timeline_questions').insert(insertData);
-
-  if (error) return { error: error.message };
-
-  if (entityType === 'event') {
-    revalidatePath(`/student/calendar/${entityId}`);
-  } else if (entityType === 'announcement') {
-    revalidatePath(`/student/announcements/${entityId}`);
-  } else if (entityType === 'deadline') {
-    revalidatePath(`/student/deadlines/${entityId}`);
-  }
-
-  return { success: true };
 }
 

@@ -1,0 +1,287 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { CalendarDays, Upload, X, Trash2, Download, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileUpload } from '@/components/ui/FileUpload';
+import { uploadRoutine, deleteRoutine } from '@/lib/actions/timeline';
+import { useRouter } from 'next/navigation';
+
+interface RoutineButtonProps {
+  initialImageUrl: string | null;
+  isCR: boolean;
+}
+
+export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  // Handle uploading a new routine image
+  async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const routineFile = formData.get('routine') as File | null;
+    if (!routineFile || routineFile.size === 0) {
+      setError('Please select an image file first.');
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await uploadRoutine(formData);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setIsUploadOpen(false);
+        setIsModalOpen(true); // Open the view modal after success
+        // Refresh page to sync state
+        router.refresh();
+        // Set local state as well
+        const freshRes = await fetch('/api/routine-url').then(r => r.json()).catch(() => null);
+        if (freshRes?.image_url) {
+          setImageUrl(freshRes.image_url);
+        } else {
+          // Fallback refresh page should work
+          window.location.reload();
+        }
+      }
+    });
+  }
+
+  // Handle deleting the routine
+  function handleDelete() {
+    if (!confirm('Are you sure you want to delete the class routine?')) return;
+    setError(null);
+
+    startTransition(async () => {
+      const res = await deleteRoutine();
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setImageUrl(null);
+        setIsModalOpen(false);
+        router.refresh();
+      }
+    });
+  }
+
+  // Handle download of the routine image
+  async function handleDownload() {
+    if (!imageUrl) return;
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `class_routine_${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      // Fallback open in new tab
+      window.open(imageUrl, '_blank');
+    }
+  }
+
+  // Render buttons based on state
+  if (!imageUrl) {
+    if (isCR) {
+      return (
+        <>
+          <button
+            onClick={() => {
+              setError(null);
+              setIsUploadOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[#1e2a4a] text-slate-300 hover:text-white bg-[#131929] hover:bg-[#1b253f] font-semibold rounded-xl transition-all cursor-pointer"
+          >
+            <Upload className="w-4 h-4" />
+            Add Routine
+          </button>
+
+          {/* Upload Routine Modal */}
+          {isUploadOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <div 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                onClick={() => !isPending && setIsUploadOpen(false)}
+              />
+              
+              {/* Modal Content */}
+              <div className="relative bg-background border border-border w-full max-w-md rounded-2xl shadow-2xl p-6 overflow-hidden z-10 scale-in-animation">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-foreground">Upload Class Routine</h3>
+                  <button
+                    onClick={() => setIsUploadOpen(false)}
+                    disabled={isPending}
+                    className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUpload} className="space-y-4">
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 text-sm rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <FileUpload
+                    name="routine"
+                    accept="image/jpeg,image/png,image/webp"
+                    label="Class Routine Image"
+                    disabled={isPending}
+                  />
+
+                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+                    <button
+                      type="button"
+                      onClick={() => setIsUploadOpen(false)}
+                      disabled={isPending}
+                      className="px-4 py-2 rounded-xl text-sm font-semibold hover:bg-accent border border-border transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      className="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-xl shadow-lg transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {isPending ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        'Upload'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    } else {
+      return (
+        <button
+          disabled
+          className="flex items-center gap-2 px-4 py-2 border border-[#141b30] text-slate-500 bg-[#080a14] font-semibold rounded-xl cursor-not-allowed opacity-60"
+        >
+          <CalendarDays className="w-4 h-4" />
+          Routine Unavailable
+        </button>
+      );
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          setError(null);
+          setIsModalOpen(true);
+        }}
+        className="flex items-center gap-2 px-4 py-2 border border-[#6366f1]/30 hover:border-[#6366f1]/50 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#a5b4fc] font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
+      >
+        <CalendarDays className="w-4 h-4" />
+        View Class Routine
+      </button>
+
+      {/* View Routine Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+            onClick={() => !isPending && setIsModalOpen(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative bg-background border border-border w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[85vh] scale-in-animation">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-accent/10">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Class Routine</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                {isCR && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setIsUploadOpen(true);
+                      }}
+                      disabled={isPending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:bg-accent rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                      title="Replace current routine"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Replace
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={isPending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 text-destructive rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                      title="Delete routine"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={handleDownload}
+                  className="p-2 rounded-lg hover:bg-accent text-foreground transition-colors cursor-pointer"
+                  title="Download Image"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <div className="w-[1px] h-6 bg-border mx-1" />
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="flex-1 overflow-auto p-6 bg-accent/5 flex items-center justify-center min-h-[300px]">
+              {imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageUrl}
+                  alt="Class Routine"
+                  className="max-w-full max-h-[60vh] object-contain rounded-lg border border-border/40 shadow-md"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Routine image loading error.</p>
+              )}
+            </div>
+
+            {/* Error display */}
+            {error && (
+              <div className="px-6 py-3 bg-destructive/10 border-t border-destructive/20 text-destructive text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

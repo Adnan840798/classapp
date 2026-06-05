@@ -113,7 +113,7 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
             <MessageSquare className="w-10 h-10 text-muted-foreground opacity-30" />
             <h4 className="text-sm font-semibold">No questions yet</h4>
             <p className="text-xs text-muted-foreground">
-              Students haven't asked any questions about this deadline.
+              Students haven&apos;t asked any questions about this deadline.
             </p>
           </div>
         ) : (

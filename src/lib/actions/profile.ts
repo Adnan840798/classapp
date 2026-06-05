@@ -20,83 +20,94 @@ const ProfileSchema = z.object({
 });
 
 export async function updateProfile(formData: FormData) {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  const raw = {
-    full_name: formData.get('full_name') as string,
-    phone: (formData.get('phone') as string) || null,
-    facebook_id: (formData.get('facebook_id') as string) || null,
-    whatsapp: (formData.get('whatsapp') as string) || null,
-    telegram_handle: (formData.get('telegram_handle') as string) || null,
-    blood_group: (formData.get('blood_group') as string) || null,
-    address: (formData.get('address') as string) || null,
-    notif_enabled: formData.get('notif_enabled') === 'true',
-    notif_sound_on: formData.get('notif_sound_on') === 'true',
-  };
+    const raw = {
+      full_name: formData.get('full_name') as string,
+      phone: (formData.get('phone') as string) || null,
+      facebook_id: (formData.get('facebook_id') as string) || null,
+      whatsapp: (formData.get('whatsapp') as string) || null,
+      telegram_handle: (formData.get('telegram_handle') as string) || null,
+      blood_group: (formData.get('blood_group') as string) || null,
+      address: (formData.get('address') as string) || null,
+      notif_enabled: formData.get('notif_enabled') === 'true',
+      notif_sound_on: formData.get('notif_sound_on') === 'true',
+    };
 
-  const parsed = ProfileSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0].message };
-  }
-
-  // Handle avatar upload if provided
-  let profile_pic_url: string | null = null;
-  const avatarFile = formData.get('avatar') as File | null;
-  
-  if (avatarFile && avatarFile.size > 0) {
-    if (!avatarFile.type.startsWith('image/')) {
-      return { error: 'Only images are accepted for profile picture.' };
-    }
-    if (avatarFile.size > 2 * 1024 * 1024) {
-      return { error: 'Avatar must be under 2MB.' };
+    const parsed = ProfileSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0].message };
     }
 
-    const path = generateStoragePath(user.id, avatarFile.name);
+    // Handle avatar upload if provided
+    let profile_pic_url: string | null = null;
+    const avatarFile = formData.get('avatar') as File | null;
     
-    // Upload image
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKETS.AVATARS)
-      .upload(path, avatarFile, { contentType: avatarFile.type, upsert: true });
+    if (avatarFile && avatarFile.size > 0) {
+      if (!avatarFile.type.startsWith('image/')) {
+        return { error: 'Only images are accepted for profile picture.' };
+      }
+      if (avatarFile.size > 2 * 1024 * 1024) {
+        return { error: 'Avatar must be under 2MB.' };
+      }
 
-    if (uploadError) {
-      return { error: `Avatar upload failed: ${uploadError.message}` };
+      const path = generateStoragePath(user.id, avatarFile.name);
+      
+      // Upload image
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKETS.AVATARS)
+        .upload(path, avatarFile, { contentType: avatarFile.type, upsert: true });
+
+      if (uploadError || !uploadData) {
+        return { error: `Avatar upload failed: ${uploadError?.message || 'Unknown upload error'}` };
+      }
+
+      const { data: urlData } = supabase.storage
+        .from(STORAGE_BUCKETS.AVATARS)
+        .getPublicUrl(uploadData.path);
+
+      profile_pic_url = urlData.publicUrl;
     }
 
-    const { data: urlData } = supabase.storage
-      .from(STORAGE_BUCKETS.AVATARS)
-      .getPublicUrl(uploadData.path);
+    const updateData: any = {
+      full_name: parsed.data.full_name,
+      phone: parsed.data.phone,
+      facebook_id: parsed.data.facebook_id,
+      whatsapp: parsed.data.whatsapp,
+      telegram_handle: parsed.data.telegram_handle,
+      blood_group: parsed.data.blood_group,
+      address: parsed.data.address,
+      notif_enabled: parsed.data.notif_enabled,
+      notif_sound_on: parsed.data.notif_sound_on,
+      updated_at: new Date().toISOString(),
+    };
 
-    profile_pic_url = urlData.publicUrl;
+    if (profile_pic_url) {
+      updateData.profile_pic_url = profile_pic_url;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/student/profile');
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('updateProfile error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
   }
-
-  const updateData: any = {
-    full_name: parsed.data.full_name,
-    phone: parsed.data.phone,
-    facebook_id: parsed.data.facebook_id,
-    whatsapp: parsed.data.whatsapp,
-    telegram_handle: parsed.data.telegram_handle,
-    blood_group: parsed.data.blood_group,
-    address: parsed.data.address,
-    notif_enabled: parsed.data.notif_enabled,
-    notif_sound_on: parsed.data.notif_sound_on,
-    updated_at: new Date().toISOString(),
-  };
-
-  if (profile_pic_url) {
-    updateData.profile_pic_url = profile_pic_url;
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .update(updateData)
-    .eq('id', user.id);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath('/student/profile');
-  return { success: true };
 }

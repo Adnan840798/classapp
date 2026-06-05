@@ -85,28 +85,28 @@ export async function middleware(request: NextRequest) {
   // ── Redirect root ────────────────────────────────────────
   if (pathname === '/') {
     const url = request.nextUrl.clone();
-    url.pathname = role === 'cr' || role === 'admin' ? '/cr/dashboard' : '/student/dashboard';
+    url.pathname = role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
     return NextResponse.redirect(url);
   }
 
   // ── Redirect login if already authed ────────────────────
   if (pathname === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = role === 'cr' || role === 'admin' ? '/cr/dashboard' : '/student/dashboard';
+    url.pathname = role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
     return NextResponse.redirect(url);
   }
 
   // ── Guard CR routes ──────────────────────────────────────
   if (pathname.startsWith('/cr') && role === 'student') {
     const url = request.nextUrl.clone();
-    url.pathname = '/student/dashboard';
+    url.pathname = '/student/timeline';
     return NextResponse.redirect(url);
   }
 
   // ── Guard Student routes ─────────────────────────────────
   if (pathname.startsWith('/student') && (role === 'cr' || role === 'admin')) {
     const url = request.nextUrl.clone();
-    url.pathname = '/cr/dashboard';
+    url.pathname = '/cr/timeline';
     return NextResponse.redirect(url);
   }
 

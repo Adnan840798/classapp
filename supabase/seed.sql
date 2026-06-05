@@ -1,22 +1,33 @@
 -- ============================================================
--- seed.sql — ClassApp: Test Accounts
+-- seed.sql — ClassApp: Seeding test accounts
 -- ============================================================
--- Run this AFTER running migrations 0001, 0002, 0003
--- IMPORTANT: First create these users in Supabase Auth dashboard
--- or via Supabase CLI, then run this to populate their profiles.
 --
--- Test Credentials:
---   CR:      cr@classapp.test     / Password123!
---   Student: student@classapp.test / Password123!
---   Admin:   admin@classapp.test  / Password123!
+-- METHOD 1: Automated Script (Recommended)
+-- ------------------------------------------------------------
+-- Simply run the Node.js script:
+--   node supabase/seed_users.js
 --
--- After creating Auth users, replace the UUIDs below with real ones.
+-- This script uses the Supabase Admin API to create the Auth users.
+-- The database trigger (handle_new_user) will automatically populate
+-- the public.profiles table with roles, names, batch, etc.
+--
+--
+-- METHOD 2: Manual Seeding via Supabase SQL Editor
+-- ------------------------------------------------------------
+-- 1. Sign up/create the following 3 users via your Supabase Auth dashboard:
+--
+--    Role      | Email                  | Password
+--    ----------|------------------------|-------------
+--    CR        | cr@classapp.test       | Password123!
+--    Student   | student@classapp.test  | Password123!
+--    Admin     | admin@classapp.test    | Password123!
+--
+-- 2. Go to the Auth Users table and copy each user's ID (UUID).
+-- 3. Replace 'YOUR_CR_UUID', 'YOUR_STUDENT_UUID', and 'YOUR_ADMIN_UUID' below.
+-- 4. Uncomment and run this SQL script.
+--
 -- ============================================================
 
--- Example: replace 'YOUR_CR_UUID', 'YOUR_STUDENT_UUID', 'YOUR_ADMIN_UUID'
--- with the actual UUIDs from auth.users after signup.
-
--- Uncomment and fill in after creating auth users:
 /*
 INSERT INTO profiles (id, full_name, university_id, email, role, batch, department)
 VALUES

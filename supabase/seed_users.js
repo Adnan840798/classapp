@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * seed_users.js — ClassApp: Create test accounts in Supabase Auth
  *
@@ -29,19 +30,37 @@ const TEST_USERS = [
     email: 'cr@classapp.test',
     password: 'Password123!',
     email_confirm: true,
-    user_metadata: { full_name: 'Class Representative', university_id: 'CR-001', role: 'cr' },
+    user_metadata: {
+      full_name: 'Class Representative',
+      university_id: 'CR-001',
+      role: 'cr',
+      batch: '2022',
+      department: 'Computer Science'
+    },
   },
   {
     email: 'student@classapp.test',
     password: 'Password123!',
     email_confirm: true,
-    user_metadata: { full_name: 'Test Student', university_id: 'STU-001', role: 'student' },
+    user_metadata: {
+      full_name: 'Test Student',
+      university_id: 'STU-001',
+      role: 'student',
+      batch: '2022',
+      department: 'Computer Science'
+    },
   },
   {
     email: 'admin@classapp.test',
     password: 'Password123!',
     email_confirm: true,
-    user_metadata: { full_name: 'Administrator', university_id: 'ADMIN-001', role: 'admin' },
+    user_metadata: {
+      full_name: 'Administrator',
+      university_id: 'ADMIN-001',
+      role: 'admin',
+      batch: '2022',
+      department: 'Computer Science'
+    },
   },
 ];
 

@@ -64,16 +64,10 @@ export interface DeadlineWithColor extends Deadline {
 // ── Exam Results ───────────────────────────────────────────
 export interface ExamResult {
   id: string;
-  student_id: string;
   exam_name: string;
-  subject: string;
-  marks: number | null;
-  total_marks: number | null;
-  grade: string | null;
   result_sheet_url: string | null;
   published_by: string | null;
   published_at: string;
-  student?: Pick<Profile, 'full_name' | 'university_id' | 'email'>;
 }
 
 // ── Calendar Events ────────────────────────────────────────
@@ -172,11 +166,6 @@ export interface CalendarEventFormData {
 }
 
 export interface ResultFormData {
-  university_id: string;
   exam_name: string;
-  subject: string;
-  marks: string;
-  total_marks: string;
-  grade: string;
   result_sheet?: File;
 }

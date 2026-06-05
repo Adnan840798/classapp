@@ -22,19 +22,17 @@ import { useRouter } from 'next/navigation';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 const crNavItems = [
-  { href: '/cr/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/cr/timeline', label: 'Timeline', icon: CalendarDays },
   { href: '/cr/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/cr/deadlines', label: 'Deadlines', icon: Clock },
-  { href: '/cr/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/cr/results', label: 'Results', icon: Trophy },
   { href: '/cr/chat', label: 'Chat', icon: MessageSquare },
 ];
 
 const studentNavItems = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/student/timeline', label: 'Timeline', icon: CalendarDays },
   { href: '/student/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/student/deadlines', label: 'Deadlines', icon: Clock },
-  { href: '/student/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/student/results', label: 'My Results', icon: Trophy },
   { href: '/student/notes', label: 'Notes', icon: FileText },
   { href: '/student/chat', label: 'Chat', icon: MessageSquare },
@@ -115,8 +113,8 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
           const Icon = item.icon;
           const isActive =
             pathname === item.href ||
-            (item.href !== '/cr/dashboard' &&
-              item.href !== '/student/dashboard' &&
+            (item.href !== '/cr/timeline' &&
+              item.href !== '/student/timeline' &&
               pathname.startsWith(item.href));
 
           return (

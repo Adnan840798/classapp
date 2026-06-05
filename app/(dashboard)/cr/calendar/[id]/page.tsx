@@ -110,7 +110,7 @@ export default async function CRCalendarDetailPage({ params }: CRCalendarDetailP
             <MessageSquare className="w-10 h-10 text-muted-foreground opacity-30" />
             <h4 className="text-sm font-semibold">No questions yet</h4>
             <p className="text-xs text-muted-foreground">
-              Students haven't asked any questions about this event.
+              Students haven&apos;t asked any questions about this event.
             </p>
           </div>
         ) : (

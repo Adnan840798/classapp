@@ -7,7 +7,7 @@ const config = {
   appName: 'ClassApp',
   webDir: 'out',
   server: {
-    url: 'https://your-app.vercel.app',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app',
     cleartext: true,
   },
 };

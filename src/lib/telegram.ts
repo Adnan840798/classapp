@@ -1,6 +1,6 @@
 /**
  * Telegram Bot API helper.
- * Called from server-side API routes only.
+ * Called from server-side API routes and server actions only.
  * Never import this in client components.
  */
 
@@ -12,7 +12,7 @@ interface SendMessageResult {
 }
 
 /**
- * Sends a formatted message to the class Telegram channel.
+ * Sends a formatted text message to the class Telegram channel.
  */
 export async function sendTelegramMessage(
   title: string,
@@ -53,6 +53,63 @@ export async function sendTelegramMessage(
   } catch (error) {
     console.error('Failed to send Telegram message:', error);
     return { success: false, error: 'Network error sending Telegram message' };
+  }
+}
+
+/**
+ * Sends a file (image or document) to the Telegram channel.
+ *
+ * For images  → uses sendPhoto  (inline preview in the channel).
+ * For PDFs    → uses sendDocument (file download button).
+ *
+ * The file is sent at its ORIGINAL size — no compression applied here.
+ * Compression happens separately before writing to Supabase storage.
+ *
+ * @param file     - The original File object (from FormData)
+ * @param caption  - Short caption shown beneath the file in Telegram
+ */
+export async function sendTelegramFile(
+  file: File,
+  caption: string
+): Promise<SendMessageResult> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+
+  if (!botToken || !channelId) {
+    console.warn('Telegram credentials not configured. Skipping Telegram file post.');
+    return { success: false, error: 'Telegram not configured' };
+  }
+
+  const isImage = file.type.startsWith('image/');
+  const endpoint = isImage ? 'sendPhoto' : 'sendDocument';
+  const fieldName = isImage ? 'photo' : 'document';
+
+  try {
+    const form = new FormData();
+    form.set('chat_id', channelId);
+    // Telegram caption limit is 1024 chars; truncate safely
+    form.set('caption', caption.slice(0, 1020));
+    // Append the file under the correct field name for the API endpoint
+    form.set(fieldName, file, file.name);
+
+    const response = await fetch(
+      `${TELEGRAM_API_BASE}${botToken}/${endpoint}`,
+      {
+        method: 'POST',
+        body: form,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(`Telegram ${endpoint} error:`, error);
+      return { success: false, error: error.description ?? 'Telegram API error' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send Telegram file:', error);
+    return { success: false, error: 'Network error sending Telegram file' };
   }
 }
 

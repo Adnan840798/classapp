@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Loader2, Paperclip, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, AlertTriangle } from 'lucide-react';
 import { createAnnouncement } from '@/lib/actions/announcements';
+import { FileUpload } from '@/components/ui/FileUpload';
 
 export default function NewAnnouncementPage() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,32 +16,26 @@ export default function NewAnnouncementPage() {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
-    
+
     try {
       const res = await createAnnouncement(formData);
+      // res is only returned when there is an error; on success the action redirects
       if (res && res.error) {
         setError(res.error);
         setIsPending(false);
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      // Next.js redirect() throws a special internal error — ignore it, the
+      // redirect already happened and no error should be shown to the user.
+      if (
+        err instanceof Error &&
+        (err.message === 'NEXT_REDIRECT' || (err as { digest?: string }).digest?.startsWith('NEXT_REDIRECT'))
+      ) {
+        return;
+      }
       console.error(err);
       setError('An unexpected error occurred. Please try again.');
       setIsPending(false);
-    }
-  }
-
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File must be under 5MB.');
-        event.target.value = '';
-        setFileName(null);
-        return;
-      }
-      setFileName(file.name);
-    } else {
-      setFileName(null);
     }
   }
 
@@ -96,56 +90,23 @@ export default function NewAnnouncementPage() {
               name="body"
               required
               rows={6}
-              placeholder="Write the announcements details here..."
+              placeholder="Write the announcement details here..."
               maxLength={5000}
               className="form-input resize-none"
               disabled={isPending}
             />
           </div>
 
-          {/* Attachment */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">
-              Attachment (Image or PDF)
-            </label>
-            <div className="relative border border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-accent/30 transition-colors cursor-pointer">
-              <input
-                type="file"
-                name="attachment"
-                accept="image/*,application/pdf"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                onChange={handleFileChange}
-                disabled={isPending}
-              />
-              <Paperclip className="w-8 h-8 text-muted-foreground opacity-50" />
-              <p className="text-xs text-muted-foreground text-center">
-                {fileName ? (
-                  <span className="font-semibold text-primary">{fileName}</span>
-                ) : (
-                  'Drag and drop or click to upload (max 5MB)'
-                )}
-              </p>
-            </div>
-          </div>
+          {/* Attachment — reusable component */}
+          <FileUpload
+            name="attachment"
+            accept="image/*,application/pdf"
+            label="Attachment (Image or PDF)"
+            disabled={isPending}
+          />
 
-          {/* Checkboxes */}
+          {/* Public visibility checkbox only */}
           <div className="flex flex-col gap-4 border-t border-border pt-4">
-            <div className="flex items-center gap-3">
-              <div className="relative flex items-center">
-                <input
-                  id="is_important"
-                  name="is_important"
-                  value="true"
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 bg-background"
-                  disabled={isPending}
-                />
-              </div>
-              <label htmlFor="is_important" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                Mark as <span className="text-red-400 font-semibold">Important</span> (Red accent & highlighted)
-              </label>
-            </div>
-
             <div className="flex items-center gap-3">
               <div className="relative flex items-center">
                 <input
