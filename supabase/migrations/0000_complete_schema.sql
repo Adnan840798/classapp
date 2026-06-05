@@ -2,17 +2,15 @@
 -- 0000_complete_schema.sql — ClassApp: Complete Database Setup
 -- ============================================================
 -- Run this single file in Supabase SQL Editor against a FRESH
--- (reset) database to create all tables, RLS policies, functions,
--- storage buckets, realtime config, and Q&A extensions in one shot.
+-- (reset) database to create all tables, functions, RLS policies,
+-- storage buckets, and realtime config in one shot.
 --
 -- Order of sections:
---   1. Enums & Tables         (was: 0001_schema.sql)
---   2. Row Level Security     (was: 0002_rls.sql)
---   3. Functions & Triggers   (was: 0003_functions.sql)
---   4. Storage Buckets        (was: 0004_storage.sql)
---   5. Realtime               (was: 0005_realtime.sql)
---   6. Generalized Q&A        (was: 0006_generalized_qna.sql)
---   7. Class Routine          (was: 0007_class_routine.sql)
+--   1. Enums & Tables
+--   2. Functions & Triggers (Must precede RLS policies using them)
+--   3. Row Level Security
+--   4. Storage Buckets & Policies
+--   5. Realtime
 -- ============================================================
 
 
@@ -162,7 +160,100 @@ CREATE TABLE IF NOT EXISTS public.class_routine (
 
 
 -- ============================================================
--- SECTION 2: Row Level Security
+-- SECTION 2: Functions & Triggers
+-- ============================================================
+
+-- 1. update_updated_at — auto-timestamps on UPDATE
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
+CREATE TRIGGER profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+DROP TRIGGER IF EXISTS notes_updated_at ON public.notes;
+CREATE TRIGGER notes_updated_at
+  BEFORE UPDATE ON public.notes
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- 2. broadcast_notification — inserts one notification per student
+CREATE OR REPLACE FUNCTION public.broadcast_notification(
+  p_title        text,
+  p_message      text,
+  p_type         public.notif_type,
+  p_reference_id uuid DEFAULT NULL
+)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+  SELECT p.id, p_title, p_message, p_type, p_reference_id
+  FROM public.profiles p
+  WHERE p.role = 'student';
+END;
+$$;
+
+-- 3. notify_single_student — targeted notification for one student
+CREATE OR REPLACE FUNCTION public.notify_single_student(
+  p_student_id   uuid,
+  p_title        text,
+  p_message      text,
+  p_type         public.notif_type,
+  p_reference_id uuid DEFAULT NULL
+)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+  VALUES (p_student_id, p_title, p_message, p_type, p_reference_id);
+END;
+$$;
+
+-- 4. get_my_role — helper used by RLS policies
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS public.user_role LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$;
+
+-- 5. handle_new_user — auto-creates a profile row on Supabase Auth signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, university_id, role, batch, department)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    COALESCE(NEW.raw_user_meta_data->>'university_id', NEW.id::text),
+    COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'student'),
+    NEW.raw_user_meta_data->>'batch',
+    NEW.raw_user_meta_data->>'department'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 6. auto_delete_old_chat — optional pg_cron job (requires pg_cron extension)
+-- Uncomment after enabling pg_cron in Supabase Dashboard → Extensions:
+-- SELECT cron.schedule(
+--   'delete-old-chat-messages',
+--   '0 3 * * *',
+--   $$ DELETE FROM public.chat_messages WHERE created_at < now() - INTERVAL '30 days'; $$
+-- );
+
+
+-- ============================================================
+-- SECTION 3: Row Level Security
 -- ============================================================
 
 ALTER TABLE profiles            ENABLE ROW LEVEL SECURITY;
@@ -416,99 +507,6 @@ CREATE POLICY "class_routine_cr_admin_all"
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'))
   WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
-
-
--- ============================================================
--- SECTION 3: Functions & Triggers
--- ============================================================
-
--- 1. update_updated_at — auto-timestamps on UPDATE
-CREATE OR REPLACE FUNCTION public.update_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
-CREATE TRIGGER profiles_updated_at
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
-DROP TRIGGER IF EXISTS notes_updated_at ON public.notes;
-CREATE TRIGGER notes_updated_at
-  BEFORE UPDATE ON public.notes
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
--- 2. broadcast_notification — inserts one notification per student
-CREATE OR REPLACE FUNCTION public.broadcast_notification(
-  p_title        text,
-  p_message      text,
-  p_type         public.notif_type,
-  p_reference_id uuid DEFAULT NULL
-)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-  SELECT p.id, p_title, p_message, p_type, p_reference_id
-  FROM public.profiles p
-  WHERE p.role = 'student';
-END;
-$$;
-
--- 3. notify_single_student — targeted notification for one student
-CREATE OR REPLACE FUNCTION public.notify_single_student(
-  p_student_id   uuid,
-  p_title        text,
-  p_message      text,
-  p_type         public.notif_type,
-  p_reference_id uuid DEFAULT NULL
-)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-  VALUES (p_student_id, p_title, p_message, p_type, p_reference_id);
-END;
-$$;
-
--- 4. get_my_role — helper used by RLS policies
-CREATE OR REPLACE FUNCTION public.get_my_role()
-RETURNS public.user_role LANGUAGE sql STABLE SET search_path = public AS $$
-  SELECT role FROM public.profiles WHERE id = auth.uid();
-$$;
-
--- 5. handle_new_user — auto-creates a profile row on Supabase Auth signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, full_name, university_id, role, batch, department)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'university_id', NEW.id::text),
-    COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'student'),
-    NEW.raw_user_meta_data->>'batch',
-    NEW.raw_user_meta_data->>'department'
-  )
-  ON CONFLICT (id) DO NOTHING;
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- 6. auto_delete_old_chat — optional pg_cron job (requires pg_cron extension)
--- Uncomment after enabling pg_cron in Supabase Dashboard → Extensions:
--- SELECT cron.schedule(
---   'delete-old-chat-messages',
---   '0 3 * * *',
---   $$ DELETE FROM public.chat_messages WHERE created_at < now() - INTERVAL '30 days'; $$
--- );
 
 
 -- ============================================================
