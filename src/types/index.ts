@@ -127,6 +127,9 @@ export interface Note {
   is_public: boolean;
   updated_at: string;
   created_at: string;
+  creator?: {
+    full_name: string;
+  } | null;
 }
 
 // ── Notifications ──────────────────────────────────────────
