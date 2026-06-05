@@ -89,9 +89,6 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {announcement.is_important && (
-              <span className="badge badge-important">Important</span>
-            )}
             {announcement.is_public && (
               <span className="badge badge-public">Public</span>
             )}

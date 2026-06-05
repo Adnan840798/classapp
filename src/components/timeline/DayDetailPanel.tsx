@@ -342,16 +342,6 @@ export function DayDetailPanel({
                               </p>
                             )}
                           </div>
-                          <span
-                            className="text-[10px] font-black px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={{
-                              background: 'rgba(16,185,129,0.12)',
-                              color: '#34d399',
-                              border: '1px solid rgba(16,185,129,0.2)',
-                            }}
-                          >
-                            Completed
-                          </span>
                           <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
                         </button>
                       ))}
@@ -386,14 +376,6 @@ export function DayDetailPanel({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="text-[13px] font-bold text-white leading-snug">{a.title}</h4>
-                          {a.is_important && (
-                            <span
-                              className="text-[9px] font-black px-2 py-0.5 rounded flex-shrink-0"
-                              style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
-                            >
-                              IMPORTANT
-                            </span>
-                          )}
                         </div>
                         <p className="text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap">{a.body}</p>
                         {a.attachment_url && (

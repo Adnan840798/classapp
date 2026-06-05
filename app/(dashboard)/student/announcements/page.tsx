@@ -66,11 +66,6 @@ export default async function StudentAnnouncementsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {isImportant && (
-                        <span className="badge badge-important">
-                          Important
-                        </span>
-                      )}
                       {announcement.is_public && (
                         <span className="badge badge-public">
                           Public
