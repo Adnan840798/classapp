@@ -3,6 +3,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { ProfileProvider } from '@/context/ProfileContext';
 import { Profile } from '@/types';
 import { Header } from './Header';
+import { Footer } from '@/components/layout/Footer';
 
 export const revalidate = 0;
 
@@ -57,8 +58,9 @@ export default async function DashboardLayout({
     <ProfileProvider initialProfile={profile as Profile}>
       <div className="flex flex-col h-screen overflow-hidden bg-[#060813]">
         <Header />
-        <div className="flex-1 overflow-y-auto bg-[#060813]">
-          <main className="px-4 lg:px-8 py-6">{children}</main>
+        <div className="flex-1 overflow-y-auto bg-[#060813] flex flex-col justify-between">
+          <main className="px-4 lg:px-8 py-6 flex-1">{children}</main>
+          <Footer />
         </div>
       </div>
     </ProfileProvider>
