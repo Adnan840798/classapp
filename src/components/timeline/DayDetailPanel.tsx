@@ -64,7 +64,7 @@ function BookmarkIcon({ className }: { className?: string }) {
 
 function formatTime(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString('en-US', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' });
 }
 
 const TABS: { key: TabType; label: string }[] = [

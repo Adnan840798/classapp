@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, X, LogOut, Bell } from 'lucide-react';
+import { Menu, X, LogOut, Bell, GraduationCap } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -35,7 +35,7 @@ export function Header() {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    window.location.href = '/';
   }
 
 
@@ -55,7 +55,15 @@ export function Header() {
         </button>
 
         {/* Logo */}
-        <Link href={`${prefix}/timeline`} className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div
+            className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
+            }}
+          >
+            <GraduationCap className="w-4 h-4 text-white" />
+          </div>
           <span className="text-xl font-bold tracking-tight text-white">
             Class<span className="text-[#6366f1]">App</span>
           </span>
@@ -152,9 +160,23 @@ export function Header() {
             <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#141b34] pb-4">
-                <span className="text-lg font-bold text-white">
-                  Class<span className="text-[#6366f1]">App</span>
-                </span>
+                <Link
+                  href="/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 text-lg font-bold text-white cursor-pointer"
+                >
+                  <div
+                    className="flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
+                    style={{
+                      background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
+                    }}
+                  >
+                    <GraduationCap className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span>
+                    Class<span className="text-[#6366f1]">App</span>
+                  </span>
+                </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"

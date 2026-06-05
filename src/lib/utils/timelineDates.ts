@@ -11,8 +11,8 @@ export const SEMESTER_START_DATE = '2026-05-20'; // Wednesday of Week 1
  * @param weekNumber 1-indexed week number (1-14)
  */
 export function getWeekDates(weekNumber: number) {
-  // Semester starts May 20, 2026 (Wednesday)
-  const semesterStart = new Date(`${SEMESTER_START_DATE}T00:00:00`);
+  // Semester starts May 20, 2026 (Wednesday) - parse in Asia/Dhaka (GMT+6) timezone
+  const semesterStart = new Date(`${SEMESTER_START_DATE}T00:00:00+06:00`);
   
   // Wednesday of week N is (N-1) weeks after May 20
   const wednesday = new Date(semesterStart);
@@ -38,11 +38,24 @@ export function getWeekDates(weekNumber: number) {
 }
 
 /**
- * Determines the current week number (1-14) based on the current date.
+ * Determines the current week number (1-14) based on the current date in GMT+6.
  * Each week starts on Saturday and ends on Friday (with Thu-Fri as the weekend of that week).
  */
 export function getCurrentWeekNumber(): number {
-  const now = new Date();
+  let now = new Date();
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    });
+    const parts = formatter.formatToParts(now);
+    const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value);
+    now = new Date(getPart('year'), getPart('month') - 1, getPart('day'));
+  } catch (e) {
+    now = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
   
   // Create local midnight dates for accurate difference calculation
   const start = new Date(2026, 4, 16); // May 16, 2026 (Month is 0-indexed, so 4 is May)
@@ -58,11 +71,26 @@ export function getCurrentWeekNumber(): number {
 }
 
 /**
- * Format a Date object to YYYY-MM-DD string, keeping local timezone.
+ * Format a Date object to YYYY-MM-DD string in Asia/Dhaka (GMT+6) timezone.
  */
 export function toISODateString(date: Date): string {
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
+    const parts = formatter.formatToParts(date);
+    const getPart = (type: string) => parts.find(p => p.type === type)!.value;
+    const yyyy = getPart('year');
+    const mm = getPart('month').padStart(2, '0');
+    const dd = getPart('day').padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  } catch (e) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
 }

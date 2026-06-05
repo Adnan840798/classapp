@@ -6,6 +6,7 @@ import { EventType } from '@/types';
 export function formatDate(dateStr: string, options?: Intl.DateTimeFormatOptions): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', {
+    timeZone: 'Asia/Dhaka',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -19,6 +20,7 @@ export function formatDate(dateStr: string, options?: Intl.DateTimeFormatOptions
 export function formatDateTime(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', {
+    timeZone: 'Asia/Dhaka',
     year: 'numeric',
     month: 'short',
     day: 'numeric',

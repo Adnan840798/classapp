@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, CheckCircle } from 'lucide-react';
@@ -199,13 +200,15 @@ export default function LoginPage() {
     <div className="w-full max-w-md fade-in">
       {/* Logo */}
       <div className="text-center mb-8">
-        <div
-          className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 shadow-lg"
-          style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}
-        >
-          <GraduationCap className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight gradient-text">ClassApp</h1>
+        <Link href="/" className="inline-flex flex-col items-center group cursor-pointer select-none">
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 shadow-lg transition-transform group-hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}
+          >
+            <GraduationCap className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight gradient-text">ClassApp</h1>
+        </Link>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Academic management for your class
         </p>

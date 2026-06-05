@@ -60,6 +60,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   const [weekData, setWeekData] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [hasScrolledInit, setHasScrolledInit] = useState(false);
 
   const weekListRef = useRef<HTMLDivElement>(null);
 
@@ -72,12 +73,29 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
   useEffect(() => {
     if (weekListRef.current) {
-      const activeCard = weekListRef.current.querySelector(`[data-week="${selectedWeek}"]`);
-      if (activeCard) {
-        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      if (!hasScrolledInit) {
+        const isMobile = window.innerWidth < 640;
+        const threshold = isMobile ? 2 : 4;
+        
+        if (currentWeek > threshold) {
+          const activeCard = weekListRef.current.querySelector(`[data-week="${currentWeek}"]`);
+          if (activeCard) {
+            setTimeout(() => {
+              activeCard.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+            }, 100);
+          }
+        } else {
+          weekListRef.current.scrollLeft = 0;
+        }
+        setHasScrolledInit(true);
+      } else {
+        const activeCard = weekListRef.current.querySelector(`[data-week="${selectedWeek}"]`);
+        if (activeCard) {
+          activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
       }
     }
-  }, [selectedWeek]);
+  }, [selectedWeek, currentWeek, hasScrolledInit]);
 
   function scrollWeeks(direction: 'left' | 'right') {
     if (weekListRef.current) {
@@ -97,7 +115,14 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     return { line1: f(saturday), line2: f(friday) };
   }
 
-  const todayStr = toISODateString(new Date());
+  const [todayStr, setTodayStr] = useState<string>('');
+
+  useEffect(() => {
+    setNiceTodayStr();
+    function setNiceTodayStr() {
+      setTodayStr(toISODateString(new Date()));
+    }
+  }, []);
 
   return (
     <>
@@ -254,7 +279,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-full flex items-center px-6 py-3.5 lg:py-4 rounded-2xl border"
+                    className="w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl border"
                     style={{
                       background: '#0b0e1e',
                       borderColor: '#141b30',
@@ -262,43 +287,43 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     }}
                   >
                     {/* Left side skeleton */}
-                    <div className="flex flex-col justify-center w-14 lg:w-16 flex-shrink-0 text-left pr-2">
-                      <div className="h-4 w-10 rounded bg-slate-800/60 animate-pulse" />
-                      <div className="h-3 w-8 rounded bg-slate-800/40 animate-pulse mt-2" />
+                    <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
+                      <div className="h-4 w-8 rounded bg-slate-800/60 animate-pulse" />
+                      <div className="h-3 w-6 rounded bg-slate-800/40 animate-pulse mt-2" />
                     </div>
 
                     {/* Divider */}
-                    <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-4 lg:mr-8" />
+                    <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                     {/* Right side skeleton card */}
-                    <div className="flex-1 flex justify-center mr-4 lg:mr-8">
+                    <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
                       <div className="w-full max-w-md lg:max-w-lg flex items-center justify-between">
                         {/* S1 */}
-                        <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                          <div className="w-5 h-5 rounded-lg bg-slate-800/60 animate-pulse flex-shrink-0" />
-                          <div className="flex flex-col gap-1.5 text-left">
-                            <div className="h-2.5 w-12 rounded bg-slate-800/40 animate-pulse" />
-                            <div className="h-4 w-5 rounded bg-slate-800/60 animate-pulse" />
+                        <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-slate-800/60 animate-pulse flex-shrink-0" />
+                          <div className="flex flex-col items-center text-center">
+                            <div className="hidden sm:block h-2 w-10 rounded bg-slate-800/40 animate-pulse mb-1.5" />
+                            <div className="h-3 w-4 rounded bg-slate-800/60 animate-pulse" />
                           </div>
                         </div>
-                        <div className="w-px h-8 bg-[#141b30] flex-shrink-0" />
+                        <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
 
                         {/* S2 */}
-                        <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                          <div className="w-5 h-5 rounded-lg bg-slate-800/60 animate-pulse flex-shrink-0" />
-                          <div className="flex flex-col gap-1.5 text-left">
-                            <div className="h-2.5 w-12 rounded bg-slate-800/40 animate-pulse" />
-                            <div className="h-4 w-5 rounded bg-slate-800/60 animate-pulse" />
+                        <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-slate-800/60 animate-pulse flex-shrink-0" />
+                          <div className="flex flex-col items-center text-center">
+                            <div className="hidden sm:block h-2 w-10 rounded bg-slate-800/40 animate-pulse mb-1.5" />
+                            <div className="h-3 w-4 rounded bg-slate-800/60 animate-pulse" />
                           </div>
                         </div>
-                        <div className="w-px h-8 bg-[#141b30] flex-shrink-0" />
+                        <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
 
                         {/* S3 */}
-                        <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                          <div className="w-5 h-5 rounded-lg bg-slate-800/60 animate-pulse flex-shrink-0" />
-                          <div className="flex flex-col gap-1.5 text-left">
-                            <div className="h-2.5 w-12 rounded bg-slate-800/40 animate-pulse" />
-                            <div className="h-4 w-5 rounded bg-slate-800/60 animate-pulse" />
+                        <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-slate-800/60 animate-pulse flex-shrink-0" />
+                          <div className="flex flex-col items-center text-center">
+                            <div className="hidden sm:block h-2 w-10 rounded bg-slate-800/40 animate-pulse mb-1.5" />
+                            <div className="h-3 w-4 rounded bg-slate-800/60 animate-pulse" />
                           </div>
                         </div>
                       </div>
@@ -309,7 +334,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               </div>
             ) : (
               // Real rows
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2.5">
                 {weekData.map((day, index) => {
                   const isActive = day.dateStr === todayStr;
 
@@ -317,7 +342,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     <button
                       key={day.dateStr}
                       onClick={() => setSelectedDayIndex(index)}
-                      className={`w-full flex items-center px-6 py-3.5 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${isActive ? 'row-glow z-10' : 'hover:bg-white/[0.02]'
+                      className={`w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${isActive ? 'row-glow z-10' : 'hover:bg-white/[0.02]'
                         }`}
                       style={{
                         background: isActive ? '#0d1230' : '#0b0e1e',
@@ -326,12 +351,12 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       }}
                     >
                       {/* Left side: Day name + Date */}
-                      <div className="flex flex-col justify-center w-14 lg:w-16 flex-shrink-0 text-left pr-2">
-                        <span className="text-[14px] lg:text-[15px] font-extrabold text-white leading-none uppercase tracking-wider">
+                      <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
+                        <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-white leading-none uppercase tracking-wider">
                           {day.dayName}
                         </span>
                         <span
-                          className="text-[11px] lg:text-[12px] font-semibold leading-none mt-1.5"
+                          className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5"
                           style={{ color: '#818cf8' }}
                         >
                           {day.dateLabel}
@@ -339,41 +364,41 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       </div>
 
                       {/* Vertical Divider */}
-                      <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-4 lg:mr-8" />
+                      <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                       {/* Three count columns with vertical dividers */}
-                      <div className="flex-1 flex justify-center mr-4 lg:mr-8">
+                      <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
                         <div className="w-full max-w-md lg:max-w-lg flex items-center justify-between">
                           {/* Deadlines */}
-                          <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                            <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                            <div className="text-left">
-                              <div className="text-[10px] text-slate-400 font-semibold leading-tight">Deadlines</div>
-                              <div className="text-[15px] font-black text-white leading-none mt-1">{day.deadlines.length}</div>
+                          <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                            <CalendarGridIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />
+                            <div className="flex flex-col items-center text-center">
+                              <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Deadlines</div>
+                              <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.deadlines.length}</div>
                             </div>
                           </div>
 
                           {/* Divider */}
-                          <div className="w-px h-8 bg-[#141b30] flex-shrink-0" />
+                          <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
 
                           {/* Announcements */}
-                          <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                            <MegaphoneIcon className="w-5 h-5 text-violet-400 flex-shrink-0" />
-                            <div className="text-left">
-                              <div className="text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
-                              <div className="text-[15px] font-black text-white leading-none mt-1">{day.announcements.length}</div>
+                          <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                            <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400 flex-shrink-0" />
+                            <div className="flex flex-col items-center text-center">
+                              <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
+                              <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.announcements.length}</div>
                             </div>
                           </div>
 
                           {/* Divider */}
-                          <div className="w-px h-8 bg-[#141b30] flex-shrink-0" />
+                          <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
 
                           {/* Results */}
-                          <div className="flex-1 flex items-center justify-center gap-3 min-w-0 py-1">
-                            <SquarePlusIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                            <div className="text-left">
-                              <div className="text-[10px] text-slate-400 font-semibold leading-tight">Results</div>
-                              <div className="text-[15px] font-black text-white leading-none mt-1">{day.results.length}</div>
+                          <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
+                            <SquarePlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
+                            <div className="flex flex-col items-center text-center">
+                              <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Results</div>
+                              <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.results.length}</div>
                             </div>
                           </div>
                         </div>

@@ -195,12 +195,9 @@ export async function getTimelineData(weekNumber: number) {
 
   const { days } = getWeekDates(weekNumber);
   
-  // Set start of Saturday (first day) and end of Wednesday (last day)
-  const startDate = new Date(days[0]);
-  startDate.setHours(0, 0, 0, 0);
-
-  const endDate = new Date(days[4]);
-  endDate.setHours(23, 59, 59, 999);
+  // Set start of Saturday (first day) and end of Wednesday (last day) in GMT+6 timezone
+  const startDate = new Date(days[0].getTime());
+  const endDate = new Date(days[4].getTime() + 24 * 60 * 60 * 1000 - 1);
 
   // Fetch announcements in the week
   const { data: announcements, error: annError } = await supabase
@@ -237,20 +234,19 @@ export async function getTimelineData(weekNumber: number) {
 
   const timelineDays = days.map((dayDate, index) => {
     const dateStr = toISODateString(dayDate);
-    const dayStart = new Date(dayDate);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(dayDate);
-    dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = dayDate.getTime();
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
 
     const filterByDay = (itemDateStr: string) => {
       const itemDate = new Date(itemDateStr);
-      return itemDate >= dayStart && itemDate <= dayEnd;
+      const time = itemDate.getTime();
+      return time >= dayStart && time <= dayEnd;
     };
 
     return {
       dateStr,
       dayName: dayNames[index],
-      dateLabel: dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      dateLabel: dayDate.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }),
       announcements: (announcements || []).filter(item => filterByDay(item.created_at)),
       deadlines: (deadlines || []).filter(item => filterByDay(item.due_date)),
       results: (examResults || []).filter(item => filterByDay(item.published_at)),

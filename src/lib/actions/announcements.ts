@@ -86,11 +86,14 @@ export async function createAnnouncement(formData: FormData) {
     const customDate = formData.get('custom_created_at') as string;
     let created_at: string | undefined = undefined;
     if (customDate) {
-      const dateObj = new Date(customDate);
+      let dateStr = customDate;
+      if (dateStr.length === 10) {
+        dateStr = `${dateStr}T12:00:00+06:00`;
+      } else if (!dateStr.includes('+') && !dateStr.endsWith('Z')) {
+        dateStr = `${dateStr}+06:00`;
+      }
+      const dateObj = new Date(dateStr);
       if (!isNaN(dateObj.getTime())) {
-        if (customDate.length === 10) {
-          dateObj.setHours(12, 0, 0, 0);
-        }
         created_at = dateObj.toISOString();
       }
     }
