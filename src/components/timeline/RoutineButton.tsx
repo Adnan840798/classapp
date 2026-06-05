@@ -187,37 +187,25 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
 
   return (
     <>
-      <div className="flex items-center gap-2.5">
-        {imageUrl && (
-          <button
-            onClick={() => {
-              setError(null);
-              setIsModalOpen(true);
-            }}
-            className="group relative w-10 h-10 rounded-xl overflow-hidden border border-[#6366f1]/30 hover:border-[#6366f1]/60 bg-[#141b30] flex-shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
-            title="Preview class routine"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt="Routine preview"
-              className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          </button>
-        )}
-
-        <button
-          onClick={() => {
-            setError(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2.5 border border-[#6366f1]/30 hover:border-[#6366f1]/50 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#a5b4fc] hover:text-white font-semibold text-sm rounded-xl shadow-sm transition-all cursor-pointer"
-        >
-          <CalendarDays className="w-4 h-4" />
-          View Class Routine
-        </button>
-      </div>
+      <button
+        onClick={() => {
+          setError(null);
+          setIsModalOpen(true);
+        }}
+        className="group flex items-center gap-2.5 pl-2 pr-4 py-1.5 border border-[#6366f1]/30 hover:border-[#6366f1]/50 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 rounded-xl transition-all cursor-pointer select-none active:scale-98"
+      >
+        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-[#6366f1]/20 bg-[#141b30] flex-shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt="Routine preview"
+            className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200"
+          />
+        </div>
+        <span className="text-[#a5b4fc] group-hover:text-white font-semibold text-sm transition-colors">
+          Class Routine
+        </span>
+      </button>
 
       {/* View Routine Modal */}
       {isModalOpen && (
