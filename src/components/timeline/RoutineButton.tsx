@@ -187,16 +187,37 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
 
   return (
     <>
-      <button
-        onClick={() => {
-          setError(null);
-          setIsModalOpen(true);
-        }}
-        className="flex items-center gap-2 px-4 py-2 border border-[#6366f1]/30 hover:border-[#6366f1]/50 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#a5b4fc] font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
-      >
-        <CalendarDays className="w-4 h-4" />
-        View Class Routine
-      </button>
+      <div className="flex items-center gap-2.5">
+        {imageUrl && (
+          <button
+            onClick={() => {
+              setError(null);
+              setIsModalOpen(true);
+            }}
+            className="group relative w-10 h-10 rounded-xl overflow-hidden border border-[#6366f1]/30 hover:border-[#6366f1]/60 bg-[#141b30] flex-shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+            title="Preview class routine"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt="Routine preview"
+              className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </button>
+        )}
+
+        <button
+          onClick={() => {
+            setError(null);
+            setIsModalOpen(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 border border-[#6366f1]/30 hover:border-[#6366f1]/50 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#a5b4fc] hover:text-white font-semibold text-sm rounded-xl shadow-sm transition-all cursor-pointer"
+        >
+          <CalendarDays className="w-4 h-4" />
+          View Class Routine
+        </button>
+      </div>
 
       {/* View Routine Modal */}
       {isModalOpen && (
@@ -217,29 +238,15 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
               </div>
               <div className="flex items-center gap-2">
                 {isCR && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        setIsUploadOpen(true);
-                      }}
-                      disabled={isPending}
-                      className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:bg-accent rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-                      title="Replace current routine"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Replace
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      disabled={isPending}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 text-destructive rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-                      title="Delete routine"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 text-destructive rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                    title="Delete routine"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
                 )}
                 <button
                   onClick={handleDownload}

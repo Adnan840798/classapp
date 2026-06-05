@@ -61,12 +61,7 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Badge CSE - S8 */}
-        {profile && (
-          <span className="text-[10px] font-bold px-2 py-0.5 border border-[#6366f1]/30 text-[#a5b4fc] bg-[#6366f1]/10 rounded-full select-none">
-            {profile.department || 'CSE'} - {profile.batch || 'S8'}
-          </span>
-        )}
+
       </div>
 
       {/* Right section containing Nav links + Notifications + Avatar */}
