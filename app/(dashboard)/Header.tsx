@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { Menu, X, LogOut, Bell, GraduationCap } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
@@ -12,6 +12,7 @@ import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -31,6 +32,14 @@ export function Header() {
 
   const isCR = profile?.role === 'cr' || profile?.role === 'admin';
   const prefix = isCR ? '/cr' : '/student';
+
+  const handleProfileClick = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      router.push(`${prefix}/profile`);
+    } else {
+      setIsUserMenuOpen((prev) => !prev);
+    }
+  };
 
   const navItems = [
     { href: `${prefix}/timeline`, label: 'Timeline' },
@@ -118,7 +127,7 @@ export function Header() {
           {profile && (
             <div className="relative" ref={userMenuRef}>
               <button
-                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                onClick={handleProfileClick}
                 className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-xs font-bold border border-[#6366f1]/20 transition-transform hover:scale-105 cursor-pointer"
                 aria-label="User profile menu"
               >
