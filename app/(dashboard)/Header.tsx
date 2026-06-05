@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 import { Menu, X, LogOut, Bell, GraduationCap } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
@@ -12,7 +12,6 @@ import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,11 +33,7 @@ export function Header() {
   const prefix = isCR ? '/cr' : '/student';
 
   const handleProfileClick = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      router.push(`${prefix}/profile`);
-    } else {
-      setIsUserMenuOpen((prev) => !prev);
-    }
+    setIsUserMenuOpen((prev) => !prev);
   };
 
   const navItems = [
