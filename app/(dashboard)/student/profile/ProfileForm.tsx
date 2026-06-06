@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, Smartphone, Send } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, Smartphone } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import { updateProfile, deleteUserAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { usePushEnrollment } from '@/lib/hooks/usePushEnrollment';
-import { diagnosticSendPushAction } from '@/lib/actions/push';
 
 interface ProfileFormProps {
   profile: Profile;
@@ -41,23 +40,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
       await disenrolled();
     } else {
       await enroll();
-    }
-  };
-
-  // Diagnostic states
-  const [isDiagnosticPending, setIsDiagnosticPending] = useState(false);
-  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
-
-  const handleDiagnosticPush = async () => {
-    setIsDiagnosticPending(true);
-    setDiagnosticResult(null);
-    try {
-      const res = await diagnosticSendPushAction();
-      setDiagnosticResult(res);
-    } catch (err: any) {
-      setDiagnosticResult({ success: false, error: err.message || 'Client handler error' });
-    } finally {
-      setIsDiagnosticPending(false);
     }
   };
 
@@ -309,34 +291,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                 </div>
               )}
 
-              {/* Diagnostic Connection Test Button */}
-              {permissionState === 'granted' && (
-                <div className="mt-2 pt-2 border-t border-border/30">
-                  <button
-                    type="button"
-                    onClick={handleDiagnosticPush}
-                    disabled={isDiagnosticPending || isPending}
-                    className="w-full text-[10px] px-2 py-1.5 rounded-lg border border-primary/20 hover:bg-primary/5 text-primary/80 transition-colors font-medium flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                  >
-                    {isDiagnosticPending ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        Testing Connection...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        Test Push from Vercel
-                      </>
-                    )}
-                  </button>
-                  {diagnosticResult && (
-                    <pre className="text-[8px] bg-black/40 border border-border/40 p-2 rounded-lg text-slate-300 font-mono overflow-auto max-h-40 mt-2 leading-tight select-all">
-                      {JSON.stringify(diagnosticResult, null, 2)}
-                    </pre>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
