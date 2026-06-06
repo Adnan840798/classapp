@@ -170,3 +170,68 @@ export async function sendWebPush(payload: {
 export async function getVapidPublicKey() {
   return vapidPublicKey || null;
 }
+
+/**
+ * Runs a diagnostic test from the Vercel server, attempting to send a notification
+ * and returning the exact results/errors to the client.
+ */
+export async function diagnosticSendPushAction() {
+  try {
+    const supabase = await getSupabaseServerClient();
+    
+    const keysStatus = {
+      hasPublicKey: !!vapidPublicKey,
+      hasPrivateKey: !!vapidPrivateKey,
+      publicKeyLength: vapidPublicKey ? vapidPublicKey.length : 0,
+      privateKeyLength: vapidPrivateKey ? vapidPrivateKey.length : 0,
+      subject: vapidSubject,
+      rawPublicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'Present' : 'Missing',
+      rawPrivateKey: process.env.VAPID_PRIVATE_KEY ? 'Present' : 'Missing'
+    };
+
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      return { success: false, error: 'VAPID keys are missing from server environment.', keys: keysStatus };
+    }
+
+    const { data: subscriptions, error } = await supabase
+      .from('web_push_subscriptions')
+      .select('id, endpoint, p256dh, auth');
+
+    if (error) {
+      return { success: false, error: 'Database fetch error: ' + error.message, keys: keysStatus };
+    }
+
+    const payload = JSON.stringify({
+      title: '🚨 Vercel Server Test',
+      body: 'This is a diagnostic push sent directly from the Vercel server!',
+      url: '/student/announcements'
+    });
+
+    const results = [];
+    for (const sub of subscriptions) {
+      try {
+        const pushSubscription = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth
+          }
+        };
+        const res = await webpush.sendNotification(pushSubscription, payload);
+        results.push({ id: sub.id, success: true, statusCode: res.statusCode });
+      } catch (err: any) {
+        results.push({
+          id: sub.id,
+          success: false,
+          statusCode: err.statusCode,
+          message: err.message,
+          body: err.body
+        });
+      }
+    }
+
+    return { success: true, keys: keysStatus, subscriptionsCount: subscriptions.length, results };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Unexpected server error', keys: null };
+  }
+}
