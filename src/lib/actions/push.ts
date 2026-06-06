@@ -3,13 +3,23 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import webpush from 'web-push';
 
+// Helper to sanitize variables (remove surrounding quotes or whitespace)
+const sanitizeEnvVar = (val: string | undefined) => {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '');
+};
+
+const vapidPublicKey = sanitizeEnvVar(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+const vapidPrivateKey = sanitizeEnvVar(process.env.VAPID_PRIVATE_KEY);
+const vapidSubject = sanitizeEnvVar(process.env.VAPID_SUBJECT) || 'mailto:adnan@example.com';
+
 // Initialize web-push configuration
-if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || 'mailto:adnan@example.com',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
+if (vapidPublicKey && vapidPrivateKey) {
+  try {
+    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+  } catch (err) {
+    console.error('[Web Push Actions] Error configuring VAPID details:', err);
+  }
 } else {
   console.warn('[Web Push Actions] VAPID keys not configured in environment variables.');
 }
@@ -90,7 +100,7 @@ export async function sendWebPush(payload: {
   url: string;
 }) {
   try {
-    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('[sendWebPush] VAPID keys are missing from environment.');
       return { success: false, error: 'VAPID keys not configured.' };
     }
@@ -158,5 +168,5 @@ export async function sendWebPush(payload: {
  * Retrieves the public VAPID key dynamically from the server environment at runtime
  */
 export async function getVapidPublicKey() {
-  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || null;
+  return vapidPublicKey || null;
 }
