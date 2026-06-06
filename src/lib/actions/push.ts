@@ -153,3 +153,10 @@ export async function sendWebPush(payload: {
     return { success: false, error: error.message || 'Internal server error' };
   }
 }
+
+/**
+ * Retrieves the public VAPID key dynamically from the server environment at runtime
+ */
+export async function getVapidPublicKey() {
+  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || null;
+}

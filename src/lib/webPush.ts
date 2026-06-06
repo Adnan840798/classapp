@@ -1,4 +1,4 @@
-import { saveSubscriptionAction, deleteSubscriptionAction } from '@/lib/actions/push';
+import { saveSubscriptionAction, deleteSubscriptionAction, getVapidPublicKey } from '@/lib/actions/push';
 
 /**
  * Converts a base64 VAPID public key to a Uint8Array required by pushManager.subscribe
@@ -56,9 +56,9 @@ export async function registerPushSubscription(): Promise<{ success: boolean; er
       }
     }
 
-    const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const publicVapidKey = await getVapidPublicKey();
     if (!publicVapidKey) {
-      console.error('[Push Client] NEXT_PUBLIC_VAPID_PUBLIC_KEY is missing from environment variables.');
+      console.error('[Push Client] VAPID public key is missing from server environment.');
       return { success: false, error: 'VAPID public key not configured on server.' };
     }
 
