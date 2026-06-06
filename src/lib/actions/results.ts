@@ -8,6 +8,7 @@ import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { sendTelegramMessage, sendTelegramFile } from '@/lib/telegram';
 import { compressFileForStorage } from '@/lib/utils/compress';
+import { sendWebPush } from '@/lib/actions/push';
 
 const ResultSchema = z.object({
   exam_name: z.string().min(1, 'Exam name is required').max(200),
@@ -122,6 +123,17 @@ export async function publishResult(formData: FormData) {
 
     if (rpcError) {
       console.error('broadcast_notification RPC error:', rpcError);
+    }
+
+    // Send Web Push notification
+    try {
+      await sendWebPush({
+        title: `📊 Result Published: ${parsed.data.exam_name}`,
+        body: `Exam results are available. Check your marksheet in the app.`,
+        url: '/student/results',
+      });
+    } catch (pushErr) {
+      console.error('Web push notification failed (non-fatal):', pushErr);
     }
 
     // ── If no file was attached, send a text-only Telegram post ─

@@ -169,6 +169,16 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at   timestamptz DEFAULT now()
 );
 
+-- ── web_push_subscriptions ─────────────────────────────
+CREATE TABLE IF NOT EXISTS public.web_push_subscriptions (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  endpoint     text UNIQUE NOT NULL,
+  p256dh       text NOT NULL,
+  auth         text NOT NULL,
+  created_at   timestamptz DEFAULT now()
+);
+
 -- ── class_routine ─────────────────────────────────────────
 -- Stores the single current class routine image.
 CREATE TABLE IF NOT EXISTS public.class_routine (
@@ -313,6 +323,7 @@ ALTER TABLE chat_messages       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.web_push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Clean up existing policies if they already exist (idempotency safety)
 DO $$
@@ -376,6 +387,11 @@ BEGIN
   -- class_routine
   DROP POLICY IF EXISTS "class_routine_select" ON public.class_routine;
   DROP POLICY IF EXISTS "class_routine_cr_admin_all" ON public.class_routine;
+
+  -- web_push_subscriptions
+  DROP POLICY IF EXISTS "wp_own_select" ON public.web_push_subscriptions;
+  DROP POLICY IF EXISTS "wp_own_insert" ON public.web_push_subscriptions;
+  DROP POLICY IF EXISTS "wp_own_delete" ON public.web_push_subscriptions;
 
   -- storage policies (on storage.objects)
   DROP POLICY IF EXISTS "avatars_public_read" ON storage.objects;
@@ -612,6 +628,22 @@ CREATE POLICY "notif_own_update"
 
 CREATE POLICY "notif_own_delete"
   ON notifications FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- ── web_push_subscriptions ─────────────────────────────
+CREATE POLICY "wp_own_select"
+  ON public.web_push_subscriptions FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "wp_own_insert"
+  ON public.web_push_subscriptions FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "wp_own_delete"
+  ON public.web_push_subscriptions FOR DELETE
   TO authenticated
   USING (auth.uid() = user_id);
 

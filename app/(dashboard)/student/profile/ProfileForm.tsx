@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, Smartphone } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import { updateProfile, deleteUserAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { usePushEnrollment } from '@/lib/hooks/usePushEnrollment';
 
 interface ProfileFormProps {
   profile: Profile;
@@ -24,6 +25,23 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
   // Notification toggles
   const [notifEnabled, setNotifEnabled] = useState(initialProfile.notif_enabled);
   const [notifSoundOn, setNotifSoundOn] = useState(initialProfile.notif_sound_on);
+
+  const {
+    isSupported,
+    permissionState,
+    isEnrolling,
+    enrollError,
+    enroll,
+    disenrolled
+  } = usePushEnrollment();
+
+  const handlePushToggle = async () => {
+    if (permissionState === 'granted') {
+      await disenrolled();
+    } else {
+      await enroll();
+    }
+  };
 
   // Manage Accounts states
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
@@ -225,6 +243,55 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
               {notifSoundOn && notifEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
           </div>
+
+          {/* Toggle 3: Device Push Notifications */}
+          {isSupported && (
+            <div className="flex flex-col gap-2 border-t border-border/50 pt-3 mt-1">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-semibold text-foreground">Device Push Notifications</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {permissionState === 'granted'
+                      ? 'Subscribed on this device'
+                      : permissionState === 'denied'
+                      ? 'Blocked by browser'
+                      : 'Receive alerts when app is closed'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handlePushToggle}
+                  disabled={isEnrolling || isPending}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
+                    permissionState === 'granted'
+                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400 hover:text-foreground'
+                  }`}
+                >
+                  {isEnrolling ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Smartphone className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+
+              {permissionState === 'denied' && (
+                <div className="text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 p-2.5 rounded-xl leading-relaxed mt-1 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                  <span>
+                    Notifications are blocked. Click the settings icon in your browser address bar and enable Notifications to receive push alerts.
+                  </span>
+                </div>
+              )}
+
+              {enrollError && (
+                <div className="text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 p-2.5 rounded-xl leading-relaxed mt-1">
+                  {enrollError}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Manage Accounts Card (CR/Admin only) */}

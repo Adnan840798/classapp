@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { sendWebPush } from '@/lib/actions/push';
 
 const DeadlineSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -64,6 +65,18 @@ export async function createDeadline(formData: FormData) {
 
     if (rpcError) {
       console.error('broadcast_notification RPC error:', rpcError);
+    }
+
+    // Send Web Push notification
+    try {
+      // Format simple relative date check if possible, or just print the subject
+      await sendWebPush({
+        title: `⏰ Deadline: ${parsed.data.title}`,
+        body: `New deadline for ${parsed.data.subject}.`,
+        url: '/student/deadlines',
+      });
+    } catch (pushErr) {
+      console.error('Web push notification failed (non-fatal):', pushErr);
     }
 
     const redirectTo = formData.get('redirect_to') as string;
