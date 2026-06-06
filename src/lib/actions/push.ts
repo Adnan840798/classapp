@@ -40,10 +40,16 @@ export async function saveSubscriptionAction(subscription: {
       return { success: false, error: 'User not authenticated' };
     }
 
-    const { data, error } = await supabase
-      .from('web_push_subscriptions')
+    // Use the Supabase Service Role client to bypass RLS policies and retrieve/upsert devices for all users
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // 1. Insert or update the device in push_devices
+    const { data: device, error: deviceError } = await adminClient
+      .from('push_devices')
       .upsert({
-        user_id: user.id,
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
@@ -51,12 +57,25 @@ export async function saveSubscriptionAction(subscription: {
       .select()
       .single();
 
-    if (error) {
-      console.error('[saveSubscriptionAction] DB Error:', error);
-      return { success: false, error: error.message };
+    if (deviceError) {
+      console.error('[saveSubscriptionAction] Device DB Error:', deviceError);
+      return { success: false, error: deviceError.message };
     }
 
-    return { success: true, data };
+    // 2. Link user to device in user_push_devices (if not already linked)
+    const { error: linkError } = await adminClient
+      .from('user_push_devices')
+      .upsert({
+        user_id: user.id,
+        device_id: device.id,
+      }, { onConflict: 'user_id,device_id' });
+
+    if (linkError) {
+      console.error('[saveSubscriptionAction] Link DB Error:', linkError);
+      return { success: false, error: linkError.message };
+    }
+
+    return { success: true, data: device };
   } catch (error: any) {
     console.error('[saveSubscriptionAction] Error:', error);
     return { success: false, error: error.message || 'Internal server error' };
@@ -64,7 +83,7 @@ export async function saveSubscriptionAction(subscription: {
 }
 
 /**
- * Deletes a push subscription for the logged in user
+ * Deletes a push subscription relationship for the logged in user
  */
 export async function deleteSubscriptionAction(endpoint: string) {
   try {
@@ -75,15 +94,41 @@ export async function deleteSubscriptionAction(endpoint: string) {
       return { success: false, error: 'User not authenticated' };
     }
 
-    const { error } = await supabase
-      .from('web_push_subscriptions')
-      .delete()
-      .match({ user_id: user.id, endpoint });
+    // Use admin client to query across relationships and delete relationship
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (error) {
-      console.error('[deleteSubscriptionAction] DB Error:', error);
-      return { success: false, error: error.message };
+    // 1. Find the device by endpoint
+    const { data: device, error: findError } = await adminClient
+      .from('push_devices')
+      .select('id')
+      .eq('endpoint', endpoint)
+      .maybeSingle();
+
+    if (findError) {
+      console.error('[deleteSubscriptionAction] Error finding device:', findError);
+      return { success: false, error: findError.message };
     }
+
+    if (!device) {
+      return { success: true }; // Device not registered or already removed
+    }
+
+    // 2. Delete the user-device relationship
+    const { error: deleteLinkError } = await adminClient
+      .from('user_push_devices')
+      .delete()
+      .match({ user_id: user.id, device_id: device.id });
+
+    if (deleteLinkError) {
+      console.error('[deleteSubscriptionAction] Error deleting link:', deleteLinkError);
+      return { success: false, error: deleteLinkError.message };
+    }
+
+    // Note: The database trigger 'trigger_cleanup_orphaned_push_devices' will automatically
+    // delete the row in 'push_devices' if there are no more users linked to it.
 
     return { success: true };
   } catch (error: any) {
@@ -93,7 +138,7 @@ export async function deleteSubscriptionAction(endpoint: string) {
 }
 
 /**
- * Sends a push notification to all registered subscriptions
+ * Sends a push notification to all unique active device endpoints
  */
 export async function sendWebPush(payload: {
   title: string;
@@ -106,53 +151,54 @@ export async function sendWebPush(payload: {
       return { success: false, error: 'VAPID keys not configured.' };
     }
 
-    // Use the Supabase Service Role client to bypass RLS policies and retrieve subscriptions for all users
+    // Use the Supabase Service Role client to retrieve subscriptions for all users
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     
-    // Fetch all active subscriptions
-    const { data: subscriptions, error } = await supabase
-      .from('web_push_subscriptions')
+    // Fetch all active devices
+    const { data: devices, error } = await supabase
+      .from('push_devices')
       .select('id, endpoint, p256dh, auth');
 
     if (error) {
-      console.error('[sendWebPush] Error fetching subscriptions:', error);
+      console.error('[sendWebPush] Error fetching devices:', error);
       return { success: false, error: error.message };
     }
 
-    if (!subscriptions || subscriptions.length === 0) {
+    if (!devices || devices.length === 0) {
       return { success: true, sentCount: 0 };
     }
 
     const payloadString = JSON.stringify(payload);
 
-    // Send to all subscriptions in parallel, clean up expired ones
-    const sendPromises = subscriptions.map(async (sub) => {
+    // Send to all devices in parallel, clean up expired ones
+    const sendPromises = devices.map(async (device) => {
       try {
         const pushSubscription = {
-          endpoint: sub.endpoint,
+          endpoint: device.endpoint,
           keys: {
-            p256dh: sub.p256dh,
-            auth: sub.auth
+            p256dh: device.p256dh,
+            auth: device.auth
           }
         };
 
         await webpush.sendNotification(pushSubscription, payloadString);
-        return { success: true, id: sub.id };
+        return { success: true, id: device.id };
       } catch (err: any) {
-        // Delete subscription from DB if push service reports expired or gone (410, 404)
+        // Delete device from DB if push service reports expired or gone (410, 404)
+        // This automatically cascade deletes links in user_push_devices
         if (err.statusCode === 410 || err.statusCode === 404) {
-          console.log(`[sendWebPush] Subscription expired (status: ${err.statusCode}), deleting subscription id: ${sub.id}`);
+          console.log(`[sendWebPush] Device subscription expired (status: ${err.statusCode}), deleting device id: ${device.id}`);
           await supabase
-            .from('web_push_subscriptions')
+            .from('push_devices')
             .delete()
-            .eq('id', sub.id);
+            .eq('id', device.id);
         } else {
-          console.error(`[sendWebPush] Error sending push to subscriber ID ${sub.id}:`, err);
+          console.error(`[sendWebPush] Error sending push to device ID ${device.id}:`, err);
         }
-        return { success: false, id: sub.id, error: err.message };
+        return { success: false, id: device.id, error: err.message };
       }
     });
 
@@ -161,7 +207,7 @@ export async function sendWebPush(payload: {
       (r) => r.status === 'fulfilled' && r.value.success
     ).length;
 
-    console.log(`[sendWebPush] Finished broadcasting web push to ${successCount}/${subscriptions.length} active devices.`);
+    console.log(`[sendWebPush] Finished broadcasting web push to ${successCount}/${devices.length} unique active devices.`);
     return { success: true, sentCount: successCount };
   } catch (error: any) {
     console.error('[sendWebPush] Failed sending web push notifications:', error);
@@ -182,7 +228,6 @@ export async function getVapidPublicKey() {
  */
 export async function diagnosticSendPushAction() {
   try {
-    // Use the Supabase Service Role client to bypass RLS policies and retrieve subscriptions for all users
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -202,8 +247,8 @@ export async function diagnosticSendPushAction() {
       return { success: false, error: 'VAPID keys are missing from server environment.', keys: keysStatus };
     }
 
-    const { data: subscriptions, error } = await supabase
-      .from('web_push_subscriptions')
+    const { data: devices, error } = await supabase
+      .from('push_devices')
       .select('id, endpoint, p256dh, auth');
 
     if (error) {
@@ -217,20 +262,20 @@ export async function diagnosticSendPushAction() {
     });
 
     const results = [];
-    for (const sub of subscriptions) {
+    for (const dev of devices) {
       try {
         const pushSubscription = {
-          endpoint: sub.endpoint,
+          endpoint: dev.endpoint,
           keys: {
-            p256dh: sub.p256dh,
-            auth: sub.auth
+            p256dh: dev.p256dh,
+            auth: dev.auth
           }
         };
         const res = await webpush.sendNotification(pushSubscription, payload);
-        results.push({ id: sub.id, success: true, statusCode: res.statusCode });
+        results.push({ id: dev.id, success: true, statusCode: res.statusCode });
       } catch (err: any) {
         results.push({
-          id: sub.id,
+          id: dev.id,
           success: false,
           statusCode: err.statusCode,
           message: err.message,
@@ -239,8 +284,9 @@ export async function diagnosticSendPushAction() {
       }
     }
 
-    return { success: true, keys: keysStatus, subscriptionsCount: subscriptions.length, results };
+    return { success: true, keys: keysStatus, subscriptionsCount: devices.length, results };
   } catch (err: any) {
     return { success: false, error: err.message || 'Unexpected server error', keys: null };
   }
 }
+

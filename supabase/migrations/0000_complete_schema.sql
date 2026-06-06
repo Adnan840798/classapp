@@ -169,15 +169,24 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at   timestamptz DEFAULT now()
 );
 
--- ── web_push_subscriptions ─────────────────────────────
-CREATE TABLE IF NOT EXISTS public.web_push_subscriptions (
+-- ── push_devices ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.push_devices (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   endpoint     text UNIQUE NOT NULL,
   p256dh       text NOT NULL,
   auth         text NOT NULL,
   created_at   timestamptz DEFAULT now()
 );
+
+-- ── user_push_devices ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.user_push_devices (
+  user_id      uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  device_id    uuid NOT NULL REFERENCES public.push_devices(id) ON DELETE CASCADE,
+  created_at   timestamptz DEFAULT now(),
+  PRIMARY KEY (user_id, device_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_push_devices_device_id ON public.user_push_devices(device_id);
 
 -- ── class_routine ─────────────────────────────────────────
 -- Stores the single current class routine image.
@@ -299,7 +308,26 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 6. auto_delete_old_chat — optional pg_cron job (requires pg_cron extension)
+-- 6. cleanup_orphaned_push_devices — auto-deletes push_devices when no users are linked
+CREATE OR REPLACE FUNCTION public.cleanup_orphaned_push_devices()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_push_devices
+    WHERE device_id = OLD.device_id
+  ) THEN
+    DELETE FROM public.push_devices WHERE id = OLD.device_id;
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trigger_cleanup_orphaned_push_devices ON public.user_push_devices;
+CREATE TRIGGER trigger_cleanup_orphaned_push_devices
+  AFTER DELETE ON public.user_push_devices
+  FOR EACH ROW EXECUTE FUNCTION public.cleanup_orphaned_push_devices();
+
+-- 7. auto_delete_old_chat — optional pg_cron job (requires pg_cron extension)
 -- Uncomment after enabling pg_cron in Supabase Dashboard → Extensions:
 -- SELECT cron.schedule(
 --   'delete-old-chat-messages',
@@ -323,7 +351,8 @@ ALTER TABLE chat_messages       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.web_push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_push_devices ENABLE ROW LEVEL SECURITY;
 
 -- Clean up existing policies if they already exist (idempotency safety)
 DO $$
@@ -388,10 +417,11 @@ BEGIN
   DROP POLICY IF EXISTS "class_routine_select" ON public.class_routine;
   DROP POLICY IF EXISTS "class_routine_cr_admin_all" ON public.class_routine;
 
-  -- web_push_subscriptions
-  DROP POLICY IF EXISTS "wp_own_select" ON public.web_push_subscriptions;
-  DROP POLICY IF EXISTS "wp_own_insert" ON public.web_push_subscriptions;
-  DROP POLICY IF EXISTS "wp_own_delete" ON public.web_push_subscriptions;
+  -- push_devices & user_push_devices
+  DROP POLICY IF EXISTS "pd_select_linked" ON public.push_devices;
+  DROP POLICY IF EXISTS "upd_select_own" ON public.user_push_devices;
+  DROP POLICY IF EXISTS "upd_insert_own" ON public.user_push_devices;
+  DROP POLICY IF EXISTS "upd_delete_own" ON public.user_push_devices;
 
   -- storage policies (on storage.objects)
   DROP POLICY IF EXISTS "avatars_public_read" ON storage.objects;
@@ -631,19 +661,30 @@ CREATE POLICY "notif_own_delete"
   TO authenticated
   USING (auth.uid() = user_id);
 
--- ── web_push_subscriptions ─────────────────────────────
-CREATE POLICY "wp_own_select"
-  ON public.web_push_subscriptions FOR SELECT
+-- ── push_devices ──────────────────────────────────────────
+CREATE POLICY "pd_select_linked"
+  ON public.push_devices FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_push_devices upd
+      WHERE upd.device_id = id AND upd.user_id = auth.uid()
+    )
+  );
+
+-- ── user_push_devices ─────────────────────────────────────
+CREATE POLICY "upd_select_own"
+  ON public.user_push_devices FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
-CREATE POLICY "wp_own_insert"
-  ON public.web_push_subscriptions FOR INSERT
+CREATE POLICY "upd_insert_own"
+  ON public.user_push_devices FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "wp_own_delete"
-  ON public.web_push_subscriptions FOR DELETE
+CREATE POLICY "upd_delete_own"
+  ON public.user_push_devices FOR DELETE
   TO authenticated
   USING (auth.uid() = user_id);
 
