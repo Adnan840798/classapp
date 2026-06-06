@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile } from '@/lib/actions/profile';
+import { updateProfile, updateUserRole, deleteUserAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 interface ProfileFormProps {
   profile: Profile;
+  allProfiles?: Pick<Profile, 'id' | 'full_name' | 'university_id' | 'email' | 'phone' | 'role'>[];
 }
 
-export function ProfileForm({ profile: initialProfile }: ProfileFormProps) {
+export function ProfileForm({ profile: initialProfile, allProfiles = [] }: ProfileFormProps) {
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,69 @@ export function ProfileForm({ profile: initialProfile }: ProfileFormProps) {
   // Notification toggles
   const [notifEnabled, setNotifEnabled] = useState(initialProfile.notif_enabled);
   const [notifSoundOn, setNotifSoundOn] = useState(initialProfile.notif_sound_on);
+
+  // Manage Accounts states
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [actionPendingId, setActionPendingId] = useState<string | null>(null);
+  const [accountsList, setAccountsList] = useState(allProfiles);
+
+  async function handleToggleRole(targetUser: typeof allProfiles[0]) {
+    const newRole = targetUser.role === 'student' ? 'cr' : 'student';
+    if (!confirm(`Are you sure you want to change ${targetUser.full_name}'s role to ${newRole.toUpperCase()}?`)) {
+      return;
+    }
+    
+    setActionPendingId(targetUser.id);
+    try {
+      const res = await updateUserRole(targetUser.id, newRole);
+      if (res && res.error) {
+        alert(res.error);
+      } else {
+        // Update local state
+        setAccountsList(prev =>
+          prev.map(acc => acc.id === targetUser.id ? { ...acc, role: newRole } : acc)
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update user role');
+    } finally {
+      setActionPendingId(null);
+    }
+  }
+
+  async function handleDeleteAccount(targetUser: typeof allProfiles[0]) {
+    if (!confirm(`WARNING: Are you sure you want to permanently delete ${targetUser.full_name}'s account (${targetUser.university_id})?\n\nThis will remove their profile and all associated data. This action cannot be undone.`)) {
+      return;
+    }
+    
+    setActionPendingId(targetUser.id);
+    try {
+      const res = await deleteUserAccount(targetUser.id);
+      if (res && res.error) {
+        alert(res.error);
+      } else {
+        // Remove from local list
+        setAccountsList(prev => prev.filter(acc => acc.id !== targetUser.id));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete user account');
+    } finally {
+      setActionPendingId(null);
+    }
+  }
+
+  const filteredAccounts = accountsList.filter((acc) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      acc.full_name.toLowerCase().includes(term) ||
+      acc.university_id.toLowerCase().includes(term) ||
+      acc.email.toLowerCase().includes(term) ||
+      (acc.phone && acc.phone.includes(term))
+    );
+  });
 
   async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -185,6 +249,27 @@ export function ProfileForm({ profile: initialProfile }: ProfileFormProps) {
             </button>
           </div>
         </div>
+
+        {/* Manage Accounts Card (CR/Admin only) */}
+        {(profile.role === 'cr' || profile.role === 'admin') && allProfiles.length > 0 && (
+          <div className="glass-card p-6 flex flex-col gap-4">
+            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              Class Administration
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              As a Class Representative, you can view, edit roles, and delete authorized student accounts for this batch.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsManageModalOpen(true)}
+              className="btn-secondary w-full text-center flex items-center justify-center gap-2 mt-1"
+            >
+              <Users className="w-4 h-4" />
+              Manage Accounts ({accountsList.length})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right Column: Profile details form */}
@@ -356,6 +441,161 @@ export function ProfileForm({ profile: initialProfile }: ProfileFormProps) {
           </div>
         </div>
       </div>
+
+      {/* Manage Student Accounts Modal */}
+      {isManageModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-fade-in">
+          <div className="bg-[#070b19] border border-[#141b34] rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-4 md:p-6 border-b border-[#141b34] flex items-center justify-between flex-shrink-0 bg-[#090e22]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}>
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    Manage Accounts
+                  </h2>
+                  <p className="text-xs text-slate-400">Total authorized students: {accountsList.length}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="p-4 md:p-6 border-b border-[#141b34] flex-shrink-0 bg-[#090e22]/20">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search students by name, ID, email, or phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="form-input w-full pl-10 bg-[#050712] border-[#141b34] focus:border-primary/50"
+                />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* List Body */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              {filteredAccounts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Users className="w-12 h-12 text-slate-600 mb-3" />
+                  <p className="text-sm font-semibold text-slate-400">No student accounts found</p>
+                  <p className="text-xs text-slate-500 mt-1">Try adjusting your search terms</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredAccounts.map((student) => {
+                    const isSelf = student.id === profile.id;
+                    const initials = student.full_name ? student.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U';
+
+                    return (
+                      <div
+                        key={student.id}
+                        className="bg-[#090e22]/40 border border-[#141b34]/60 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-[#090e22]/70"
+                      >
+                        {/* Student Meta Info */}
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 uppercase flex-shrink-0">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-bold text-white truncate flex items-center gap-2">
+                              {student.full_name}
+                              {isSelf && (
+                                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                                  You
+                                </span>
+                              )}
+                            </h4>
+                            <p className="text-xs text-slate-400 font-mono mt-0.5">{student.university_id}</p>
+                          </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="flex flex-col gap-1.5 text-xs text-slate-400 md:min-w-[200px]">
+                          <a
+                            href={`mailto:${student.email}`}
+                            className="flex items-center gap-2 hover:text-white transition-colors truncate"
+                          >
+                            <Mail className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <span className="truncate">{student.email}</span>
+                          </a>
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <span>{student.phone || 'No phone number'}</span>
+                          </div>
+                        </div>
+
+                        {/* Role Badge & Actions */}
+                        <div className="flex items-center justify-between md:justify-end gap-3 flex-shrink-0 border-t border-[#141b34]/40 pt-3 md:pt-0 md:border-0">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              student.role === 'cr' || student.role === 'admin'
+                                ? 'bg-[#6366f1]/10 border-[#6366f1]/30 text-[#818cf8]'
+                                : 'bg-[#10b981]/10 border-[#10b981]/20 text-[#34d399]'
+                            }`}
+                          >
+                            {student.role.toUpperCase()}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {/* Toggle Role Button */}
+                            {!isSelf && (
+                              <button
+                                type="button"
+                                disabled={actionPendingId !== null}
+                                onClick={() => handleToggleRole(student)}
+                                className="px-2.5 py-1.5 rounded-lg border border-[#141b34] hover:bg-slate-800 text-xs text-slate-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                title={student.role === 'student' ? 'Promote to CR' : 'Demote to Student'}
+                              >
+                                Toggle Role
+                              </button>
+                            )}
+
+                            {/* Delete Button */}
+                            {!isSelf && (
+                              <button
+                                type="button"
+                                disabled={actionPendingId !== null}
+                                onClick={() => handleDeleteAccount(student)}
+                                className="p-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+                                title="Delete Account"
+                              >
+                                {actionPendingId === student.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
+import { createClient } from '@supabase/supabase-js';
 
 const ProfileSchema = z.object({
   full_name: z.string().min(1, 'Full name is required').max(100),
@@ -109,6 +110,110 @@ export async function updateProfile(formData: FormData) {
       throw err;
     }
     console.error('updateProfile error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function updateUserRole(targetUserId: string, newRole: 'student' | 'cr' | 'admin') {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!callerProfile || (callerProfile.role !== 'cr' && callerProfile.role !== 'admin')) {
+      return { error: 'Access denied. Only Class Representatives or Admins can manage accounts.' };
+    }
+
+    // Initialize admin client to update user role
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Update in profiles table
+    const { error: dbError } = await supabaseAdmin
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', targetUserId);
+
+    if (dbError) {
+      return { error: dbError.message };
+    }
+
+    // Also update in user raw_user_meta_data so it matches
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      targetUserId,
+      { user_metadata: { role: newRole } }
+    );
+
+    if (authError) {
+      console.warn('Auth metadata update failed:', authError.message);
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateUserRole error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function deleteUserAccount(targetUserId: string) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!callerProfile || (callerProfile.role !== 'cr' && callerProfile.role !== 'admin')) {
+      return { error: 'Access denied. Only Class Representatives or Admins can manage accounts.' };
+    }
+
+    // Prevent deleting own account
+    if (user.id === targetUserId) {
+      return { error: 'You cannot delete your own account.' };
+    }
+
+    // Initialize admin client to delete user from auth
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
+    if (authError) {
+      return { error: authError.message };
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteUserAccount error:', err);
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }

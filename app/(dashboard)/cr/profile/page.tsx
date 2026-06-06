@@ -19,6 +19,16 @@ export default async function CRProfilePage() {
     redirect('/login');
   }
 
+  // Fetch all profiles if the user is CR or Admin
+  let allProfiles: any[] = [];
+  if (profile.role === 'cr' || profile.role === 'admin') {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, university_id, email, phone, role')
+      .order('university_id', { ascending: true });
+    allProfiles = data || [];
+  }
+
   return (
     <div className="max-w-4xl mx-auto w-full flex flex-col gap-6 animate-fade-in">
       <div className="page-header">
@@ -26,7 +36,7 @@ export default async function CRProfilePage() {
         <p className="page-subtitle">Manage your personal details, contact links, and notification settings</p>
       </div>
 
-      <ProfileForm profile={profile} />
+      <ProfileForm profile={profile} allProfiles={allProfiles} />
     </div>
   );
 }
