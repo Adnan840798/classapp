@@ -19,13 +19,32 @@
 -- ============================================================
 
 -- ENUMS (must be created before tables that reference them)
-CREATE TYPE user_role      AS ENUM ('admin', 'cr', 'student');
-CREATE TYPE event_type     AS ENUM ('exam', 'class', 'holiday', 'submission', 'other');
-CREATE TYPE attachment_type AS ENUM ('image', 'pdf');
-CREATE TYPE notif_type     AS ENUM ('announcement', 'deadline', 'result', 'chat', 'system');
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('admin', 'cr', 'student');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE event_type AS ENUM ('exam', 'class', 'holiday', 'submission', 'other');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE attachment_type AS ENUM ('image', 'pdf');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'chat', 'system');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 -- ── profiles ──────────────────────────────────────────────
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
   id                uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name         text NOT NULL,
   university_id     text UNIQUE NOT NULL,
@@ -47,7 +66,7 @@ CREATE TABLE profiles (
 );
 
 -- ── announcements ─────────────────────────────────────────
-CREATE TABLE announcements (
+CREATE TABLE IF NOT EXISTS announcements (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title            text NOT NULL,
   body             text NOT NULL,
@@ -61,7 +80,7 @@ CREATE TABLE announcements (
 );
 
 -- ── deadlines ─────────────────────────────────────────────
-CREATE TABLE deadlines (
+CREATE TABLE IF NOT EXISTS deadlines (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title        text NOT NULL,
   subject      text NOT NULL,
@@ -72,7 +91,7 @@ CREATE TABLE deadlines (
 );
 
 -- ── exam_results ──────────────────────────────────────────
-CREATE TABLE exam_results (
+CREATE TABLE IF NOT EXISTS exam_results (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   exam_name         text NOT NULL,
   result_sheet_url  text,
@@ -81,7 +100,7 @@ CREATE TABLE exam_results (
 );
 
 -- ── calendar_events ───────────────────────────────────────
-CREATE TABLE calendar_events (
+CREATE TABLE IF NOT EXISTS calendar_events (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title        text NOT NULL,
   description  text,
@@ -94,7 +113,7 @@ CREATE TABLE calendar_events (
 );
 
 -- ── timeline_questions ────────────────────────────────────
-CREATE TABLE timeline_questions (
+CREATE TABLE IF NOT EXISTS timeline_questions (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id        uuid REFERENCES calendar_events(id) ON DELETE CASCADE,
   announcement_id uuid REFERENCES announcements(id) ON DELETE CASCADE,
@@ -108,7 +127,7 @@ CREATE TABLE timeline_questions (
 );
 
 -- ── timeline_answers ──────────────────────────────────────
-CREATE TABLE timeline_answers (
+CREATE TABLE IF NOT EXISTS timeline_answers (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   question_id  uuid REFERENCES timeline_questions(id) ON DELETE CASCADE,
   answered_by  uuid REFERENCES profiles(id) ON DELETE CASCADE,
@@ -117,7 +136,7 @@ CREATE TABLE timeline_answers (
 );
 
 -- ── chat_messages ─────────────────────────────────────────
-CREATE TABLE chat_messages (
+CREATE TABLE IF NOT EXISTS chat_messages (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid REFERENCES profiles(id) ON DELETE CASCADE,
   content    text NOT NULL CHECK (char_length(content) BETWEEN 1 AND 500),
@@ -127,7 +146,7 @@ CREATE TABLE chat_messages (
 );
 
 -- ── notes ─────────────────────────────────────────────────
-CREATE TABLE notes (
+CREATE TABLE IF NOT EXISTS notes (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid REFERENCES profiles(id) ON DELETE CASCADE,
   title      text NOT NULL,
@@ -139,7 +158,7 @@ CREATE TABLE notes (
 );
 
 -- ── notifications ─────────────────────────────────────────
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      uuid REFERENCES profiles(id) ON DELETE CASCADE,
   title        text NOT NULL,
@@ -294,6 +313,79 @@ ALTER TABLE chat_messages       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
+
+-- Clean up existing policies if they already exist (idempotency safety)
+DO $$
+BEGIN
+  -- profiles
+  DROP POLICY IF EXISTS "profiles_read_all" ON public.profiles;
+  DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
+  DROP POLICY IF EXISTS "profiles_admin_all" ON public.profiles;
+  
+  -- announcements
+  DROP POLICY IF EXISTS "ann_read_authenticated" ON public.announcements;
+  DROP POLICY IF EXISTS "ann_read_public" ON public.announcements;
+  DROP POLICY IF EXISTS "ann_cr_admin_insert" ON public.announcements;
+  DROP POLICY IF EXISTS "ann_cr_admin_delete" ON public.announcements;
+  
+  -- deadlines
+  DROP POLICY IF EXISTS "dl_read_authenticated" ON public.deadlines;
+  DROP POLICY IF EXISTS "dl_cr_admin_insert" ON public.deadlines;
+  DROP POLICY IF EXISTS "dl_cr_admin_delete" ON public.deadlines;
+  
+  -- exam_results
+  DROP POLICY IF EXISTS "res_read_authenticated" ON public.exam_results;
+  DROP POLICY IF EXISTS "res_cr_admin_insert" ON public.exam_results;
+  DROP POLICY IF EXISTS "res_cr_admin_delete" ON public.exam_results;
+  
+  -- calendar_events
+  DROP POLICY IF EXISTS "cal_read_authenticated" ON public.calendar_events;
+  DROP POLICY IF EXISTS "cal_read_public" ON public.calendar_events;
+  DROP POLICY IF EXISTS "cal_cr_admin_insert" ON public.calendar_events;
+  DROP POLICY IF EXISTS "cal_cr_admin_update" ON public.calendar_events;
+  DROP POLICY IF EXISTS "cal_cr_admin_delete" ON public.calendar_events;
+  
+  -- timeline_questions
+  DROP POLICY IF EXISTS "tq_read_authenticated" ON public.timeline_questions;
+  DROP POLICY IF EXISTS "tq_student_insert" ON public.timeline_questions;
+  DROP POLICY IF EXISTS "tq_cr_admin_update" ON public.timeline_questions;
+  DROP POLICY IF EXISTS "tq_cr_admin_delete" ON public.timeline_questions;
+  
+  -- timeline_answers
+  DROP POLICY IF EXISTS "ta_read_authenticated" ON public.timeline_answers;
+  DROP POLICY IF EXISTS "ta_cr_admin_insert" ON public.timeline_answers;
+  DROP POLICY IF EXISTS "ta_cr_admin_delete" ON public.timeline_answers;
+  
+  -- chat_messages
+  DROP POLICY IF EXISTS "chat_read_authenticated" ON public.chat_messages;
+  DROP POLICY IF EXISTS "chat_insert_authenticated" ON public.chat_messages;
+  DROP POLICY IF EXISTS "chat_delete_own" ON public.chat_messages;
+  DROP POLICY IF EXISTS "chat_cr_admin_update" ON public.chat_messages;
+  
+  -- notes
+  DROP POLICY IF EXISTS "notes_own_select" ON public.notes;
+  DROP POLICY IF EXISTS "notes_own_insert" ON public.notes;
+  DROP POLICY IF EXISTS "notes_own_update" ON public.notes;
+  DROP POLICY IF EXISTS "notes_own_delete" ON public.notes;
+  
+  -- notifications
+  DROP POLICY IF EXISTS "notif_own_select" ON public.notifications;
+  DROP POLICY IF EXISTS "notif_own_update" ON public.notifications;
+  DROP POLICY IF EXISTS "notif_own_delete" ON public.notifications;
+  
+  -- class_routine
+  DROP POLICY IF EXISTS "class_routine_select" ON public.class_routine;
+  DROP POLICY IF EXISTS "class_routine_cr_admin_all" ON public.class_routine;
+
+  -- storage policies (on storage.objects)
+  DROP POLICY IF EXISTS "avatars_public_read" ON storage.objects;
+  DROP POLICY IF EXISTS "avatars_authenticated_upload" ON storage.objects;
+  DROP POLICY IF EXISTS "avatars_authenticated_update" ON storage.objects;
+  DROP POLICY IF EXISTS "avatars_authenticated_delete" ON storage.objects;
+  DROP POLICY IF EXISTS "notices_public_read" ON storage.objects;
+  DROP POLICY IF EXISTS "notices_cr_admin_upload" ON storage.objects;
+  DROP POLICY IF EXISTS "notices_cr_admin_delete" ON storage.objects;
+END $$;
 
 -- ── profiles ──────────────────────────────────────────────
 CREATE POLICY "profiles_read_all"
@@ -590,8 +682,29 @@ CREATE POLICY "notices_cr_admin_delete"   ON storage.objects FOR DELETE TO authe
 -- Enable realtime broadcasts for chat and notifications.
 -- NOTE: If you get "already member" errors, these tables are already
 -- in the publication — that is fine, just ignore the error.
-ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'chat_messages'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+  END IF;
+END $$;
 
 
 -- ============================================================
