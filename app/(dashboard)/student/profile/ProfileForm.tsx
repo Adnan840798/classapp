@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, updateUserRole, deleteUserAccount } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -31,30 +31,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
   const [actionPendingId, setActionPendingId] = useState<string | null>(null);
   const [accountsList, setAccountsList] = useState(allProfiles);
 
-  async function handleToggleRole(targetUser: typeof allProfiles[0]) {
-    const newRole = targetUser.role === 'student' ? 'cr' : 'student';
-    if (!confirm(`Are you sure you want to change ${targetUser.full_name}'s role to ${newRole.toUpperCase()}?`)) {
-      return;
-    }
-    
-    setActionPendingId(targetUser.id);
-    try {
-      const res = await updateUserRole(targetUser.id, newRole);
-      if (res && res.error) {
-        alert(res.error);
-      } else {
-        // Update local state
-        setAccountsList(prev =>
-          prev.map(acc => acc.id === targetUser.id ? { ...acc, role: newRole } : acc)
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update user role');
-    } finally {
-      setActionPendingId(null);
-    }
-  }
+
 
   async function handleDeleteAccount(targetUser: typeof allProfiles[0]) {
     if (!confirm(`WARNING: Are you sure you want to permanently delete ${targetUser.full_name}'s account (${targetUser.university_id})?\n\nThis will remove their profile and all associated data. This action cannot be undone.`)) {
@@ -567,18 +544,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         {/* Actions */}
                         <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#141b34]/40 pt-3 md:pt-0 md:border-0">
                           <div className="flex items-center gap-2 ml-auto md:ml-0">
-                            {/* Toggle Role Button */}
-                            {!isSelf && (
-                              <button
-                                type="button"
-                                disabled={actionPendingId !== null}
-                                onClick={() => handleToggleRole(student)}
-                                className="px-2.5 py-1.5 rounded-lg border border-[#141b34] hover:bg-slate-800 hover:text-white text-xs text-slate-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                title={student.role === 'student' ? 'Promote to CR' : 'Demote to Student'}
-                              >
-                                Toggle Role
-                              </button>
-                            )}
+
 
                             {/* Delete Button */}
                             {!isSelf && (
