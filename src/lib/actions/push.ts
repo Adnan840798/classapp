@@ -1,6 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 
 // Helper to sanitize variables (remove surrounding quotes or whitespace)
@@ -105,7 +106,11 @@ export async function sendWebPush(payload: {
       return { success: false, error: 'VAPID keys not configured.' };
     }
 
-    const supabase = await getSupabaseServerClient();
+    // Use the Supabase Service Role client to bypass RLS policies and retrieve subscriptions for all users
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     
     // Fetch all active subscriptions
     const { data: subscriptions, error } = await supabase
@@ -177,7 +182,11 @@ export async function getVapidPublicKey() {
  */
 export async function diagnosticSendPushAction() {
   try {
-    const supabase = await getSupabaseServerClient();
+    // Use the Supabase Service Role client to bypass RLS policies and retrieve subscriptions for all users
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     
     const keysStatus = {
       hasPublicKey: !!vapidPublicKey,
