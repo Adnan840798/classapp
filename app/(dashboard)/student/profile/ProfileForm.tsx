@@ -263,9 +263,9 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             <button
               type="button"
               onClick={() => setIsManageModalOpen(true)}
-              className="btn-secondary w-full text-center flex items-center justify-center gap-2 mt-1"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 rounded-xl text-sm font-semibold text-white border border-[#6366f1]/20 hover:border-[#6366f1]/40 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#6366f1]/5 cursor-pointer"
             >
-              <Users className="w-4 h-4" />
+              <Users className="w-4 h-4 text-[#818cf8]" />
               Manage Accounts ({accountsList.length})
             </button>
           </div>
@@ -501,6 +501,14 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                 </div>
               ) : (
                 <div className="space-y-3">
+                  {/* Table Header (Desktop only) */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 border-b border-[#141b34]/30">
+                    <div className="col-span-5">Student</div>
+                    <div className="col-span-4">Contact Details</div>
+                    <div className="col-span-1 text-center">Role</div>
+                    <div className="col-span-2 text-right pr-2">Actions</div>
+                  </div>
+
                   {filteredAccounts.map((student) => {
                     const isSelf = student.id === profile.id;
                     const initials = student.full_name ? student.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U';
@@ -508,10 +516,10 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                     return (
                       <div
                         key={student.id}
-                        className="bg-[#090e22]/40 border border-[#141b34]/60 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-[#090e22]/70"
+                        className="bg-[#090e22]/40 border border-[#141b34]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-[#090e22]/70"
                       >
                         {/* Student Meta Info */}
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="col-span-1 md:col-span-5 flex items-center gap-3.5 min-w-0">
                           <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 uppercase flex-shrink-0">
                             {initials}
                           </div>
@@ -529,7 +537,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         </div>
 
                         {/* Contact Info */}
-                        <div className="flex flex-col gap-1.5 text-xs text-slate-400 md:min-w-[200px]">
+                        <div className="col-span-1 md:col-span-4 flex flex-col gap-1.5 text-xs text-slate-400 min-w-0">
                           <a
                             href={`mailto:${student.email}`}
                             className="flex items-center gap-2 hover:text-white transition-colors truncate"
@@ -539,12 +547,12 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                           </a>
                           <div className="flex items-center gap-2">
                             <Phone className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                            <span>{student.phone || 'No phone number'}</span>
+                            <span className="truncate">{student.phone || 'No phone number'}</span>
                           </div>
                         </div>
 
-                        {/* Role Badge & Actions */}
-                        <div className="flex items-center justify-between md:justify-end gap-3 flex-shrink-0 border-t border-[#141b34]/40 pt-3 md:pt-0 md:border-0">
+                        {/* Role Badge */}
+                        <div className="col-span-1 md:col-span-1 flex items-center md:justify-center justify-start">
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                               student.role === 'cr' || student.role === 'admin'
@@ -554,15 +562,18 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                           >
                             {student.role.toUpperCase()}
                           </span>
+                        </div>
 
-                          <div className="flex items-center gap-2">
+                        {/* Actions */}
+                        <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#141b34]/40 pt-3 md:pt-0 md:border-0">
+                          <div className="flex items-center gap-2 ml-auto md:ml-0">
                             {/* Toggle Role Button */}
                             {!isSelf && (
                               <button
                                 type="button"
                                 disabled={actionPendingId !== null}
                                 onClick={() => handleToggleRole(student)}
-                                className="px-2.5 py-1.5 rounded-lg border border-[#141b34] hover:bg-slate-800 text-xs text-slate-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-lg border border-[#141b34] hover:bg-slate-800 hover:text-white text-xs text-slate-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
                                 title={student.role === 'student' ? 'Promote to CR' : 'Demote to Student'}
                               >
                                 Toggle Role
