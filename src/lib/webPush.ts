@@ -1,3 +1,5 @@
+'use client';
+
 import { saveSubscriptionAction, deleteSubscriptionAction, getVapidPublicKey } from '@/lib/actions/push';
 
 /**
