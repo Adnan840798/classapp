@@ -99,6 +99,7 @@ export async function updateProfile(formData: FormData) {
     }
 
     revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
     return { success: true };
   } catch (err: any) {
     if (

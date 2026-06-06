@@ -28,6 +28,7 @@ const crNavItems = [
   { href: '/cr/results', label: 'Results', icon: Trophy },
   { href: '/cr/notes', label: 'Resources', icon: FileText },
   { href: '/cr/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/cr/profile', label: 'Profile', icon: User },
 ];
 
 const studentNavItems = [

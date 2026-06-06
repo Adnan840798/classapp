@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   '/cr/results': 'Exam Results',
   '/cr/notes': 'Resources',
   '/cr/chat': 'Class Chat',
+  '/cr/profile': 'My Profile',
   '/student/dashboard': 'Dashboard',
   '/student/announcements': 'Announcements',
   '/student/deadlines': 'Deadlines',
@@ -35,7 +36,7 @@ export function Topbar() {
 
   const pageTitle = pageTitles[pathname] ?? 'ClassApp';
   const profileHref =
-    profile?.role === 'student' ? '/student/profile' : '#';
+    profile?.role === 'student' ? '/student/profile' : '/cr/profile';
 
   return (
     <>
