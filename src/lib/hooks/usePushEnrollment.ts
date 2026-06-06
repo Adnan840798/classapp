@@ -20,14 +20,36 @@ export function usePushEnrollment() {
     }
   }, []);
 
-  // Auto-enroll if user is logged in, push is supported, and permission is still in 'default' state
+  // Auto-enroll if user is logged in, push is supported
   useEffect(() => {
     if (!profile?.id || !isSupported) return;
 
-    if (Notification.permission === 'default') {
-      console.log('[usePushEnrollment] Notification permission is default; auto-enrolling...');
-      enroll();
+    async function checkAndAutoEnroll() {
+      try {
+        const permission = Notification.permission;
+        if (permission === 'default') {
+          console.log('[usePushEnrollment] Notification permission is default; auto-enrolling...');
+          await enroll();
+        } else if (permission === 'granted') {
+          // Check if there is an active push subscription in the browser
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            const subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+              console.log('[usePushEnrollment] Permission is granted but no push subscription found; enrolling silently...');
+              await enroll();
+            }
+          } else {
+            console.log('[usePushEnrollment] No service worker registration found; enrolling...');
+            await enroll();
+          }
+        }
+      } catch (err) {
+        console.error('[usePushEnrollment] Error during auto-enrollment check:', err);
+      }
     }
+
+    checkAndAutoEnroll();
   }, [profile?.id, isSupported]);
 
   /**
