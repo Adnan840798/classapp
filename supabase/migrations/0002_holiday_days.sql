@@ -1,7 +1,6 @@
 -- ============================================================
--- 0001_holiday_days.sql — Holiday Days Feature
+-- 0002_holiday_days.sql — Holiday Days Feature
 -- ============================================================
--- Run this in Supabase SQL Editor AFTER 0000_complete_schema.sql
 -- Adds the holiday_days table for the CR Holiday Mode feature.
 -- ============================================================
 
