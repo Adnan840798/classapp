@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Edit2, ExternalLink, BookOpen, Plus } from 'lucide-react';
+import {
+  BookOpen,
+  ExternalLink,
+  Edit2,
+  FileText,
+  Globe,
+  Lock,
+} from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteNote } from '@/lib/actions/notes';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -11,7 +18,7 @@ import { Note } from '@/types';
 interface ResourcesListProps {
   initialNotes: Note[];
   currentUserId: string;
-  notesPath: string; // '/student/notes' or '/cr/notes'
+  notesPath: string;
 }
 
 export function ResourcesList({ initialNotes, currentUserId, notesPath }: ResourcesListProps) {
@@ -19,27 +26,23 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
 
   const filteredNotes = initialNotes.filter((note) => {
     const isOwner = note.user_id === currentUserId;
-    if (filter === 'private') {
-      return isOwner && !note.is_public;
-    }
-    if (filter === 'public') {
-      return note.is_public;
-    }
+    if (filter === 'private') return isOwner && !note.is_public;
+    if (filter === 'public') return note.is_public;
     return true;
   });
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Filter Bar */}
-      <div className="flex items-center gap-2 bg-accent/10 border border-border/40 p-1 rounded-xl self-start">
+    <div className="flex flex-col gap-5 w-full">
+      {/* Filter tabs */}
+      <div className="flex items-center gap-2 self-start p-1 rounded-xl border border-white/[0.06] bg-white/[0.03]">
         {(['all', 'private', 'public'] as const).map((type) => (
           <button
             key={type}
             onClick={() => setFilter(type)}
             className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer ${
               filter === type
-                ? 'bg-[#6366f1] text-white shadow-[0_0_12px_rgba(99,102,241,0.3)]'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                ? 'bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.35)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             {type === 'all' ? 'All Resources' : type === 'private' ? 'Private' : 'Public'}
@@ -47,6 +50,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
         ))}
       </div>
 
+      {/* Empty state */}
       {filteredNotes.length === 0 ? (
         <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
           <BookOpen className="w-12 h-12 text-muted-foreground opacity-30" />
@@ -56,90 +60,127 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-3">
           {filteredNotes.map((note) => {
             const isOwner = note.user_id === currentUserId;
+            const isPublic = note.is_public;
 
             return (
               <div
                 key={note.id}
-                className="glass-card p-5 flex flex-col justify-between hover:scale-[1.01] transition-transform duration-200"
+                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                style={{
+                  background: isPublic
+                    ? 'linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(11,15,35,0.65) 100%)'
+                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(11,15,35,0.45) 100%)',
+                  border: isPublic
+                    ? '1px solid rgba(99,102,241,0.25)'
+                    : '1px solid rgba(148,163,184,0.13)',
+                }}
               >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="text-base font-bold text-foreground leading-snug">
-                      {note.title}
-                    </h3>
-                    
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {/* Public/Private Badge beside Drive Link */}
+                {/* Left accent bar */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{
+                    background: isPublic
+                      ? 'linear-gradient(180deg, #6366f1, #8b5cf6)'
+                      : 'linear-gradient(180deg, #475569, #1e293b)',
+                  }}
+                />
+
+                <div className="pl-5 pr-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                  {/* ── Left section: icon + title + body ── */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {/* Icon badge */}
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{
+                        background: isPublic ? 'rgba(99,102,241,0.12)' : 'rgba(148,163,184,0.08)',
+                        border: isPublic
+                          ? '1px solid rgba(99,102,241,0.25)'
+                          : '1px solid rgba(148,163,184,0.15)',
+                      }}
+                    >
+                      <FileText className={`w-4 h-4 ${isPublic ? 'text-indigo-400' : 'text-slate-400'}`} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                        {note.title}
+                      </h3>
+                      {note.content && (
+                        <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words line-clamp-3 mt-1">
+                          {note.content}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Right section: meta + drive + edit/delete ── */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0">
+
+                    {/* Metadata: badge + timestamp */}
+                    <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 min-w-[80px]">
                       {isOwner ? (
-                        note.is_public ? (
-                          <span className="text-[9px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded font-bold">
+                        isPublic ? (
+                          <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                            <Globe className="w-2.5 h-2.5" />
                             Public
                           </span>
                         ) : (
-                          <span className="text-[9px] bg-slate-500/10 text-slate-400 border border-slate-500/20 px-2 py-0.5 rounded font-bold">
+                          <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-500/10 border border-slate-500/20 text-slate-400">
+                            <Lock className="w-2.5 h-2.5" />
                             Private
                           </span>
                         )
                       ) : (
-                        <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">
-                          Public
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          {note.creator?.full_name || 'Classmate'}
                         </span>
                       )}
+                      <p className="text-[9px] text-slate-500 font-medium">
+                        {formatDateTime(note.updated_at)}
+                      </p>
+                    </div>
 
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Drive link — always shown when present */}
                       {note.drive_link && (
                         <a
                           href={note.drive_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded font-bold hover:bg-emerald-500/20"
-                          title="Open Google Drive Link"
+                          title="Open Google Drive"
+                          className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all"
                         >
-                          Drive
-                          <ExternalLink className="w-3 h-3" />
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Drive</span>
                         </a>
+                      )}
+
+                      {/* Edit + Delete — owner only */}
+                      {isOwner && (
+                        <>
+                          <Link
+                            href={`${notesPath}/${note.id}`}
+                            title="Edit Resource"
+                            className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            Edit
+                          </Link>
+                          <DeleteButton
+                            id={note.id}
+                            onDelete={deleteNote}
+                            confirmMessage="Are you sure you want to delete this resource?"
+                          />
+                        </>
                       )}
                     </div>
                   </div>
 
-                  {note.content && (
-                    <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed mb-4 line-clamp-4">
-                      {note.content}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      Updated {formatDateTime(note.updated_at)}
-                    </span>
-                    {!isOwner && (
-                      <span className="text-[10px] text-slate-400 font-semibold">
-                        Shared by {note.creator?.full_name || 'Classmate'}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {isOwner && (
-                    <div className="flex items-center gap-1.5">
-                      <Link
-                        href={`${notesPath}/${note.id}`}
-                        className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                        title="Edit Resource"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Link>
-                      <DeleteButton
-                        id={note.id}
-                        onDelete={deleteNote}
-                        confirmMessage="Are you sure you want to delete this resource?"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             );

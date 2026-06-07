@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
-import { ChevronLeft, ChevronRight, Info, PalmtreeIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus } from 'lucide-react';
 import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils/timelineDates';
-import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday } from '@/lib/actions/timeline';
+import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks } from '@/lib/actions/timeline';
 import { RoutineButton } from './RoutineButton';
 import { DayDetailPanel } from './DayDetailPanel';
 
@@ -57,7 +57,7 @@ interface HolidaySlot {
 }
 
 /* ── Helper: compute per-week class-day ranges from holiday data ── */
-function computeWeekDayRanges(holidays: HolidaySlot[]): {
+function computeWeekDayRanges(holidays: HolidaySlot[], totalWeeks: number): {
   startDay: number;
   endDay: number;
   classDays: number;
@@ -67,7 +67,7 @@ function computeWeekDayRanges(holidays: HolidaySlot[]): {
   const ranges: { startDay: number; endDay: number; classDays: number; isFullHoliday: boolean }[] = [];
   let cumulative = 0;
 
-  for (let w = 1; w <= 14; w++) {
+  for (let w = 1; w <= totalWeeks; w++) {
     let classDays = 0;
     for (let d = 0; d < 5; d++) {
       if (!holidaySet.has(`${w}-${d}`)) classDays++;
@@ -100,17 +100,17 @@ function computeDayNumbers(
 }
 
 /* ── Helper: compute consecutive full-holiday week groups for collapse ── */
-function getHolidayGroups(weekRanges: { isFullHoliday: boolean }[]): {
+function getHolidayGroups(weekRanges: { isFullHoliday: boolean }[], totalWeeks: number): {
   type: 'week' | 'holiday_group';
   weekNums: number[];
 }[] {
   const result: { type: 'week' | 'holiday_group'; weekNums: number[] }[] = [];
   let i = 0;
-  while (i < 14) {
+  while (i < totalWeeks) {
     if (weekRanges[i].isFullHoliday) {
       // Start of a holiday run
       const start = i;
-      while (i < 14 && weekRanges[i].isFullHoliday) i++;
+      while (i < totalWeeks && weekRanges[i].isFullHoliday) i++;
       result.push({ type: 'holiday_group', weekNums: Array.from({ length: i - start }, (_, k) => start + 1 + k) });
     } else {
       result.push({ type: 'week', weekNums: [i + 1] });
@@ -129,6 +129,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   const [hasScrolledInit, setHasScrolledInit] = useState(false);
   const [holidays, setHolidays] = useState<HolidaySlot[]>([]);
   const [isTogglingHoliday, setIsTogglingHoliday] = useState(false);
+  const [totalWeeks, setTotalWeeksState] = useState<number>(14);
+  const [isChangingWeeks, setIsChangingWeeks] = useState(false);
 
   const weekListRef = useRef<HTMLDivElement>(null);
 
@@ -140,9 +142,10 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     });
   }, [selectedWeek]);
 
-  // Fetch holiday data once on mount
+  // Fetch holiday data and total weeks once on mount
   useEffect(() => {
     getHolidayDays().then(setHolidays);
+    getTotalWeeks().then(setTotalWeeksState);
   }, []);
 
   // Scroll to current/selected week
@@ -193,12 +196,12 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     setTodayStr(toISODateString(new Date()));
   }, []);
 
-  // Compute per-week class-day ranges
-  const weekRanges = computeWeekDayRanges(holidays);
+  // Compute per-week class-day ranges (dynamic totalWeeks)
+  const weekRanges = computeWeekDayRanges(holidays, totalWeeks);
 
   // Compute display groups (merging consecutive all-holiday weeks)
   // For students, filter out holiday groups completely so they don't see "Holiday Break" cards.
-  const displayGroups = getHolidayGroups(weekRanges).filter(
+  const displayGroups = getHolidayGroups(weekRanges, totalWeeks).filter(
     (group) => isCR || group.type !== 'holiday_group'
   );
 
@@ -212,6 +215,33 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       }
     }
     return num;
+  }
+
+  async function handleAddWeek() {
+    setIsChangingWeeks(true);
+    const next = totalWeeks + 1;
+    const result = await setTotalWeeks(next);
+    if (result.success) {
+      setTotalWeeksState(next);
+      setSelectedWeek(next);
+    } else {
+      console.error('Failed to add week:', result.error);
+    }
+    setIsChangingWeeks(false);
+  }
+
+  async function handleRemoveLastWeek() {
+    if (totalWeeks <= 1) return;
+    setIsChangingWeeks(true);
+    const next = totalWeeks - 1;
+    const result = await setTotalWeeks(next);
+    if (result.success) {
+      setTotalWeeksState(next);
+      if (selectedWeek > next) setSelectedWeek(next);
+    } else {
+      console.error('Failed to remove week:', result.error);
+    }
+    setIsChangingWeeks(false);
   }
 
   function getHolidayGroupRangeLabel(weeks: number[]): string {
@@ -234,7 +264,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       if (isSelectedHoliday) {
         // Find next non-holiday week
         let targetWeek = -1;
-        for (let w = selectedWeek; w <= 14; w++) {
+        for (let w = selectedWeek; w <= totalWeeks; w++) {
           if (!weekRanges[w - 1]?.isFullHoliday) {
             targetWeek = w;
             break;
@@ -337,7 +367,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
             <div>
               <h1 className="text-[22px] font-bold tracking-tight text-white">Semester Timeline</h1>
               <p className="text-[13px] text-slate-400 mt-1">
-                {totalClassDays} class days · Scroll left or right to explore your 14 week journey
+                {totalClassDays} class days · {totalWeeks} weeks in semester
               </p>
             </div>
             <div className="flex-shrink-0 mt-0.5">
@@ -510,6 +540,34 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     </button>
                   );
                 })}
+
+                {/* ── Add / Remove Week buttons (CR only) ── */}
+                {isCR && (
+                  <div className="flex-shrink-0 flex flex-col gap-2 items-center justify-center ml-1">
+                    <button
+                      onClick={handleAddWeek}
+                      disabled={isChangingWeeks || totalWeeks >= 52}
+                      title={`Add Week ${totalWeeks + 1}`}
+                      className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 hover:bg-emerald-500/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      style={{ minWidth: 90, height: 48 }}
+                    >
+                      <Plus className="w-3.5 h-3.5 flex-shrink-0" />
+                      Add Week
+                    </button>
+                    {totalWeeks > 14 && (
+                      <button
+                        onClick={handleRemoveLastWeek}
+                        disabled={isChangingWeeks || totalWeeks <= 1}
+                        title={`Remove Week ${totalWeeks}`}
+                        className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl text-rose-400 border border-rose-500/25 bg-rose-500/8 hover:bg-rose-500/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        style={{ minWidth: 90, height: 48 }}
+                      >
+                        <Minus className="w-3.5 h-3.5 flex-shrink-0" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Right arrow */}

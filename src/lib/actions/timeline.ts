@@ -345,6 +345,63 @@ export async function toggleHolidayDay(
 /**
  * Set an entire academic week as holiday or normal (CR/admin only).
  */
+/**
+ * Get the current total number of weeks in the semester (default 14).
+ */
+export async function getTotalWeeks(): Promise<number> {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('semester_config')
+    .select('total_weeks')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching total_weeks:', error);
+    return 14;
+  }
+  return data?.total_weeks ?? 14;
+}
+
+/**
+ * Update the total number of weeks in the semester (CR/admin only).
+ */
+export async function setTotalWeeks(
+  totalWeeks: number
+): Promise<{ success: boolean; error?: string }> {
+  if (totalWeeks < 1 || totalWeeks > 52) {
+    return { success: false, error: 'Week count must be between 1 and 52.' };
+  }
+
+  const supabase = await getSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+    return { success: false, error: 'Unauthorized: Only CRs and Admins can modify semester settings.' };
+  }
+
+  const { error } = await supabase
+    .from('semester_config')
+    .update({ total_weeks: totalWeeks, updated_at: new Date().toISOString(), updated_by: user.id })
+    .eq('id', 1);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/cr/timeline');
+  revalidatePath('/student/timeline');
+  return { success: true };
+}
+
 export async function setWeekHoliday(
   weekNumber: number,
   isHoliday: boolean
