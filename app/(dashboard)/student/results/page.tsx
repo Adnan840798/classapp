@@ -71,10 +71,11 @@ export default async function StudentResultsPage() {
                 </div>
 
                 {/* Right section: Published Date + Attachment Link */}
-                <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-6 flex-shrink-0">
                   <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-slate-600" />
-                    Published: {formatDateTime(res.published_at)}
+                    <span className="hidden sm:inline">Published: </span>
+                    {formatDateTime(res.published_at)}
                   </span>
                   <div className="flex items-center gap-2">
                     {res.result_sheet_url ? (
@@ -84,12 +85,12 @@ export default async function StudentResultsPage() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
                       >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>View Marksheet</span>
-                        <ArrowUpRight className="w-3 h-3" />
+                        <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="hidden sm:inline">View Marksheet</span>
+                        <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
                       </a>
                     ) : (
-                      <span className="text-[10px] text-slate-600 italic">No attachment</span>
+                      <span className="text-[10px] text-slate-600 italic hidden sm:inline">No attachment</span>
                     )}
                   </div>
                 </div>

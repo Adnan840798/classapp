@@ -255,3 +255,152 @@ export async function getTimelineData(weekNumber: number) {
 
   return timelineDays;
 }
+
+/**
+ * Fetch all holiday day slots (week_number + day_index pairs).
+ * Used by SemesterTimeline to compute non-holiday day counters
+ * and render holiday visuals. Returns a flat array of all marked holidays.
+ */
+export async function getHolidayDays(): Promise<{ week_number: number; day_index: number; note: string | null }[]> {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('holiday_days')
+    .select('week_number, day_index, note')
+    .order('week_number', { ascending: true })
+    .order('day_index', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching holiday days:', error);
+    return [];
+  }
+  return data ?? [];
+}
+
+/**
+ * Toggle a specific academic day slot as holiday/non-holiday (CR/admin only).
+ * If the slot is already a holiday → deletes it (removes holiday).
+ * If not → inserts it (marks as holiday).
+ */
+export async function toggleHolidayDay(
+  weekNumber: number,
+  dayIndex: number,
+  note?: string
+): Promise<{ success: boolean; isNowHoliday: boolean; error?: string }> {
+  const supabase = await getSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  // Role check
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+    return { success: false, isNowHoliday: false, error: 'Unauthorized: Only CRs and Admins can manage holidays.' };
+  }
+
+  try {
+    // Check if already marked
+    const { data: existing } = await supabase
+      .from('holiday_days')
+      .select('id')
+      .eq('week_number', weekNumber)
+      .eq('day_index', dayIndex)
+      .maybeSingle();
+
+    if (existing) {
+      // Remove holiday
+      const { error: delError } = await supabase
+        .from('holiday_days')
+        .delete()
+        .eq('week_number', weekNumber)
+        .eq('day_index', dayIndex);
+
+      if (delError) return { success: false, isNowHoliday: true, error: delError.message };
+
+      revalidatePath('/cr/timeline');
+      revalidatePath('/student/timeline');
+      return { success: true, isNowHoliday: false };
+    } else {
+      // Mark as holiday
+      const { error: insError } = await supabase
+        .from('holiday_days')
+        .insert({ week_number: weekNumber, day_index: dayIndex, note: note ?? null, created_by: user.id });
+
+      if (insError) return { success: false, isNowHoliday: false, error: insError.message };
+
+      revalidatePath('/cr/timeline');
+      revalidatePath('/student/timeline');
+      return { success: true, isNowHoliday: true };
+    }
+  } catch (err: any) {
+    console.error('toggleHolidayDay error:', err);
+    return { success: false, isNowHoliday: false, error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * Set an entire academic week as holiday or normal (CR/admin only).
+ */
+export async function setWeekHoliday(
+  weekNumber: number,
+  isHoliday: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await getSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  // Role check
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+    return { success: false, error: 'Unauthorized: Only CRs and Admins can manage holidays.' };
+  }
+
+  try {
+    if (isHoliday) {
+      // Mark entire week as holiday: delete existing days first to avoid unique constraints
+      await supabase
+        .from('holiday_days')
+        .delete()
+        .eq('week_number', weekNumber);
+
+      // Insert all 5 slots (0 to 4)
+      const insertRows = Array.from({ length: 5 }, (_, d) => ({
+        week_number: weekNumber,
+        day_index: d,
+        note: 'Whole Week Holiday',
+        created_by: user.id,
+      }));
+
+      const { error: insError } = await supabase
+        .from('holiday_days')
+        .insert(insertRows);
+
+      if (insError) return { success: false, error: insError.message };
+    } else {
+      // Unmark entire week: delete all holiday days for this week
+      const { error: delError } = await supabase
+        .from('holiday_days')
+        .delete()
+        .eq('week_number', weekNumber);
+
+      if (delError) return { success: false, error: delError.message };
+    }
+
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+    return { success: true };
+  } catch (err: any) {
+    console.error('setWeekHoliday error:', err);
+    return { success: false, error: err.message || 'An unexpected error occurred.' };
+  }
+}

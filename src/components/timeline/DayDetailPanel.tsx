@@ -14,6 +14,10 @@ interface DayDetailPanelProps {
   deadlines: any[];
   results: any[];
   isCR?: boolean;
+  isHoliday?: boolean;
+  weekNumber?: number;
+  dayIndex?: number;
+  onToggleHoliday?: (weekNumber: number, dayIndex: number) => Promise<void>;
 }
 
 type TabType = 'overview' | 'announcements' | 'results' | 'deadlines';
@@ -85,8 +89,23 @@ export function DayDetailPanel({
   deadlines,
   results,
   isCR = false,
+  isHoliday = false,
+  weekNumber,
+  dayIndex,
+  onToggleHoliday,
 }: DayDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [isTogglingHoliday, setIsTogglingHoliday] = useState(false);
+
+  async function handleHolidayToggle() {
+    if (!onToggleHoliday || weekNumber === undefined || dayIndex === undefined) return;
+    setIsTogglingHoliday(true);
+    try {
+      await onToggleHoliday(weekNumber, dayIndex);
+    } finally {
+      setIsTogglingHoliday(false);
+    }
+  }
 
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [translationX, setTranslationX] = useState<number>(0);
@@ -199,15 +218,38 @@ export function DayDetailPanel({
             className="flex items-start justify-between px-6 pt-7 pb-5 flex-shrink-0"
             style={{ borderBottom: '1px solid #141b30', background: '#060813' }}
           >
-            <div>
-              <h2 className="text-[26px] font-black text-white tracking-tight leading-none uppercase">
-                {displayDayName}
-              </h2>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-[26px] font-black text-white tracking-tight leading-none uppercase">
+                  {displayDayName}
+                </h2>
+                {isHoliday && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}>
+                    🏖️ Holiday
+                  </span>
+                )}
+              </div>
               <p className="text-[15px] text-slate-400 font-semibold mt-1.5">{displayDateLabel}</p>
+
+              {/* CR holiday toggle */}
+              {isCR && onToggleHoliday && weekNumber !== undefined && dayIndex !== undefined && (
+                <button
+                  onClick={handleHolidayToggle}
+                  disabled={isTogglingHoliday}
+                  className="mt-3 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                  style={{
+                    background: isHoliday ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)',
+                    border: isHoliday ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(239,68,68,0.2)',
+                    color: isHoliday ? '#34d399' : '#f87171',
+                  }}
+                >
+                  {isTogglingHoliday ? '…' : isHoliday ? '✓ Remove Holiday' : '🏖️ Mark as Holiday'}
+                </button>
+              )}
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mt-0.5"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mt-0.5 flex-shrink-0 ml-2"
               style={{ background: '#131929', border: '1px solid #1e2a4a' }}
             >
               <X className="w-4 h-4 text-slate-400" />
