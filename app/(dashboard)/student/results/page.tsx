@@ -86,7 +86,7 @@ export default async function StudentResultsPage() {
                         className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
                       >
                         <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="hidden sm:inline">View Marksheet</span>
+                        <span>View Marksheet</span>
                         <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
                       </a>
                     ) : (
