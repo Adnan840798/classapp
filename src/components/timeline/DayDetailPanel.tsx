@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X, ChevronRight, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 interface DayDetailPanelProps {
   isOpen: boolean;
@@ -92,6 +93,8 @@ export function DayDetailPanel({
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   if (!isOpen) return null;
+
+  const prefix = isCR ? '/cr' : '/student';
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -280,8 +283,6 @@ export function DayDetailPanel({
                   </button>
                 </div>
 
-
-
                 {/* Deadlines list section */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -302,10 +303,11 @@ export function DayDetailPanel({
                   ) : (
                     <div className="flex flex-col gap-2.5">
                       {deadlines.map((d) => (
-                        <button
+                        <Link
                           key={d.id}
-                          onClick={() => setActiveTab('deadlines')}
-                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-105"
+                          href={`${prefix}/deadlines/${d.id}`}
+                          onClick={onClose}
+                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-110"
                           style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
                         >
                           <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
@@ -316,7 +318,7 @@ export function DayDetailPanel({
                             </p>
                           </div>
                           <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                        </button>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -338,13 +340,14 @@ export function DayDetailPanel({
                         </a>
                       )}
                       {announcements.length > 0 && (
-                        <button
-                          onClick={() => setActiveTab('announcements')}
+                        <Link
+                          href={`${prefix}/announcements`}
+                          onClick={onClose}
                           className="text-[12px] font-semibold cursor-pointer"
                           style={{ color: '#818cf8' }}
                         >
                           View all
-                        </button>
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -353,9 +356,11 @@ export function DayDetailPanel({
                   ) : (
                     <div className="flex flex-col gap-2.5">
                       {announcements.slice(0, 4).map((a) => (
-                        <div
+                        <Link
                           key={a.id}
-                          className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl"
+                          href={`${prefix}/announcements/${a.id}`}
+                          onClick={onClose}
+                          className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all hover:brightness-110"
                           style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
                         >
                           {/* Purple bookmark icon */}
@@ -371,7 +376,7 @@ export function DayDetailPanel({
                           <span className="text-[11px] font-semibold text-slate-500 flex-shrink-0">
                             {formatTime(a.created_at)}
                           </span>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -397,10 +402,11 @@ export function DayDetailPanel({
                   ) : (
                     <div className="flex flex-col gap-2.5">
                       {results.map((r) => (
-                        <button
+                        <Link
                           key={r.id}
-                          onClick={() => setActiveTab('results')}
-                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-105"
+                          href={`${prefix}/results`}
+                          onClick={onClose}
+                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-110"
                           style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
                         >
                           <SquarePlusIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
@@ -408,12 +414,12 @@ export function DayDetailPanel({
                             <p className="text-[13px] font-bold text-white leading-none">{r.exam_name}</p>
                             {r.result_sheet_url && (
                               <p className="text-[11px] text-slate-400 mt-1.5 leading-none">
-                                Score: View attachment
+                                Sheet available
                               </p>
                             )}
                           </div>
                           <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                        </button>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -439,26 +445,26 @@ export function DayDetailPanel({
                 ) : (
                   <div className="flex flex-col gap-3">
                     {announcements.map((a) => (
-                      <div
+                      <Link
                         key={a.id}
-                        className="px-4 py-4 rounded-xl flex flex-col gap-3"
+                        href={`${prefix}/announcements/${a.id}`}
+                        onClick={onClose}
+                        className="px-4 py-4 rounded-xl flex flex-col gap-3 transition-all hover:brightness-110 cursor-pointer"
                         style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="text-[13px] font-bold text-white leading-snug">{a.title}</h4>
+                          <ChevronRight className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
                         </div>
-                        <p className="text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap">{a.body}</p>
+                        <p className="text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap line-clamp-3">{a.body}</p>
                         {a.attachment_url && (
-                          <a
-                            href={a.attachment_url}
-                            target="_blank"
-                            rel="noreferrer"
+                          <span
                             className="inline-flex items-center gap-1.5 text-[11px] font-semibold"
                             style={{ color: '#818cf8' }}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
-                            View attachment
-                          </a>
+                            Has attachment
+                          </span>
                         )}
                         <div
                           className="flex items-center gap-2 pt-2.5 text-[10px] text-slate-500 font-semibold"
@@ -468,7 +474,7 @@ export function DayDetailPanel({
                           <span>·</span>
                           <span>{formatTime(a.created_at)}</span>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -505,18 +511,29 @@ export function DayDetailPanel({
                             Published at {formatTime(r.published_at)}
                           </p>
                         </div>
-                        {r.result_sheet_url && (
-                          <a
-                            href={r.result_sheet_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors flex-shrink-0"
-                            style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {r.result_sheet_url && (
+                            <a
+                              href={r.result_sheet_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                              style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                          <Link
+                            href={`${prefix}/results`}
+                            onClick={onClose}
+                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                            style={{ background: 'rgba(16,185,129,0.10)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}
                           >
-                            View
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
+                            <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -542,9 +559,11 @@ export function DayDetailPanel({
                 ) : (
                   <div className="flex flex-col gap-3">
                     {deadlines.map((d) => (
-                      <div
+                      <Link
                         key={d.id}
-                        className="px-4 py-4 rounded-xl flex flex-col gap-2.5"
+                        href={`${prefix}/deadlines/${d.id}`}
+                        onClick={onClose}
+                        className="px-4 py-4 rounded-xl flex flex-col gap-2.5 transition-all hover:brightness-110 cursor-pointer"
                         style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -566,7 +585,7 @@ export function DayDetailPanel({
                           </p>
                         )}
                         <p className="text-[10px] text-slate-500 font-semibold">{d.subject}</p>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

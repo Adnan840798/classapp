@@ -1,10 +1,16 @@
 import Link from 'next/link';
-import { Megaphone, Calendar, Paperclip, FileText, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import {
+  Megaphone,
+  Calendar,
+  Paperclip,
+  FileText,
+  Image as ImageIcon,
+  MessageSquare,
+} from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
-import { UserAvatar } from '@/components/ui/UserAvatar';
 
-export const revalidate = 0; // force dynamic rendering
+export const revalidate = 0;
 
 export default async function StudentAnnouncementsPage() {
   const supabase = await getSupabaseServerClient();
@@ -12,6 +18,7 @@ export default async function StudentAnnouncementsPage() {
   const { data: announcements, error } = await supabase
     .from('announcements')
     .select('*, creator:profiles(full_name, profile_pic_url)')
+    .order('is_important', { ascending: false })
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -20,9 +27,14 @@ export default async function StudentAnnouncementsPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">
+      {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Announcements</h1>
-        <p className="page-subtitle">Academic notices, official messages, and updates from your CRs</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="page-title">Announcements</h1>
+            <p className="page-subtitle">Academic notices, official messages, and updates from your CRs</p>
+          </div>
+        </div>
       </div>
 
       {!announcements || announcements.length === 0 ? (
@@ -34,86 +46,97 @@ export default async function StudentAnnouncementsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-3">
           {announcements.map((announcement) => {
             const isImportant = announcement.is_important;
             return (
               <div
                 key={announcement.id}
-                className={`announcement-card relative flex flex-col justify-between ${
-                  isImportant ? 'important border-l-4 border-l-red-500' : ''
-                }`}
+                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                style={{
+                  background: isImportant
+                    ? 'linear-gradient(90deg, rgba(239,68,68,0.06) 0%, rgba(11,14,30,0.6) 100%)'
+                    : 'rgba(11,14,30,0.4)',
+                  border: isImportant ? '1px solid rgba(239,68,68,0.25)' : '1px solid #1e2a4a',
+                }}
               >
-                <div>
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3">
-                      <UserAvatar
-                        profile={{
-                          full_name: announcement.creator?.full_name || 'CR',
-                          profile_pic_url: announcement.creator?.profile_pic_url || null,
-                        }}
-                        size="sm"
-                      />
-                      <div>
-                        <p className="text-xs font-semibold text-foreground">
-                          {announcement.creator?.full_name || 'Class Representative'}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDateTime(announcement.created_at)}
-                        </p>
-                      </div>
+                {/* Left accent bar */}
+                {isImportant && (
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-1"
+                    style={{ background: 'linear-gradient(180deg, #ef4444, #f97316)' }}
+                  />
+                )}
+
+                <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left section: File Icon + Title & Description */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: isImportant ? 'rgba(239,68,68,0.1)' : 'rgba(99,102,241,0.1)',
+                        border: isImportant ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(99,102,241,0.2)',
+                      }}
+                    >
+                      <Megaphone className={`w-4 h-4 ${isImportant ? 'text-red-400' : 'text-indigo-400'}`} />
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      {announcement.is_public && (
-                        <span className="badge badge-public">
-                          Public
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                          {announcement.title}
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-2 whitespace-pre-line leading-relaxed break-words">
+                        {announcement.body}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right section: Author + Date + Action Button */}
+                  <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
+                    <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          {announcement.creator?.full_name || 'CR'}
                         </span>
+                        {announcement.is_public ? (
+                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+                            Public
+                          </span>
+                        ) : (
+                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                            Class
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[9px] text-slate-500 font-medium">
+                        {formatDateTime(announcement.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {announcement.attachment_url && (
+                        <a
+                          href={announcement.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 text-indigo-400 hover:text-white transition-colors"
+                          title="View Attachment"
+                        >
+                          {announcement.attachment_type === 'image' ? (
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5" />
+                          )}
+                        </a>
                       )}
+                      <Link
+                        href={`/student/announcements/${announcement.id}`}
+                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                      >
+                        Q&A
+                      </Link>
                     </div>
                   </div>
-
-                  {/* Body Content */}
-                  <h3 className="text-base font-bold text-foreground mb-2 leading-snug">
-                    {announcement.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed mb-4">
-                    {announcement.body}
-                  </p>
-                </div>
-
-                {/* Attachment & Footer */}
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    {announcement.attachment_url ? (
-                      <a
-                        href={announcement.attachment_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-                      >
-                        {announcement.attachment_type === 'image' ? (
-                          <ImageIcon className="w-4 h-4" />
-                        ) : (
-                          <FileText className="w-4 h-4" />
-                        )}
-                        <span className="truncate max-w-[150px]">View Attachment</span>
-                      </a>
-                    ) : (
-                      <div className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                        <Paperclip className="w-3.5 h-3.5" />
-                        No attachment
-                      </div>
-                    )}
-                  </div>
-                  <Link
-                    href={`/student/announcements/${announcement.id}`}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    Q&A Room
-                  </Link>
                 </div>
               </div>
             );

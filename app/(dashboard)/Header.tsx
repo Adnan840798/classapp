@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, X, LogOut, Bell, GraduationCap } from 'lucide-react';
+import { Menu, X, LogOut, Bell, GraduationCap, User, Shield } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -127,24 +127,49 @@ export function Header() {
               
               {/* Simple dropdown menu on click */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0e1c] border border-[#141b34] rounded-xl shadow-2xl p-2 z-50 fade-in">
-                  <div className="px-3 py-2 border-b border-[#141b34] mb-1">
-                    <p className="text-xs font-bold text-white truncate">{profile.full_name}</p>
-                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{profile.email}</p>
+                <div
+                  className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50 animate-fade-in"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(15,20,45,0.95) 0%, rgba(10,12,30,0.95) 100%)',
+                    border: '1px solid rgba(99,102,241,0.2)',
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99,102,241,0.08)',
+                  }}
+                >
+                  {/* User Details */}
+                  <div className="px-3.5 py-2.5 border-b border-[#1e2a4a]/85 mb-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-black text-white truncate">{profile.full_name}</p>
+                      {isCR && (
+                        <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300">
+                          <Shield className="w-2 h-2" />
+                          {profile.role}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-400 truncate mt-0.5">{profile.email}</p>
                   </div>
+
+                  {/* Navigation Items */}
                   <Link
                     href={`${prefix}/profile`}
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/40 rounded-lg transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-indigo-500/10 rounded-xl transition-all"
                   >
+                    <User className="w-3.5 h-3.5 text-indigo-400" />
                     My Profile
                   </Link>
+
+                  {/* Divider */}
+                  <div className="h-[1px] bg-[#1e2a4a]/85 my-1" />
+
+                  {/* Sign Out Button */}
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
                       handleSignOut();
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/15 rounded-xl transition-all cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Sign Out

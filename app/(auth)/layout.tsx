@@ -1,11 +1,23 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Sign In — ClassApp',
   description: 'Sign in to your ClassApp account to access announcements, deadlines, results, and more.',
 };
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  // If the user already has an active session, redirect them to the landing page.
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect('/');
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background decoration */}

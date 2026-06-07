@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus, Award, Trash2, Calendar, FileText, CheckCircle } from 'lucide-react';
+import { Plus, Award, Calendar, FileText, ArrowUpRight } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteResult } from '@/lib/actions/results';
@@ -20,13 +20,14 @@ export default async function CRResultsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-fade-in">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="page-header mb-0">
           <h1 className="page-title">Exam Results</h1>
-          <p className="page-subtitle">Publish the marksheets</p>
+          <p className="page-subtitle">Publish and manage academic marksheets for the class</p>
         </div>
-        <Link href="/cr/results/publish" className="btn-primary self-start sm:self-auto">
+        <Link href="/cr/results/publish" className="btn-primary self-start sm:self-auto flex-shrink-0">
           <Plus className="w-4 h-4" />
           Publish Result
         </Link>
@@ -35,7 +36,7 @@ export default async function CRResultsPage() {
       {!results || results.length === 0 ? (
         <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
           <Award className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
-          <h2 className="text-lg font-semibold">No results published</h2>
+          <h2 className="text-lg font-semibold">No results published yet</h2>
           <p className="text-sm text-muted-foreground max-w-md">
             Publish exam sheets and results class-wide. All students will be able to view these results.
           </p>
@@ -45,53 +46,66 @@ export default async function CRResultsPage() {
           </Link>
         </div>
       ) : (
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-accent/30 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <th className="p-4">Exam Name</th>
-                  <th className="p-4">File</th>
-                  <th className="p-4">Published At</th>
-                  <th className="p-4 ">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 text-sm">
-                {results.map((res) => (
-                  <tr key={res.id} className="hover:bg-accent/10 transition-colors">
-                    <td className="p-4 font-semibold text-foreground">
+        <div className="flex flex-col gap-3">
+          {results.map((res) => (
+            <div
+              key={res.id}
+              className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+              style={{
+                background: 'rgba(11,14,30,0.4)',
+                border: '1px solid #1e2a4a',
+              }}
+            >
+              {/* Left purple colored accent line */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-1"
+                style={{ background: 'linear-gradient(180deg, #6366f1, #a855f7)' }}
+              />
+
+              <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                {/* Left section: Icon + Title */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                    <Award className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-extrabold text-white break-words leading-snug">
                       {res.exam_name}
-                    </td>
-                    <td className="p-4">
-                      {res.result_sheet_url ? (
-                        <a
-                          href={res.result_sheet_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          Attachment
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground italic text-xs">None</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-xs text-muted-foreground">
-                      {formatDateTime(res.published_at)}
-                    </td>
-                    <td className="p-4 text-right">
-                      <DeleteButton
-                        id={res.id}
-                        onDelete={deleteResult}
-                        confirmMessage="Are you sure you want to delete this result?"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Right section: Published Date + Actions */}
+                <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
+                  <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                    Published: {formatDateTime(res.published_at)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {res.result_sheet_url ? (
+                      <a
+                        href={res.result_sheet_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Marksheet</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-slate-600 italic">No attachment</span>
+                    )}
+                    <DeleteButton
+                      id={res.id}
+                      onDelete={deleteResult}
+                      confirmMessage="Are you sure you want to delete this result?"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

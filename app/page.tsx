@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GraduationCap, ArrowRight, Megaphone, CalendarDays, ExternalLink, Calendar, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { formatDateTime, formatDate, getEventTypeColor, formatEventType, getInitials } from '@/lib/utils/formatters';
+import { formatDateTime, formatDate, getEventTypeColor, formatEventType } from '@/lib/utils/formatters';
+import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -90,26 +91,7 @@ export default async function RootPage() {
 
         {/* Top-Right Navigation Section */}
         <div className="flex items-center gap-4">
-          {profile ? (
-            <Link
-              href={dashboardUrl}
-              className="flex items-center gap-2.5 bg-[#141b34]/30 hover:bg-[#141b34]/60 border border-[#141b34]/60 rounded-xl px-3 py-1.5 transition-all group"
-            >
-              <div className="w-7 h-7 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-105">
-                {getInitials(profile.full_name)}
-              </div>
-              <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors hidden sm:inline-block">
-                {profile.full_name}
-              </span>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="text-xs sm:text-sm font-semibold bg-[#141b34]/40 hover:bg-[#141b34]/80 border border-[#141b34] text-slate-300 hover:text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
-            >
-              Sign In
-            </Link>
-          )}
+          <LandingHeaderActions profile={profile} dashboardUrl={dashboardUrl} />
         </div>
       </header>
 

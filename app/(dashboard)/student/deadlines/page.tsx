@@ -1,10 +1,57 @@
 import Link from 'next/link';
-import { Clock, Calendar, BookOpen, MessageSquare } from 'lucide-react';
+import { Clock, Calendar, BookOpen, ArrowRight } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
-import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
+import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 
 export const revalidate = 0; // force dynamic rendering
+
+const colorThemes = {
+  red: {
+    bg: 'rgba(239,68,68,0.04)',
+    border: '1px solid rgba(239,68,68,0.2)',
+    accent: 'linear-gradient(180deg, #ef4444, #f97316)',
+    badgeBg: 'rgba(239,68,68,0.12)',
+    badgeBorder: '1px solid rgba(239,68,68,0.3)',
+    badgeText: '#f87171',
+    iconColor: 'text-red-400',
+    iconBg: 'rgba(239,68,68,0.08)',
+    iconBorder: '1px solid rgba(239,68,68,0.15)',
+  },
+  yellow: {
+    bg: 'rgba(245,158,11,0.03)',
+    border: '1px solid rgba(245,158,11,0.18)',
+    accent: 'linear-gradient(180deg, #f59e0b, #eab308)',
+    badgeBg: 'rgba(245,158,11,0.1)',
+    badgeBorder: '1px solid rgba(245,158,11,0.25)',
+    badgeText: '#fbbf24',
+    iconColor: 'text-amber-400',
+    iconBg: 'rgba(245,158,11,0.06)',
+    iconBorder: '1px solid rgba(245,158,11,0.12)',
+  },
+  green: {
+    bg: 'rgba(11,14,30,0.4)',
+    border: '1px solid #1e2a4a',
+    accent: 'linear-gradient(180deg, #10b981, #059669)',
+    badgeBg: 'rgba(16,185,129,0.08)',
+    badgeBorder: '1px solid rgba(16,185,129,0.2)',
+    badgeText: '#34d399',
+    iconColor: 'text-emerald-400',
+    iconBg: 'rgba(16,185,129,0.05)',
+    iconBorder: '1px solid rgba(16,185,129,0.1)',
+  },
+  gray: {
+    bg: 'rgba(113,113,122,0.02)',
+    border: '1px solid rgba(113,113,122,0.15)',
+    accent: 'linear-gradient(180deg, #71717a, #52525b)',
+    badgeBg: 'rgba(113,113,122,0.12)',
+    badgeBorder: '1px solid rgba(113,113,122,0.25)',
+    badgeText: '#a1a1aa',
+    iconColor: 'text-slate-400',
+    iconBg: 'rgba(113,113,122,0.05)',
+    iconBorder: '1px solid rgba(113,113,122,0.1)',
+  },
+};
 
 export default async function StudentDeadlinesPage() {
   const supabase = await getSupabaseServerClient();
@@ -19,15 +66,21 @@ export default async function StudentDeadlinesPage() {
   }
 
   const enriched = deadlines ? enrichDeadlines(deadlines) : [];
+  const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= Date.now());
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-fade-in">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">
+      {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Deadlines & Submissions</h1>
-        <p className="page-subtitle">Track academic schedules, project turn-ins, and homework deadlines</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="page-title">Deadlines & Submissions</h1>
+            <p className="page-subtitle">Track academic schedules, project turn-ins, and homework deadlines</p>
+          </div>
+        </div>
       </div>
 
-      {!enriched || enriched.length === 0 ? (
+      {!activeDeadlines || activeDeadlines.length === 0 ? (
         <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
           <Clock className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
           <h2 className="text-lg font-semibold">No deadlines yet</h2>
@@ -36,48 +89,80 @@ export default async function StudentDeadlinesPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enriched.map((deadline) => {
-            const colorClass = getDeadlineColorClass(deadline.color);
+        <div className="flex flex-col gap-3">
+          {activeDeadlines.map((deadline) => {
+            const theme = colorThemes[deadline.color] || colorThemes.green;
             return (
               <div
                 key={deadline.id}
-                className="glass-card p-5 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200"
+                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                style={{
+                  background: theme.bg,
+                  border: theme.border,
+                }}
               >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-accent px-2.5 py-1 rounded-md border border-border">
-                      <BookOpen className="w-3.5 h-3.5 text-primary" />
-                      {deadline.subject}
-                    </span>
-                    <span className={`badge px-2 py-0.5 text-xs font-semibold border ${colorClass}`}>
-                      {formatDaysRemaining(deadline.daysRemaining)}
-                    </span>
+                {/* Left urgency colored line */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{ background: theme.accent }}
+                />
+
+                <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left section: Icon + Subject + Title & Desc */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: theme.iconBg,
+                        border: theme.iconBorder,
+                      }}
+                    >
+                      <Clock className={`w-4 h-4 ${theme.iconColor}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-slate-800/40 border border-slate-700/50 text-[#94a3b8] flex items-center gap-1">
+                          <BookOpen className="w-2.5 h-2.5 text-indigo-400" />
+                          {deadline.subject}
+                        </span>
+                        <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                          {deadline.title}
+                        </h3>
+                      </div>
+                      {deadline.description && (
+                        <p className="text-xs text-slate-400 mt-2 whitespace-pre-line leading-relaxed break-words">
+                          {deadline.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-foreground mb-2 leading-snug">
-                    {deadline.title}
-                  </h3>
-
-                  {deadline.description && (
-                    <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed mb-4">
-                      {deadline.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>Due: {formatDateTime(deadline.due_date)}</span>
+                  {/* Right section: Due Date + Action Button */}
+                  <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
+                    <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1">
+                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                        Due: {formatDateTime(deadline.due_date)}
+                      </p>
+                      <span
+                        className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        style={{
+                          background: theme.badgeBg,
+                          border: theme.badgeBorder,
+                          color: theme.badgeText,
+                        }}
+                      >
+                        {formatDaysRemaining(deadline.daysRemaining)}
+                      </span>
+                    </div>
+                    <Link
+                      href={`/student/deadlines/${deadline.id}`}
+                      className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                    >
+                      Q&A
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
                   </div>
-                  <Link
-                    href={`/student/deadlines/${deadline.id}`}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    Q&A Room
-                  </Link>
                 </div>
               </div>
             );
