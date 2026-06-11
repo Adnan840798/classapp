@@ -40,8 +40,56 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   const [imgLoaded, setImgLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // PDF blob URL state — fetching converts the signed Supabase URL into a
+  // same-origin blob:// URL that mobile browsers can render inline in an iframe
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
+
+  const kind = detectKind(url);
+  const name = fileName || url.split('/').pop() || 'Attachment';
+
   // Portal needs client mount
   useEffect(() => { setMounted(true); }, []);
+
+  // Fetch PDF as blob when the modal opens for a PDF
+  useEffect(() => {
+    if (!open || kind !== 'pdf') return;
+    let revoked = false;
+    setPdfLoading(true);
+    setPdfError(false);
+    setPdfBlobUrl(null);
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error('fetch failed');
+        return res.blob();
+      })
+      .then((blob) => {
+        if (revoked) return;
+        const blobUrl = URL.createObjectURL(blob);
+        setPdfBlobUrl(blobUrl);
+        setPdfLoading(false);
+      })
+      .catch(() => {
+        if (!revoked) {
+          setPdfError(true);
+          setPdfLoading(false);
+        }
+      });
+
+    return () => {
+      revoked = true;
+    };
+  }, [open, kind, url]);
+
+  // Revoke blob URL when modal closes to free memory
+  useEffect(() => {
+    if (!open && pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keyboard: Escape to close
   const handleKey = useCallback((e: KeyboardEvent) => {
@@ -59,9 +107,6 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
       document.body.style.overflow = '';
     };
   }, [open, handleKey]);
-
-  const kind = detectKind(url);
-  const name = fileName || url.split('/').pop() || 'Attachment';
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -195,26 +240,51 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             </div>
           )}
 
-          {/* PDF — Google Docs Viewer works inline on all devices */}
+          {/* PDF — fetched as blob → same-origin blob URL → renders inline on all devices */}
           {kind === 'pdf' && (
             <div className="relative flex flex-col w-full h-full min-h-0">
-              {/* Loading spinner shown until iframe fires onLoad */}
-              {!imgLoaded && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10 pointer-events-none">
+              {/* Loading */}
+              {pdfLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10">
                   <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
                   <p className="text-xs text-slate-500">Loading PDF…</p>
                 </div>
               )}
-              <iframe
-                src={`https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`}
-                title={name}
-                onLoad={() => setImgLoaded(true)}
-                className="w-full flex-1 bg-white"
-                style={{ border: 'none', minHeight: 'calc(88dvh - 56px)' }}
-                allow="fullscreen"
-              />
+              {/* Error fallback */}
+              {pdfError && (
+                <div className="flex flex-col items-center justify-center gap-5 flex-1 p-6 text-center">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                    style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}>
+                    <FileText className="w-8 h-8 text-rose-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-slate-100 font-bold text-base mb-1">Couldn't load PDF</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed">Open it in your browser's native PDF viewer instead.</p>
+                  </div>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 py-3 px-6 rounded-xl text-sm font-extrabold text-[#0E0F11] bg-[#34D399] shadow-lg shadow-[#34D399]/20 transition-all active:scale-95"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open PDF
+                  </a>
+                </div>
+              )}
+              {/* Inline iframe using blob URL — works on mobile Chrome */}
+              {pdfBlobUrl && (
+                <iframe
+                  src={pdfBlobUrl}
+                  title={name}
+                  className="w-full flex-1 bg-white"
+                  style={{ border: 'none', minHeight: 'calc(88dvh - 56px)' }}
+                  allow="fullscreen"
+                />
+              )}
             </div>
           )}
+
 
           {/* VIDEO */}
           {kind === 'video' && (
