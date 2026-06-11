@@ -197,12 +197,47 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* PDF */}
           {kind === 'pdf' && (
-            <iframe
-              src={`${url}#toolbar=1&view=FitH`}
-              title={name}
-              className="w-full h-full bg-white"
-              style={{ minHeight: 'calc(88dvh - 56px)', border: 'none' }}
-            />
+            <div className="flex flex-col w-full h-full">
+              {/* Desktop: inline iframe (works for same-origin or CORS-allowed PDFs) */}
+              <iframe
+                src={`${url}#toolbar=1&view=FitH`}
+                title={name}
+                className="hidden sm:block w-full flex-1 bg-white"
+                style={{ minHeight: 'calc(88dvh - 56px)', border: 'none' }}
+              />
+              {/* Mobile: iframe often blocked — show action buttons instead */}
+              <div className="flex sm:hidden flex-col items-center justify-center gap-5 flex-1 p-6 text-center">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center"
+                  style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}>
+                  <FileText className="w-10 h-10 text-rose-400" />
+                </div>
+                <div>
+                  <h4 className="text-slate-100 font-bold text-base mb-1 truncate max-w-[220px]" title={name}>{name}</h4>
+                  <p className="text-slate-400 text-xs leading-relaxed">PDF files open in your browser's native viewer.</p>
+                </div>
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-extrabold text-[#0E0F11] bg-[#34D399] hover:bg-[#2ebd87] shadow-lg shadow-[#34D399]/20 transition-all active:scale-95"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open PDF
+                  </a>
+                  <a
+                    href={`https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-colors active:scale-95"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View in Google Docs
+                  </a>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* VIDEO */}

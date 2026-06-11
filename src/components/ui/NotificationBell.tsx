@@ -290,7 +290,7 @@ export function NotificationBell() {
           background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderBottom: 'none',
-          maxHeight: '82dvh',
+          maxHeight: '65dvh',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.06)',
           transform: `translateY(${translateY}px)`,
           willChange: 'transform',
@@ -326,13 +326,6 @@ export function NotificationBell() {
                 <span>Mark all read</span>
               </button>
             )}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
-              aria-label="Close notifications"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
         </div>
 

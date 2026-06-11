@@ -140,8 +140,8 @@ export default async function StudentDeadlinesPage() {
                   {/* Right section: Due Date + Action Button */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
                     <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1">
-                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 whitespace-nowrap">
+                        <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
                         Due: {formatDateTime(deadline.due_date)}
                       </p>
                       <span
@@ -157,10 +157,10 @@ export default async function StudentDeadlinesPage() {
                     </div>
                     <Link
                       href={`/student/deadlines/${deadline.id}`}
-                      className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all"
+                      className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
                     >
-                      Q&A
-                      <ArrowRight className="w-3 h-3" />
+                      Q&amp;A Panel
+                      <ArrowRight className="w-3 h-3 flex-shrink-0" />
                     </Link>
                   </div>
                 </div>
