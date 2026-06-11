@@ -89,6 +89,9 @@
 
   html {
     scroll-behavior: smooth;
+    /* Prevent font size inflation on orientation change (iOS) */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -97,6 +100,25 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent content from being hidden behind iOS safe areas */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Improve tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Minimum touch target for interactive elements */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Exception: small inline badges/chips */
+  .touch-compact, .touch-compact * {
+    min-height: unset;
+    min-width: unset;
   }
 
   /* Scrollbar styling */
@@ -232,13 +254,15 @@
 
   /* ── Page header ─────────────────────────────────── */
   .page-header {
-    @apply mb-6 flex flex-col gap-1;
+    @apply mb-5 flex flex-col gap-1;
   }
   .page-title {
-    @apply text-2xl font-bold tracking-tight;
+    /* Fluid type: 20px on mobile → 28px on desktop */
+    font-size: clamp(1.2rem, 4vw, 1.75rem);
+    @apply font-bold tracking-tight;
   }
   .page-subtitle {
-    @apply text-sm text-muted-foreground;
+    @apply text-xs sm:text-sm text-muted-foreground;
   }
 
   /* ── Announcement card ───────────────────────────── */
@@ -384,5 +408,28 @@
   /* Mono font for IDs, codes */
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Safe area spacing */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Touch target helper */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Smooth momentum scrolling on iOS */
+  .scroll-smooth-ios {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 }
