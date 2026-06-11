@@ -1,5 +1,4 @@
 export const CHAR_LIMITS = {
-  CHAT_MESSAGE: 500,
   TIMELINE_QUESTION: 500,
   TIMELINE_ANSWER: 1000,
 } as const;
@@ -37,7 +36,6 @@ export const NOTIF_TYPES = {
   ANNOUNCEMENT: 'announcement',
   DEADLINE: 'deadline',
   RESULT: 'result',
-  CHAT: 'chat',
   SYSTEM: 'system',
 } as const;
 
@@ -47,4 +45,3 @@ export const DASHBOARD_LIMITS = {
   RECENT_NOTIFICATIONS: 10,
 } as const;
 
-export const CHAT_RETENTION_DAYS = 30;

@@ -8,7 +8,6 @@ import {
   Megaphone,
   CalendarDays,
   Clock,
-  MessageSquare,
   FileText,
   Trophy,
   User,
@@ -27,7 +26,6 @@ const crNavItems = [
   { href: '/cr/deadlines', label: 'Deadlines', icon: Clock },
   { href: '/cr/results', label: 'Results', icon: Trophy },
   { href: '/cr/notes', label: 'Resources', icon: FileText },
-  { href: '/cr/chat', label: 'Chat', icon: MessageSquare },
   { href: '/cr/profile', label: 'Profile', icon: User },
 ];
 
@@ -37,7 +35,6 @@ const studentNavItems = [
   { href: '/student/deadlines', label: 'Deadlines', icon: Clock },
   { href: '/student/results', label: 'My Results', icon: Trophy },
   { href: '/student/notes', label: 'Resources', icon: FileText },
-  { href: '/student/chat', label: 'Chat', icon: MessageSquare },
   { href: '/student/profile', label: 'Profile', icon: User },
 ];
 

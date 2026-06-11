@@ -42,7 +42,6 @@ export function Header() {
     { href: `${prefix}/announcements`, label: 'Announcements' },
     { href: `${prefix}/results`, label: 'Results' },
     { href: `${prefix}/notes`, label: 'Resources' },
-    { href: `${prefix}/chat`, label: 'Chat' },
   ];
 
   async function handleSignOut() {

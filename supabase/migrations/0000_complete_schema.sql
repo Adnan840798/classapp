@@ -38,7 +38,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'chat', 'system');
+  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'system');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -133,16 +133,6 @@ CREATE TABLE IF NOT EXISTS timeline_answers (
   answered_by  uuid REFERENCES profiles(id) ON DELETE CASCADE,
   answer       text NOT NULL CHECK (char_length(answer) <= 1000),
   created_at   timestamptz DEFAULT now()
-);
-
--- ── chat_messages ─────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS chat_messages (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    uuid REFERENCES profiles(id) ON DELETE CASCADE,
-  content    text NOT NULL CHECK (char_length(content) BETWEEN 1 AND 500),
-  is_pinned  boolean DEFAULT false,
-  pinned_by  uuid REFERENCES profiles(id),
-  created_at timestamptz DEFAULT now()
 );
 
 -- ── notes ─────────────────────────────────────────────────
@@ -327,13 +317,6 @@ CREATE TRIGGER trigger_cleanup_orphaned_push_devices
   AFTER DELETE ON public.user_push_devices
   FOR EACH ROW EXECUTE FUNCTION public.cleanup_orphaned_push_devices();
 
--- 7. auto_delete_old_chat — optional pg_cron job (requires pg_cron extension)
--- Uncomment after enabling pg_cron in Supabase Dashboard → Extensions:
--- SELECT cron.schedule(
---   'delete-old-chat-messages',
---   '0 3 * * *',
---   $$ DELETE FROM public.chat_messages WHERE created_at < now() - INTERVAL '30 days'; $$
--- );
 
 
 -- ============================================================
@@ -347,7 +330,7 @@ ALTER TABLE exam_results        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE calendar_events     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timeline_questions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timeline_answers    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE chat_messages       ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE notes               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
@@ -396,11 +379,7 @@ BEGIN
   DROP POLICY IF EXISTS "ta_cr_admin_insert" ON public.timeline_answers;
   DROP POLICY IF EXISTS "ta_cr_admin_delete" ON public.timeline_answers;
   
-  -- chat_messages
-  DROP POLICY IF EXISTS "chat_read_authenticated" ON public.chat_messages;
-  DROP POLICY IF EXISTS "chat_insert_authenticated" ON public.chat_messages;
-  DROP POLICY IF EXISTS "chat_delete_own" ON public.chat_messages;
-  DROP POLICY IF EXISTS "chat_cr_admin_update" ON public.chat_messages;
+
   
   -- notes
   DROP POLICY IF EXISTS "notes_own_select" ON public.notes;
@@ -603,26 +582,6 @@ CREATE POLICY "ta_cr_admin_delete"
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'));
 
--- ── chat_messages ─────────────────────────────────────────
-CREATE POLICY "chat_read_authenticated"
-  ON chat_messages FOR SELECT
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "chat_insert_authenticated"
-  ON chat_messages FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "chat_delete_own"
-  ON chat_messages FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id OR public.get_my_role() IN ('cr', 'admin'));
-
-CREATE POLICY "chat_cr_admin_update"
-  ON chat_messages FOR UPDATE
-  TO authenticated
-  USING (public.get_my_role() IN ('cr', 'admin'));
 
 -- ── notes ─────────────────────────────────────────────────
 CREATE POLICY "notes_own_select"
@@ -755,17 +714,6 @@ CREATE POLICY "notices_cr_admin_delete"   ON storage.objects FOR DELETE TO authe
 -- Enable realtime broadcasts for chat and notifications.
 -- NOTE: If you get "already member" errors, these tables are already
 -- in the publication — that is fine, just ignore the error.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_publication_tables 
-    WHERE pubname = 'supabase_realtime' 
-      AND schemaname = 'public' 
-      AND tablename = 'chat_messages'
-  ) THEN
-    ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
-  END IF;
-END $$;
 
 DO $$
 BEGIN

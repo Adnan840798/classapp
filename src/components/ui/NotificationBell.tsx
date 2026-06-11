@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageSquare } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
@@ -27,10 +27,6 @@ const notifTypeIcon: Record<NotifType, NotifTypeConfig> = {
     icon: Trophy,
     bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
   },
-  chat: {
-    icon: MessageSquare,
-    bg: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-  },
   system: {
     icon: Bell,
     bg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
@@ -45,8 +41,6 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
       return refId ? `${prefix}/deadlines/${refId}` : `${prefix}/deadlines`;
     case 'result':
       return `${prefix}/results`;
-    case 'chat':
-      return `${prefix}/chat`;
     default:
       return `${prefix}/timeline`;
   }

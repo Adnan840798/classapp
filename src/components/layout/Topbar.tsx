@@ -17,7 +17,6 @@ const pageTitles: Record<string, string> = {
   '/cr/calendar': 'Calendar',
   '/cr/results': 'Exam Results',
   '/cr/notes': 'Resources',
-  '/cr/chat': 'Class Chat',
   '/cr/profile': 'My Profile',
   '/student/dashboard': 'Dashboard',
   '/student/announcements': 'Announcements',
@@ -25,7 +24,6 @@ const pageTitles: Record<string, string> = {
   '/student/calendar': 'Calendar',
   '/student/results': 'My Results',
   '/student/notes': 'Resources',
-  '/student/chat': 'Class Chat',
   '/student/profile': 'My Profile',
 };
 

@@ -5,7 +5,7 @@
 export type UserRole = 'admin' | 'cr' | 'student';
 export type EventType = 'exam' | 'class' | 'holiday' | 'submission' | 'other';
 export type AttachmentType = 'image' | 'pdf';
-export type NotifType = 'announcement' | 'deadline' | 'result' | 'chat' | 'system';
+export type NotifType = 'announcement' | 'deadline' | 'result' | 'system';
 export type DeadlineColor = 'green' | 'yellow' | 'red' | 'gray';
 
 // ── Profile ────────────────────────────────────────────────
@@ -104,17 +104,6 @@ export interface TimelineAnswer {
   answer: string;
   created_at: string;
   answerer?: Pick<Profile, 'full_name' | 'profile_pic_url'>;
-}
-
-// ── Chat ───────────────────────────────────────────────────
-export interface ChatMessage {
-  id: string;
-  user_id: string;
-  content: string;
-  is_pinned: boolean;
-  pinned_by: string | null;
-  created_at: string;
-  user?: Pick<Profile, 'full_name' | 'profile_pic_url' | 'role'>;
 }
 
 // ── Notes ──────────────────────────────────────────────────

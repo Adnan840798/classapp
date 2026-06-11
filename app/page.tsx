@@ -101,7 +101,7 @@ export default async function RootPage() {
           Welcome to Class<span className="text-[#6366f1]">App</span>
         </h1>
         <p className="mt-4 text-base md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-          The central academic management and collaboration dashboard for our class. Sign in to check your personal grades, notes, ask timeline questions, and chat with classmates.
+          The central academic management and collaboration dashboard for our class. Sign in to check your personal grades, notes, and ask timeline questions.
         </p>
         <div className="mt-8 flex items-center justify-center gap-4">
           <Link href={dashboardUrl} className="btn-primary py-3 px-6 text-sm font-semibold rounded-xl flex items-center gap-2">
