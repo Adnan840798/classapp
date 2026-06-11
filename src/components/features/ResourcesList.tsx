@@ -118,7 +118,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                   </div>
 
                   {/* ── Right section: meta + drive + edit/delete ── */}
-                  <div className="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
 
                     {/* Metadata: badge + timestamp */}
                     <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 min-w-[80px]">
@@ -158,10 +158,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Open Google Drive"
-                          className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all cursor-pointer"
+                          className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all cursor-pointer"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Drive</span>
+                          <span className="hidden sm:inline ml-1">Drive</span>
                         </a>
                       )}
 
@@ -171,10 +171,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           <Link
                             href={`${notesPath}/${note.id}`}
                             title="Edit Resource"
-                            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                            className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
                           >
-                            <Edit2 className="w-3 h-3" />
-                            <span className="hidden sm:inline">Edit</span>
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline ml-1">Edit</span>
                           </Link>
                           <DeleteButton
                             id={note.id}

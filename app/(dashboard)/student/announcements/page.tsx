@@ -80,7 +80,7 @@ export default async function StudentAnnouncementsPage() {
                     >
                       <Megaphone className={`w-4 h-4 ${isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 pr-[100px] sm:pr-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="text-sm font-extrabold text-white break-words leading-snug">
                           {announcement.title}
@@ -90,22 +90,18 @@ export default async function StudentAnnouncementsPage() {
                         {announcement.body}
                       </p>
                       {announcement.attachment_url && (
-                        <div className="mt-3">
+                        <div className="absolute top-3.5 right-3.5 sm:static sm:mt-3 sm:block">
                           <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                             <button
-                              className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 cursor-pointer"
+                              title="View Attachment"
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-sky-400 border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15 active:scale-[0.97] transition-all cursor-pointer"
                             >
                               {announcement.attachment_type === 'image' ? (
-                                <>
-                                  <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                                  <span>View Image Attachment</span>
-                                </>
+                                <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
                               ) : (
-                                <>
-                                  <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                                  <span>View Document Attachment</span>
-                                </>
+                                <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                               )}
+                              <span>Attachment</span>
                             </button>
                           </AttachmentViewer>
                         </div>

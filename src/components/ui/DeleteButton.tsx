@@ -33,13 +33,13 @@ export function DeleteButton({ id, onDelete, confirmMessage = 'Are you sure you 
     <button
       onClick={handleClick}
       disabled={isDeleting}
-      className="flex items-center justify-center p-2 rounded-lg text-red-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50 transition-colors"
+      className="flex items-center justify-center p-2.5 rounded-lg text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 disabled:opacity-50 transition-all cursor-pointer"
       aria-label="Delete"
     >
       {isDeleting ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
       ) : (
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-3.5 h-3.5" />
       )}
     </button>
   );

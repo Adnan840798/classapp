@@ -76,7 +76,7 @@ export default async function CRResultsPage() {
                 </div>
 
                 {/* Right section: Published Date + Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-6 flex-shrink-0">
+                <div className="flex flex-row items-center justify-between sm:justify-end gap-4 sm:gap-6 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
                   <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-slate-600" />
                     <span className="hidden sm:inline">Published: </span>
@@ -94,7 +94,7 @@ export default async function CRResultsPage() {
                         </button>
                       </AttachmentViewer>
                     ) : (
-                      <span className="text-[10px] text-slate-600 italic hidden sm:inline">No attachment</span>
+                      <span className="text-[10px] text-slate-600 italic">No attachment</span>
                     )}
                     <DeleteButton
                       id={res.id}

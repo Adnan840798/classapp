@@ -86,7 +86,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
       role="dialog"
       aria-modal="true"
       aria-label={name}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-start sm:items-center justify-center p-2 sm:p-6"
       style={{ isolation: 'isolate' }}
     >
       {/* Backdrop */}
@@ -98,7 +98,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
       {/* Panel */}
       <div
-        className="relative z-10 flex flex-col w-full max-w-4xl max-h-[92dvh] rounded-2xl overflow-hidden shadow-2xl"
+        className="relative z-10 flex flex-col w-full max-w-4xl h-[88dvh] sm:h-auto max-h-[90dvh] sm:max-h-[92dvh] rounded-2xl overflow-hidden shadow-2xl mt-[5dvh] sm:mt-0"
         style={{
           background: 'linear-gradient(145deg, #16181D 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
@@ -109,23 +109,23 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
       >
         {/* ── Header ── */}
         <div
-          className="flex items-center justify-between gap-3 px-5 py-3.5 shrink-0"
+          className="flex items-center justify-between gap-2.5 px-4 py-3 shrink-0"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
           {/* Left: type pill + name */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
-              {kind === 'image' && <ImageIcon className="w-4 h-4 text-emerald-400" />}
-              {kind === 'pdf'   && <FileText  className="w-4 h-4 text-rose-400" />}
-              {kind === 'video' && <File      className="w-4 h-4 text-purple-400" />}
-              {kind === 'doc'   && <File      className="w-4 h-4 text-sky-400" />}
+              {kind === 'image' && <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />}
+              {kind === 'pdf'   && <FileText  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400" />}
+              {kind === 'video' && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />}
+              {kind === 'doc'   && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" />}
             </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 leading-none mb-0.5">
+            <div className="min-w-0 flex-1">
+              <p className="hidden sm:block text-[9px] sm:text-[11px] font-bold uppercase tracking-widest text-slate-500 leading-none mb-0.5">
                 {kind === 'image' ? 'Image' : kind === 'pdf' ? 'PDF Document' : kind === 'video' ? 'Video' : 'File Attachment'}
               </p>
-              <h3 className="text-sm font-semibold text-slate-100 truncate">{name}</h3>
+              <h3 className="text-xs sm:text-sm font-semibold text-slate-100 truncate pr-1" title={name}>{name}</h3>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               <button
                 onClick={() => setZoom(v => !v)}
                 title={zoom ? 'Zoom out' : 'Zoom in'}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all cursor-pointer"
               >
                 {zoom ? <ZoomOut className="w-4 h-4" /> : <ZoomIn className="w-4 h-4" />}
               </button>
@@ -143,25 +143,24 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             <button
               onClick={handleDownload}
               title="Download"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#34D399] hover:text-[#0E0F11] bg-[#34D399]/10 hover:bg-[#34D399] border border-[#34D399]/20 hover:border-transparent transition-all duration-200 cursor-pointer"
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-8 sm:px-3 rounded-lg text-xs font-bold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/20 hover:bg-[#34D399] hover:text-[#0E0F11] hover:border-transparent transition-all duration-200 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
-              Download
+              <Download className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline ml-1.5">Download</span>
             </button>
             <a
               href={url}
               target="_blank"
               rel="noopener noreferrer"
               title="Open in new tab"
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all"
             >
               <ExternalLink className="w-4 h-4" />
             </a>
-            <div className="w-px h-5 bg-white/8 mx-1" />
             <button
               onClick={() => setOpen(false)}
               title="Close (Esc)"
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -201,20 +200,20 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             <iframe
               src={`${url}#toolbar=1&view=FitH`}
               title={name}
-              className="w-full bg-white"
-              style={{ height: 'calc(92dvh - 64px)', border: 'none' }}
+              className="w-full h-full bg-white"
+              style={{ minHeight: 'calc(88dvh - 56px)', border: 'none' }}
             />
           )}
 
           {/* VIDEO */}
           {kind === 'video' && (
-            <div className="w-full flex items-center justify-center p-4">
+            <div className="w-full h-full flex items-center justify-center p-4">
               <video
                 src={url}
                 controls
                 autoPlay
-                className="w-full rounded-xl shadow-2xl"
-                style={{ maxHeight: 'calc(92dvh - 100px)', background: '#000' }}
+                className="w-full max-h-full rounded-xl shadow-2xl"
+                style={{ background: '#000' }}
               />
             </div>
           )}

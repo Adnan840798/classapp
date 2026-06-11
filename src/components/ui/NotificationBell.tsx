@@ -75,6 +75,35 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [translationY, setTranslationY] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+    setIsDragging(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY === null) return;
+    const currentY = e.touches[0].clientY;
+    const diffY = currentY - touchStartY;
+
+    if (diffY > 0) {
+      setIsDragging(true);
+      setTranslationY(diffY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartY === null) return;
+    if (isDragging && translationY > 80) {
+      setIsOpen(false);
+    }
+    setTouchStartY(null);
+    setTranslationY(0);
+    setIsDragging(false);
+  };
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -195,21 +224,87 @@ export function NotificationBell() {
       />
       {/* Sheet */}
       <div
-        className="relative z-10 flex flex-col rounded-t-3xl overflow-hidden"
+        className={cn(
+          "relative z-10 flex flex-col rounded-t-3xl overflow-hidden",
+          !isDragging && "transition-transform duration-200"
+        )}
         style={{
           background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderBottom: 'none',
           maxHeight: '82dvh',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.06)',
-          animation: 'sheet-up 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
+          transform: `translateY(${translationY}px)`,
         }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-slate-700" />
+        {/* Drag handle header area */}
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex flex-col shrink-0 cursor-grab active:cursor-grabbing select-none"
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1.5">
+            <div className="w-10 h-1.5 rounded-full bg-slate-700/80" />
+          </div>
+          
+          {/* Draggable header content wrapper */}
+          <div className="flex items-center justify-between px-4 pb-3 border-b border-[#23262D]">
+            <div className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4 text-[#34D399]" />
+              <h3 className="font-bold text-sm text-white">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span>Mark all read</span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+                aria-label="Close notifications"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
-        {panelContent}
+
+        {/* List (Non-draggable list items scroll normally) */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-14 px-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700/40 flex items-center justify-center">
+                <Bell className="w-6 h-6 text-slate-600" />
+              </div>
+              <p className="text-sm font-semibold text-slate-400">All caught up</p>
+              <p className="text-xs text-slate-600">No new notifications right now.</p>
+            </div>
+          ) : (
+            <>
+              {notifications.slice(0, 8).map((notif) => (
+                <NotifItem key={notif.id} notif={notif} prefix={prefix} onClose={() => setIsOpen(false)} />
+              ))}
+              {notifications.length > 8 && (
+                <div className="px-4 py-3.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#1A1D24]/40">
+                  + {notifications.length - 8} more
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* Safe area bottom spacer */}
         <div className="h-safe-area-bottom shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }} />
       </div>

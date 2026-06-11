@@ -74,7 +74,7 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
       </div>
 
       {/* Announcement Details Card */}
-      <div className="glass-card p-6 flex flex-col gap-4">
+      <div className="glass-card p-6 flex flex-col gap-4 relative">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <UserAvatar
@@ -94,14 +94,14 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 pr-[110px] sm:pr-0">
             {announcement.is_public && (
               <span className="badge badge-public">Public</span>
             )}
           </div>
         </div>
 
-        <div className="border-t border-border/50 pt-3 flex flex-col gap-2">
+        <div className="border-t border-border/50 pt-3 flex flex-col gap-2 pr-[110px] sm:pr-0">
           <h2 className="text-lg font-bold text-foreground">
             {announcement.title}
           </h2>
@@ -111,17 +111,18 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
         </div>
 
         {announcement.attachment_url && (
-          <div className="mt-2 pt-3 border-t border-border/50">
+          <div className="absolute top-6 right-6 sm:static sm:mt-2 sm:pt-3 sm:border-t sm:border-border/50">
             <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
               <button
-                className="flex items-center gap-2 text-xs font-medium text-primary hover:underline cursor-pointer"
+                title="View Attachment"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-sky-400 border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15 active:scale-[0.97] transition-all cursor-pointer"
               >
                 {announcement.attachment_type === 'image' ? (
-                  <ImageIcon className="w-4 h-4" />
+                  <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
                 ) : (
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                 )}
-                <span>View Attachment</span>
+                <span>Attachment</span>
               </button>
             </AttachmentViewer>
           </div>
