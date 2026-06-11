@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
-import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus, Umbrella, Coffee, Calendar } from 'lucide-react';
 import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils/timelineDates';
 import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks } from '@/lib/actions/timeline';
 import { RoutineButton } from './RoutineButton';
@@ -346,18 +346,87 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       <style>{`
         .tl-scroll::-webkit-scrollbar { display: none; }
         .tl-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .week-glow { box-shadow: 0 0 0 1.5px #6366f1, 0 0 24px 2px rgba(99,102,241,0.22), inset 0 0 24px 0 rgba(99,102,241,0.05); }
-        .dot-glow { box-shadow: 0 0 0 4px rgba(99,102,241,0.22), 0 0 14px 3px rgba(99,102,241,0.5); }
-        .row-glow { box-shadow: 0 0 0 1.5px #6366f1, 0 0 20px 1px rgba(99,102,241,0.18); }
-        .info-pill { background: rgba(6,8,19,0.95); border: 1px solid #141b30; }
-        .holiday-row-glow { box-shadow: 0 0 0 1px #1e2a4a; }
-        @keyframes shimmer { 0%,100% { opacity: 0.7; } 50% { opacity: 0.4; } }
+        .week-glow {
+          border-color: #34D399 !important;
+          animation: week-glow-breathing 3s ease-in-out infinite;
+        }
+        .dot-glow { box-shadow: 0 0 0 4px rgba(52,211,153,0.22), 0 0 14px 3px rgba(52,211,153,0.5); }
+        .row-glow {
+          border-color: #34D399 !important;
+          animation: row-glow-breathing 3s ease-in-out infinite;
+        }
+        .info-pill { background: rgba(26,29,36,0.95); border: 1px solid #23262D; }
+        .holiday-row-glow { box-shadow: 0 0 0 1px #23262D; }
+        @keyframes shimmer { 0%,100% { opacity: 0.75; } 50% { opacity: 0.45; } }
         .holiday-shimmer { animation: shimmer 3s ease-in-out infinite; }
+        @keyframes week-glow-breathing {
+          0%, 100% {
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 14px 1px rgba(52,211,153,0.15), inset 0 0 12px 0 rgba(52,211,153,0.03);
+          }
+          50% {
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 28px 3px rgba(52,211,153,0.35), inset 0 0 20px 0 rgba(52,211,153,0.08);
+          }
+        }
+        @keyframes row-glow-breathing {
+          0%, 100% {
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 12px 1px rgba(52,211,153,0.12);
+          }
+          50% {
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 24px 3px rgba(52,211,153,0.25);
+          }
+        }
+        @keyframes current-glow-pulse {
+          0%, 100% {
+            border-color: rgba(52, 211, 153, 0.25);
+            box-shadow: 0 0 8px 0 rgba(52, 211, 153, 0.08);
+          }
+          50% {
+            border-color: rgba(52, 211, 153, 0.6);
+            box-shadow: 0 0 16px 2px rgba(52, 211, 153, 0.2);
+          }
+        }
+        .current-week-card-pulse {
+          animation: current-glow-pulse 3s ease-in-out infinite;
+        }
+        .btn-mark-week-holiday {
+          background: rgba(245, 158, 11, 0.08);
+          border: 1px solid rgba(245, 158, 11, 0.35);
+          color: #fbbf24;
+          transition: all 0.2s ease;
+        }
+        .btn-mark-week-holiday:hover:not(:disabled) {
+          background: rgba(245, 158, 11, 0.16);
+          border-color: rgba(245, 158, 11, 0.65);
+          box-shadow: 0 0 12px 1px rgba(245, 158, 11, 0.15);
+        }
+        .btn-unmark-week-holiday {
+          background: rgba(75, 85, 99, 0.12);
+          border: 1px solid rgba(75, 85, 99, 0.35);
+          color: #e5e7eb;
+          transition: all 0.2s ease;
+        }
+        .btn-unmark-week-holiday:hover:not(:disabled) {
+          background: rgba(75, 85, 99, 0.22);
+          border-color: rgba(75, 85, 99, 0.65);
+          color: #ffffff;
+        }
+        .btn-inline-mark-holiday {
+          background: #1A1D24;
+          border: 1px solid rgba(245, 158, 11, 0.2);
+          color: rgba(251, 191, 36, 0.85);
+          transition: all 0.2s ease;
+        }
+        .btn-inline-mark-holiday:hover:not(:disabled) {
+          background: rgba(245, 158, 11, 0.12);
+          border-color: rgba(245, 158, 11, 0.5);
+          color: #fbbf24;
+          box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+        }
       `}</style>
 
       <div
         className="w-full min-h-[calc(100vh-4rem)] text-white font-sans"
-        style={{ background: '#060813' }}
+        style={{ background: '#121214' }}
       >
         {/* ── Inner container ── */}
         <div className="max-w-7xl mx-auto px-0 py-2 flex flex-col gap-5">
@@ -384,7 +453,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 onClick={() => scrollWeeks('left')}
                 aria-label="Scroll left"
                 className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
-                style={{ background: '#131929', border: '1px solid #1e2a4a' }}
+                style={{ background: '#1A1D24', border: '1px solid #23262D' }}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -413,8 +482,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           minWidth: 145,
                           height: 115,
                           padding: '0 12px',
-                          background: '#09090d',
-                          border: isSelected ? '1px solid #6366f1' : '1px dashed #1e2540',
+                          background: '#1A1D24',
+                          border: isSelected ? '1px solid #34D399' : '1px dashed #23262D',
                           marginTop: 0,
                           opacity: isSelected ? 1 : 0.65,
                         }}
@@ -426,9 +495,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             top: -18,
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            background: 'rgba(239,68,68,0.12)',
-                            border: '1px solid rgba(239,68,68,0.3)',
-                            color: '#f87171',
+                            background: 'rgba(245,158,11,0.12)',
+                            border: '1px solid rgba(245,158,11,0.3)',
+                            color: '#fbbf24',
                             padding: '2px 8px',
                             borderRadius: 4,
                             whiteSpace: 'nowrap',
@@ -437,7 +506,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           HOLIDAY BREAK
                         </span>
 
-                        <span className="text-2xl">🏖️</span>
+                        <Umbrella className="w-6 h-6 text-amber-500 mb-1" />
                         <span
                           className="font-semibold text-center leading-tight text-slate-300"
                           style={{ fontSize: 12 }}
@@ -466,14 +535,24 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       key={weekNum}
                       data-week={weekNum}
                       onClick={() => setSelectedWeek(weekNum)}
-                      className={`flex-shrink-0 relative flex flex-col items-center justify-center cursor-pointer select-none transition-all duration-200 rounded-xl${isSelected ? ' week-glow' : ''}`}
+                      className={`flex-shrink-0 relative flex flex-col items-center justify-center cursor-pointer select-none transition-all duration-200 rounded-xl ${
+                        isSelected 
+                          ? 'week-glow' 
+                          : isCurrent 
+                            ? 'current-week-card-pulse' 
+                            : ''
+                      }`}
                       style={{
                         width: 145,
                         minWidth: 145,
                         height: 115,
                         padding: '0 12px',
-                        background: isSelected ? '#0d1230' : '#0b0e1e',
-                        border: isSelected ? '1px solid #6366f1' : '1px solid #141b30',
+                        background: isSelected ? 'rgba(52,211,153,0.08)' : '#1A1D24',
+                        border: isSelected 
+                          ? '1px solid #34D399' 
+                          : isCurrent 
+                            ? '1px solid rgba(52,211,153,0.3)' 
+                            : '1px solid #23262D',
                         marginTop: 0,
                       }}
                     >
@@ -485,9 +564,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             top: -18,
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            background: 'rgba(99,102,241,0.18)',
-                            border: '1px solid rgba(99,102,241,0.35)',
-                            color: '#a5b4fc',
+                            background: 'rgba(52,211,153,0.18)',
+                            border: '1px solid rgba(52,211,153,0.35)',
+                            color: '#6EE7B7',
                             padding: '2px 8px',
                             borderRadius: 4,
                             whiteSpace: 'nowrap',
@@ -533,7 +612,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             height: 0,
                             borderLeft: '7px solid transparent',
                             borderRight: '7px solid transparent',
-                            borderTop: '7px solid #6366f1',
+                            borderTop: '7px solid #34D399',
                           }}
                         />
                       )}
@@ -575,7 +654,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 onClick={() => scrollWeeks('right')}
                 aria-label="Scroll right"
                 className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
-                style={{ background: '#131929', border: '1px solid #1e2a4a' }}
+                style={{ background: '#1A1D24', border: '1px solid #23262D' }}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -592,8 +671,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     key={i}
                     className="w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl border"
                     style={{
-                      background: '#0b0e1e',
-                      borderColor: '#141b30',
+                      background: '#1A1D24',
+                      borderColor: '#23262D',
                       borderWidth: '1px',
                     }}
                   >
@@ -601,7 +680,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       <div className="h-4 w-8 rounded bg-slate-800/60 animate-pulse" />
                       <div className="h-3 w-6 rounded bg-slate-800/40 animate-pulse mt-2" />
                     </div>
-                    <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
+                    <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
                     
                     {/* Day Count skeleton */}
                     <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-2 sm:mr-4 lg:mr-6">
@@ -609,7 +688,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       <div className="h-3.5 w-5 rounded bg-slate-800/60 animate-pulse" />
                     </div>
 
-                    <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                    <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
                     
                     <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
                       <div className="w-full max-w-md lg:max-w-lg flex items-center justify-between">
@@ -636,23 +715,22 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     <button
                       onClick={handleToggleWholeWeekHoliday}
                       disabled={isTogglingHoliday}
-                      className="text-[11px] font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-                      style={{
-                        background: isWholeWeekHoliday ? 'rgba(99,102,241,0.08)' : 'rgba(239,68,68,0.08)',
-                        border: isWholeWeekHoliday ? '1px solid rgba(99,102,241,0.2)' : '1px solid rgba(239,68,68,0.2)',
-                        color: isWholeWeekHoliday ? '#818cf8' : '#f87171',
-                      }}
+                      className={`text-[11px] font-bold px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isWholeWeekHoliday 
+                          ? 'btn-unmark-week-holiday' 
+                          : 'btn-mark-week-holiday'
+                      }`}
                     >
                       {isTogglingHoliday ? (
                         'Updating...'
                       ) : isWholeWeekHoliday ? (
                         <>
-                          <span>📅</span>
+                          <Calendar className="w-3.5 h-3.5" />
                           <span>Unmark Week {getDisplayWeekNumber(selectedWeek)} as Holiday</span>
                         </>
                       ) : (
                         <>
-                          <span>🏖️</span>
+                          <Umbrella className="w-3.5 h-3.5" />
                           <span>Mark Week {getDisplayWeekNumber(selectedWeek)} as Holiday</span>
                         </>
                       )}
@@ -674,8 +752,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         key={day.dateStr}
                         className="w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border"
                         style={{
-                          background: '#07080f',
-                          borderColor: '#0f1520',
+                          background: '#121214',
+                          borderColor: '#23262D',
                           borderWidth: '1px',
                           borderStyle: 'dashed',
                           opacity: 0.6,
@@ -683,25 +761,25 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       >
                         {/* Left side: Day name + Date */}
                         <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase tracking-wider" style={{ color: '#3a4255' }}>
+                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase tracking-wider" style={{ color: '#4b5563' }}>
                             {day.dayName}
                           </span>
                           <span
                             className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5"
-                            style={{ color: '#2a3148' }}
+                            style={{ color: '#374151' }}
                           >
                             {day.dateLabel}
                           </span>
                         </div>
 
                         {/* Vertical Divider */}
-                        <div className="w-px h-8 bg-[#0f1520] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                         {/* Holiday center content */}
-                        <div className="flex-1 flex items-center justify-center gap-3 mr-2 sm:mr-4 lg:mr-8">
-                          <span className="text-lg">🏖️</span>
-                          <span className="text-[12px] sm:text-[13px] font-semibold italic" style={{ color: '#2d3a55' }}>
-                            Holiday
+                        <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-amber-500/80">
+                          <Umbrella className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-[12px] sm:text-[13px] font-bold uppercase tracking-wider">
+                            Holiday Break
                           </span>
                         </div>
 
@@ -711,14 +789,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             onClick={() => handleToggleHoliday(selectedWeek, index)}
                             disabled={isTogglingHoliday}
                             title="Remove Holiday"
-                            className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
-                            style={{
-                              background: 'rgba(239,68,68,0.08)',
-                              border: '1px solid rgba(239,68,68,0.2)',
-                              color: '#f87171',
-                            }}
+                            className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-[#23262D] bg-[#1A1D24] text-slate-300 hover:text-white hover:bg-[#23262D] transition-all cursor-pointer disabled:opacity-50"
                           >
-                            {isTogglingHoliday ? '…' : '✕ Unmark'}
+                            {isTogglingHoliday ? '…' : '✕ Holiday'}
                           </button>
                         )}
                       </div>
@@ -733,8 +806,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         className={`flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${isActive ? 'row-glow z-10' : 'hover:bg-white/[0.02]'
                           }`}
                         style={{
-                          background: isActive ? '#0d1230' : '#0b0e1e',
-                          borderColor: isActive ? '#6366f1' : '#141b30',
+                          background: isActive ? 'rgba(52,211,153,0.08)' : '#1A1D24',
+                          borderColor: isActive ? '#34D399' : '#23262D',
                           borderWidth: isActive ? '1.5px' : '1px',
                         }}
                       >
@@ -745,14 +818,14 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           </span>
                           <span
                             className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5"
-                            style={{ color: '#818cf8' }}
+                            style={{ color: '#6EE7B7' }}
                           >
                             {day.dateLabel}
                           </span>
                         </div>
 
                         {/* Vertical Divider */}
-                        <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
+                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
 
                         {/* Day Count Column (shifted left, close to the day text) */}
                         <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-2 sm:mr-4 lg:mr-6">
@@ -761,7 +834,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         </div>
 
                         {/* Second Vertical Divider */}
-                        <div className="w-px h-8 bg-[#141b30] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                         {/* Three count columns */}
                         <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
@@ -775,18 +848,18 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                               </div>
                             </div>
 
-                            <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
+                            <div className="w-px h-6 sm:h-8 bg-[#23262D] flex-shrink-0" />
 
                             {/* Announcements */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
-                              <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400 flex-shrink-0" />
+                              <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
                                 <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.announcements.length}</div>
                               </div>
                             </div>
 
-                            <div className="w-px h-6 sm:h-8 bg-[#141b30] flex-shrink-0" />
+                            <div className="w-px h-6 sm:h-8 bg-[#23262D] flex-shrink-0" />
 
                             {/* Results */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
@@ -802,7 +875,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         {/* Right chevron */}
                         <ChevronRight
                           className="w-4 h-4 flex-shrink-0 transition-colors"
-                          style={{ color: isActive ? '#818cf8' : '#334155' }}
+                          style={{ color: isActive ? '#6EE7B7' : '#4b5563' }}
                         />
                       </button>
 
@@ -812,15 +885,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           onClick={() => handleToggleHoliday(selectedWeek, index)}
                           disabled={isTogglingHoliday}
                           title="Mark as Holiday"
-                          className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer"
-                          style={{
-                            background: 'rgba(239,68,68,0.06)',
-                            border: '1px solid rgba(239,68,68,0.15)',
-                            color: '#f87171',
-                            opacity: isTogglingHoliday ? 0.5 : 0.7,
-                          }}
+                          className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
                         >
-                          <span className="text-[14px]">🏖️</span>
+                          <Umbrella className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -835,10 +902,20 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               <div className="info-pill flex items-center gap-2.5 rounded-full px-5 py-2">
                 <Info
                   className="w-4 h-4 flex-shrink-0"
-                  style={{ color: '#6366f1' }}
+                  style={{ color: '#34D399' }}
                 />
-                <span className="text-[12px] font-medium text-slate-400">
-                  {isCR ? 'Click a day to view details or use 🏖️ to mark as holiday' : 'Click on a day to view its details'}
+                <span className="text-[12px] font-medium text-slate-400 flex items-center gap-1.5 flex-wrap justify-center">
+                  {isCR ? (
+                    <>
+                      Click a day to view details or use
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1A1D24] border border-[#23262D] text-amber-500">
+                        <Umbrella className="w-3 h-3" />
+                      </span>
+                      to activate when holiday
+                    </>
+                  ) : (
+                    'Click on a day to view its details'
+                  )}
                 </span>
               </div>
             </div>

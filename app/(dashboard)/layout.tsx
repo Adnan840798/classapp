@@ -35,11 +35,11 @@ export default async function DashboardLayout({
   // Show a clear error with a sign-out option instead.
   if (!profile) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#060813] px-6">
+      <div className="flex items-center justify-center h-screen bg-[#121214] px-6">
         <div className="glass-card p-10 max-w-sm w-full flex flex-col items-center gap-5 text-center">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
-            style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}
+            style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}
           >
             ⚠️
           </div>
@@ -58,9 +58,9 @@ export default async function DashboardLayout({
   return (
     <ProfileProvider initialProfile={profile as Profile}>
       <PushEnrollmentInitializer />
-      <div className="flex flex-col h-screen overflow-hidden bg-[#060813]">
+      <div className="flex flex-col h-screen overflow-hidden bg-[#121214]">
         <Header />
-        <div className="flex-1 overflow-y-auto bg-[#060813] flex flex-col justify-between">
+        <div className="flex-1 overflow-y-auto bg-[#121214] flex flex-col">
           <main className="px-4 lg:px-8 py-6 flex-1">{children}</main>
           <Footer />
         </div>

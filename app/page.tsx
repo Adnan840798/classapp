@@ -4,6 +4,7 @@ import { GraduationCap, ArrowRight, Megaphone, CalendarDays, ExternalLink, Calen
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime, formatDate, getEventTypeColor, formatEventType } from '@/lib/utils/formatters';
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -79,13 +80,13 @@ export default async function RootPage() {
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg"
             style={{
-              background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
+              background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))',
             }}
           >
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-lg text-white">
-            Class<span className="text-[#6366f1]">App</span>
+            Class<span className="text-[#34D399]">App</span>
           </span>
         </Link>
 
@@ -98,7 +99,7 @@ export default async function RootPage() {
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-20 px-6 max-w-4xl mx-auto w-full">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
-          Welcome to Class<span className="text-[#6366f1]">App</span>
+          Welcome to Class<span className="text-[#34D399]">App</span>
         </h1>
         <p className="mt-4 text-base md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
           The central academic management and collaboration dashboard for our class. Sign in to check your personal grades, notes, and ask timeline questions.
@@ -147,19 +148,18 @@ export default async function RootPage() {
 
                   {notice.attachment_url && (
                     <div className="mt-4 pt-3 border-t border-border/50">
-                      <a
-                        href={notice.attachment_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline"
-                      >
-                        {notice.attachment_type === 'image' ? (
-                          <ImageIcon className="w-3.5 h-3.5" />
-                        ) : (
-                          <FileText className="w-3.5 h-3.5" />
-                        )}
-                        <span>View Public Attachment</span>
-                      </a>
+                      <AttachmentViewer url={notice.attachment_url} fileName={`${notice.title}_attachment`}>
+                        <button
+                          className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline cursor-pointer"
+                        >
+                          {notice.attachment_type === 'image' ? (
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5" />
+                          )}
+                          <span>View Public Attachment</span>
+                        </button>
+                      </AttachmentViewer>
                     </div>
                   )}
                 </div>
@@ -212,9 +212,14 @@ export default async function RootPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/80 text-center py-6 text-xs text-muted-foreground">
-        &copy; {new Date().getFullYear()} ClassApp. All rights reserved.
+      <footer className="w-full border-t flex-shrink-0" style={{ background: '#121214', borderColor: '#1e2128' }}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-center">
+          <span className="text-[11px] font-medium tracking-wide" style={{ color: '#374151' }}>
+            &copy; {new Date().getFullYear()} ClassApp. All rights reserved.
+          </span>
+        </div>
       </footer>
+
     </div>
   );
 }

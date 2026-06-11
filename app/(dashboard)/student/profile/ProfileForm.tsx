@@ -308,9 +308,9 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             <button
               type="button"
               onClick={() => setIsManageModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 rounded-xl text-sm font-semibold text-white border border-[#6366f1]/20 hover:border-[#6366f1]/40 bg-[#6366f1]/10 hover:bg-[#6366f1]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#6366f1]/5 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 rounded-xl text-sm font-semibold text-[#34D399] border border-[#34D399]/20 hover:border-[#34D399]/40 bg-[#34D399]/10 hover:bg-[#34D399]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#34D399]/5 cursor-pointer"
             >
-              <Users className="w-4 h-4 text-[#818cf8]" />
+              <Users className="w-4 h-4 text-[#34D399]" />
               Manage Accounts ({accountsList.length})
             </button>
           </div>
@@ -490,11 +490,11 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
       {/* Manage Student Accounts Modal */}
       {isManageModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-fade-in">
-          <div className="bg-[#070b19] border border-[#141b34] rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-[#121214] border border-[#23262D] rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="p-4 md:p-6 border-b border-[#141b34] flex items-center justify-between flex-shrink-0 bg-[#090e22]/50">
+            <div className="p-4 md:p-6 border-b border-[#23262D] flex items-center justify-between flex-shrink-0 bg-[#1A1D24]/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}>
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -514,14 +514,14 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             </div>
 
             {/* Search and Filters */}
-            <div className="p-4 md:p-6 border-b border-[#141b34] flex-shrink-0 bg-[#090e22]/20">
+            <div className="p-4 md:p-6 border-b border-[#23262D] flex-shrink-0 bg-[#1A1D24]/20">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search students by name, ID, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="form-input w-full pl-10 bg-[#050712] border-[#141b34] focus:border-primary/50"
+                  className="form-input w-full pl-10 bg-[#0E0F11] border-[#23262D] focus:border-primary/50"
                 />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 {searchTerm && (
@@ -547,7 +547,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
               ) : (
                 <div className="space-y-3">
                   {/* Table Header (Desktop only) */}
-                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 border-b border-[#141b34]/30">
+                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 border-b border-[#23262D]/30">
                     <div className="col-span-5">Student</div>
                     <div className="col-span-4">Contact Details</div>
                     <div className="col-span-1 text-center">Role</div>
@@ -561,7 +561,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                     return (
                       <div
                         key={student.id}
-                        className="bg-[#090e22]/40 border border-[#141b34]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-[#090e22]/70"
+                        className="bg-[#1A1D24]/40 border border-[#23262D]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-[#1A1D24]/70"
                       >
                         {/* Student Meta Info */}
                         <div className="col-span-1 md:col-span-5 flex items-center gap-3.5 min-w-0">
@@ -601,7 +601,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                               student.role === 'cr' || student.role === 'admin'
-                                ? 'bg-[#6366f1]/10 border-[#6366f1]/30 text-[#818cf8]'
+                                ? 'bg-[#34D399]/10 border-[#34D399]/30 text-[#6EE7B7]'
                                 : 'bg-[#10b981]/10 border-[#10b981]/20 text-[#34d399]'
                             }`}
                           >
@@ -610,7 +610,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         </div>
 
                         {/* Actions */}
-                        <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#141b34]/40 pt-3 md:pt-0 md:border-0">
+                        <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#23262D]/40 pt-3 md:pt-0 md:border-0">
                           <div className="flex items-center gap-2 ml-auto md:ml-0">
 
 

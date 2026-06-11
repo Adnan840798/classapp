@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { User, LogOut, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, ChevronDown, Shield } from 'lucide-react';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -42,7 +42,7 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     return (
       <Link
         href="/login"
-        className="text-xs sm:text-sm font-semibold bg-[#141b34]/40 hover:bg-[#141b34]/80 border border-[#141b34] text-slate-300 hover:text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
+        className="text-xs sm:text-sm font-semibold bg-[#23262D]/40 hover:bg-[#23262D]/80 border border-[#23262D] text-slate-300 hover:text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
       >
         Sign In
       </Link>
@@ -57,9 +57,9 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 bg-[#141b34]/30 hover:bg-[#141b34]/60 border border-[#1e2a4a] rounded-xl px-3 py-1.5 transition-all cursor-pointer group"
+        className="flex items-center gap-2 bg-[#23262D]/30 hover:bg-[#23262D]/60 border border-[#23262D] rounded-xl px-3 py-1.5 transition-all cursor-pointer group"
       >
-        <div className="w-7 h-7 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-105">
+        <div className="w-7 h-7 rounded-full bg-[#34D399] text-[#121214] flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-105">
           {initials}
         </div>
         <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors hidden sm:inline-block">
@@ -72,18 +72,18 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
         <div
           className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50 animate-fade-in"
           style={{
-            background: 'linear-gradient(135deg, rgba(15,20,45,0.95) 0%, rgba(10,12,30,0.95) 100%)',
-            border: '1px solid rgba(99,102,241,0.2)',
+            background: 'linear-gradient(135deg, rgba(26,29,36,0.95) 0%, rgba(18,18,20,0.95) 100%)',
+            border: '1px solid rgba(52,211,153,0.2)',
             backdropFilter: 'blur(12px)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99,102,241,0.08)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(52,211,153,0.08)',
           }}
         >
           {/* User Details */}
-          <div className="px-3.5 py-2.5 border-b border-[#1e2a4a]/85 mb-1.5">
+          <div className="px-3.5 py-2.5 border-b border-border/85 mb-1.5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-black text-white truncate">{profile.full_name}</p>
               {isCROrAdmin && (
-                <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300">
+                <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
                   <Shield className="w-2 h-2" />
                   {profile.role}
                 </span>
@@ -94,25 +94,16 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
 
           {/* Navigation Items */}
           <Link
-            href={dashboardUrl}
-            onClick={() => setIsOpen(false)}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-indigo-500/10 rounded-xl transition-all"
-          >
-            <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
-            Go to Timeline
-          </Link>
-
-          <Link
             href={`${prefix}/profile`}
             onClick={() => setIsOpen(false)}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-indigo-500/10 rounded-xl transition-all"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-emerald-500/10 rounded-xl transition-all"
           >
-            <User className="w-3.5 h-3.5 text-indigo-400" />
+            <User className="w-3.5 h-3.5 text-emerald-400" />
             My Profile
           </Link>
 
           {/* Divider */}
-          <div className="h-[1px] bg-[#1e2a4a]/85 my-1" />
+          <div className="h-[1px] bg-border/85 my-1" />
 
           {/* Sign Out Button */}
           <button

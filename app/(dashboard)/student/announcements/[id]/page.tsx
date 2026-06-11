@@ -6,6 +6,7 @@ import { formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AskQuestionForm } from '../../calendar/[id]/AskQuestionForm';
 import { TimelineQuestion } from '@/types';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 interface StudentAnnouncementDetailPageProps {
   params: Promise<{ id: string }>;
@@ -111,19 +112,18 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
 
         {announcement.attachment_url && (
           <div className="mt-2 pt-3 border-t border-border/50">
-            <a
-              href={announcement.attachment_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs font-medium text-primary hover:underline"
-            >
-              {announcement.attachment_type === 'image' ? (
-                <ImageIcon className="w-4 h-4" />
-              ) : (
-                <FileText className="w-4 h-4" />
-              )}
-              <span>View Attachment</span>
-            </a>
+            <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+              <button
+                className="flex items-center gap-2 text-xs font-medium text-primary hover:underline cursor-pointer"
+              >
+                {announcement.attachment_type === 'image' ? (
+                  <ImageIcon className="w-4 h-4" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+                <span>View Attachment</span>
+              </button>
+            </AttachmentViewer>
           </div>
         )}
       </div>

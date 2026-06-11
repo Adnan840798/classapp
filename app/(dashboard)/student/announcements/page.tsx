@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 export const revalidate = 0;
 
@@ -52,9 +53,9 @@ export default async function StudentAnnouncementsPage() {
                 className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
                 style={{
                   background: isImportant
-                    ? 'linear-gradient(90deg, rgba(99,102,241,0.09) 0%, rgba(11,15,35,0.65) 100%)'
-                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(11,15,35,0.45) 100%)',
-                  border: isImportant ? '1px solid rgba(99,102,241,0.28)' : '1px solid rgba(148,163,184,0.15)',
+                    ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
+                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
+                  border: isImportant ? '1px solid rgba(52,211,153,0.28)' : '1px solid rgba(148,163,184,0.15)',
                 }}
               >
                 {/* Left accent bar */}
@@ -62,7 +63,7 @@ export default async function StudentAnnouncementsPage() {
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background: isImportant
-                      ? 'linear-gradient(180deg, #6366f1, #8b5cf6)'
+                      ? 'linear-gradient(180deg, #34D399, #059669)'
                       : 'linear-gradient(180deg, #475569, #1e293b)',
                   }}
                 />
@@ -73,11 +74,11 @@ export default async function StudentAnnouncementsPage() {
                     <div
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: isImportant ? 'rgba(99,102,241,0.12)' : 'rgba(148,163,184,0.08)',
-                        border: isImportant ? '1px solid rgba(99,102,241,0.25)' : '1px solid rgba(148,163,184,0.15)',
+                        background: isImportant ? 'rgba(52,211,153,0.12)' : 'rgba(148,163,184,0.08)',
+                        border: isImportant ? '1px solid rgba(52,211,153,0.25)' : '1px solid rgba(148,163,184,0.15)',
                       }}
                     >
-                      <Megaphone className={`w-4 h-4 ${isImportant ? 'text-indigo-400' : 'text-slate-400'}`} />
+                      <Megaphone className={`w-4 h-4 ${isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -90,24 +91,23 @@ export default async function StudentAnnouncementsPage() {
                       </p>
                       {announcement.attachment_url && (
                         <div className="mt-3">
-                          <a
-                            href={announcement.attachment_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15"
-                          >
-                            {announcement.attachment_type === 'image' ? (
-                              <>
-                                <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span>View Image Attachment</span>
-                              </>
-                            ) : (
-                              <>
-                                <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span>View Document Attachment</span>
-                              </>
-                            )}
-                          </a>
+                          <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                            <button
+                              className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150 text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 cursor-pointer"
+                            >
+                              {announcement.attachment_type === 'image' ? (
+                                <>
+                                  <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                                  <span>View Image Attachment</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                                  <span>View Document Attachment</span>
+                                </>
+                              )}
+                            </button>
+                          </AttachmentViewer>
                         </div>
                       )}
                     </div>
@@ -125,7 +125,7 @@ export default async function StudentAnnouncementsPage() {
                             Public
                           </span>
                         ) : (
-                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
                             Class
                           </span>
                         )}
@@ -137,7 +137,7 @@ export default async function StudentAnnouncementsPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/student/announcements/${announcement.id}`}
-                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all"
                       >
                         Q&A
                       </Link>

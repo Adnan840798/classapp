@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, ChevronRight, ExternalLink } from 'lucide-react';
+import { X, ChevronRight, ExternalLink, Umbrella } from 'lucide-react';
 import Link from 'next/link';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 interface DayDetailPanelProps {
   isOpen: boolean;
@@ -61,8 +62,8 @@ function SquarePlusIcon({ className }: { className?: string }) {
 function BookmarkIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <rect x="3" y="3" width="18" height="18" rx="3" fill="#6366f1" fillOpacity="0.15" />
-      <path d="M8 3h8a1 1 0 0 1 1 1v16l-5-3-5 3V4a1 1 0 0 1 1-1z" fill="#6366f1" />
+      <rect x="3" y="3" width="18" height="18" rx="3" fill="#34D399" fillOpacity="0.15" />
+      <path d="M8 3h8a1 1 0 0 1 1 1v16l-5-3-5 3V4a1 1 0 0 1 1-1z" fill="#34D399" />
     </svg>
   );
 }
@@ -188,7 +189,7 @@ export function DayDetailPanel({
         }
         .detail-scroll::-webkit-scrollbar { width: 4px; }
         .detail-scroll::-webkit-scrollbar-track { background: transparent; }
-        .detail-scroll::-webkit-scrollbar-thumb { background: #1e2a50; border-radius: 99px; }
+        .detail-scroll::-webkit-scrollbar-thumb { background: #23262D; border-radius: 99px; }
       `}</style>
 
       <div className="fixed inset-0 z-50">
@@ -204,8 +205,8 @@ export function DayDetailPanel({
           className={`detail-panel absolute right-0 top-0 bottom-0 flex flex-col ${isDragging ? '' : 'transition-transform duration-200'}`}
           style={{
             width: 'min(420px, 100vw)',
-            background: '#060813',
-            borderLeft: '1px solid #141b30',
+            background: '#121214',
+            borderLeft: '1px solid #23262D',
             transform: `translateX(${translationX}px)`,
             touchAction: 'pan-y',
           }}
@@ -216,7 +217,7 @@ export function DayDetailPanel({
           {/* Header */}
           <div
             className="flex items-start justify-between px-6 pt-7 pb-5 flex-shrink-0"
-            style={{ borderBottom: '1px solid #141b30', background: '#060813' }}
+            style={{ borderBottom: '1px solid #23262D', background: '#121214' }}
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -224,8 +225,8 @@ export function DayDetailPanel({
                   {displayDayName}
                 </h2>
                 {isHoliday && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}>
-                    🏖️ Holiday
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)' }}>
+                    <Umbrella className="w-3 h-3" /> Holiday
                   </span>
                 )}
               </div>
@@ -238,19 +239,31 @@ export function DayDetailPanel({
                   disabled={isTogglingHoliday}
                   className="mt-3 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
                   style={{
-                    background: isHoliday ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)',
-                    border: isHoliday ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(239,68,68,0.2)',
-                    color: isHoliday ? '#34d399' : '#f87171',
+                    background: isHoliday ? 'rgba(75,85,99,0.08)' : 'rgba(245,158,11,0.08)',
+                    border: isHoliday ? '1px solid rgba(75,85,99,0.2)' : '1px solid rgba(245,158,11,0.2)',
+                    color: isHoliday ? '#9ca3af' : '#fbbf24',
                   }}
                 >
-                  {isTogglingHoliday ? '…' : isHoliday ? '✓ Remove Holiday' : '🏖️ Mark as Holiday'}
+                  {isTogglingHoliday ? (
+                    '…'
+                  ) : isHoliday ? (
+                    <>
+                      <X className="w-3 h-3" />
+                      <span>Remove Holiday</span>
+                    </>
+                  ) : (
+                    <>
+                      <Umbrella className="w-3 h-3" />
+                      <span>Mark as Holiday</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mt-0.5 flex-shrink-0 ml-2"
-              style={{ background: '#131929', border: '1px solid #1e2a4a' }}
+              style={{ background: '#1A1D24', border: '1px solid #23262D' }}
             >
               <X className="w-4 h-4 text-slate-400" />
             </button>
@@ -259,7 +272,7 @@ export function DayDetailPanel({
           {/* Tabs */}
           <div
             className="flex flex-shrink-0"
-            style={{ borderBottom: '1px solid #141b30', background: '#060813' }}
+            style={{ borderBottom: '1px solid #23262D', background: '#121214' }}
           >
             {TABS.map((tab) => (
               <button
@@ -268,7 +281,7 @@ export function DayDetailPanel({
                 className="flex-1 text-[12px] font-semibold py-3.5 transition-all cursor-pointer relative"
                 style={{
                   color: activeTab === tab.key ? '#ffffff' : '#64748b',
-                  borderBottom: activeTab === tab.key ? '2px solid #6366f1' : '2px solid transparent',
+                  borderBottom: activeTab === tab.key ? '2px solid #34D399' : '2px solid transparent',
                   background: 'transparent',
                 }}
               >
@@ -289,7 +302,7 @@ export function DayDetailPanel({
                   <button
                     onClick={() => setActiveTab('deadlines')}
                     className="flex flex-col items-start p-3.5 rounded-xl cursor-pointer transition-all hover:brightness-110"
-                    style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
+                    style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                   >
                     <span className="text-[10px] font-bold text-slate-400 leading-none mb-2.5">Deadlines</span>
                     <div className="flex items-center gap-2">
@@ -302,11 +315,11 @@ export function DayDetailPanel({
                   <button
                     onClick={() => setActiveTab('announcements')}
                     className="flex flex-col items-start p-3.5 rounded-xl cursor-pointer transition-all hover:brightness-110"
-                    style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
+                    style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                   >
                     <span className="text-[10px] font-bold text-slate-400 leading-none mb-2.5">Announcements</span>
                     <div className="flex items-center gap-2">
-                      <MegaphoneIcon className="w-5 h-5 text-violet-400" />
+                      <MegaphoneIcon className="w-5 h-5 text-emerald-400" />
                       <span className="text-[20px] font-black text-white leading-none">{announcements.length}</span>
                     </div>
                   </button>
@@ -315,7 +328,7 @@ export function DayDetailPanel({
                   <button
                     onClick={() => setActiveTab('results')}
                     className="flex flex-col items-start p-3.5 rounded-xl cursor-pointer transition-all hover:brightness-110"
-                    style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
+                    style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                   >
                     <span className="text-[10px] font-bold text-slate-400 leading-none mb-2.5">Results</span>
                     <div className="flex items-center gap-2">
@@ -350,7 +363,7 @@ export function DayDetailPanel({
                           href={`${prefix}/deadlines/${d.id}`}
                           onClick={onClose}
                           className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-110"
-                          style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
+                          style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                         >
                           <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
@@ -386,7 +399,7 @@ export function DayDetailPanel({
                           href={`${prefix}/announcements`}
                           onClick={onClose}
                           className="text-[12px] font-semibold cursor-pointer"
-                          style={{ color: '#818cf8' }}
+                          style={{ color: '#6EE7B7' }}
                         >
                           View all
                         </Link>
@@ -403,10 +416,10 @@ export function DayDetailPanel({
                           href={`${prefix}/announcements/${a.id}`}
                           onClick={onClose}
                           className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all hover:brightness-110"
-                          style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
+                          style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                         >
                           {/* Purple bookmark icon */}
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#1a1d40' }}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(52,211,153,0.12)' }}>
                             <BookmarkIcon className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -449,7 +462,7 @@ export function DayDetailPanel({
                           href={`${prefix}/results`}
                           onClick={onClose}
                           className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-110"
-                          style={{ background: '#0b0e1e', border: '1px solid #141b30' }}
+                          style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                         >
                           <SquarePlusIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
@@ -476,7 +489,7 @@ export function DayDetailPanel({
                   <a
                     href={`/cr/announcements/new?date=${dateStr}`}
                     className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all mb-4 cursor-pointer"
-                    style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}
+                    style={{ background: 'rgba(52,211,153,0.12)', color: '#6EE7B7', border: '1px solid rgba(52,211,153,0.25)' }}
                   >
                     <MegaphoneIcon className="w-4 h-4" />
                     + Add Announcement for this Day
@@ -492,7 +505,7 @@ export function DayDetailPanel({
                         href={`${prefix}/announcements/${a.id}`}
                         onClick={onClose}
                         className="px-4 py-4 rounded-xl flex flex-col gap-3 transition-all hover:brightness-110 cursor-pointer"
-                        style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
+                        style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="text-[13px] font-bold text-white leading-snug">{a.title}</h4>
@@ -502,7 +515,7 @@ export function DayDetailPanel({
                         {a.attachment_url && (
                           <span
                             className="inline-flex items-center gap-1.5 text-[11px] font-semibold"
-                            style={{ color: '#818cf8' }}
+                            style={{ color: '#6EE7B7' }}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             Has attachment
@@ -510,7 +523,7 @@ export function DayDetailPanel({
                         )}
                         <div
                           className="flex items-center gap-2 pt-2.5 text-[10px] text-slate-500 font-semibold"
-                          style={{ borderTop: '1px solid #1a2240' }}
+                          style={{ borderTop: '1px solid #23262D' }}
                         >
                           <span>By {a.creator?.full_name ?? 'CR'}</span>
                           <span>·</span>
@@ -544,7 +557,7 @@ export function DayDetailPanel({
                       <div
                         key={r.id}
                         className="px-4 py-4 rounded-xl flex items-center gap-4"
-                        style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
+                        style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                       >
                         <SquarePlusIcon className="w-6 h-6 text-emerald-400 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
@@ -555,17 +568,16 @@ export function DayDetailPanel({
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {r.result_sheet_url && (
-                            <a
-                              href={r.result_sheet_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                              style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
+                            <AttachmentViewer url={r.result_sheet_url} fileName={`${r.exam_name}_results`}>
+                              <button
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                                style={{ background: 'rgba(52,211,153,0.12)', color: '#6EE7B7', border: '1px solid rgba(52,211,153,0.2)' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                View
+                                <ExternalLink className="w-3 h-3" />
+                              </button>
+                            </AttachmentViewer>
                           )}
                           <Link
                             href={`${prefix}/results`}
@@ -606,7 +618,7 @@ export function DayDetailPanel({
                         href={`${prefix}/deadlines/${d.id}`}
                         onClick={onClose}
                         className="px-4 py-4 rounded-xl flex flex-col gap-2.5 transition-all hover:brightness-110 cursor-pointer"
-                        style={{ background: '#0f1428', border: '1px solid #1e2a4a' }}
+                        style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-start gap-3">
@@ -620,8 +632,8 @@ export function DayDetailPanel({
                         </div>
                         {d.description && (
                           <p
-                            className="text-[11px] text-slate-300 leading-relaxed bg-[#070a17] rounded-lg px-3 py-2.5"
-                            style={{ border: '1px solid #151f3a' }}
+                            className="text-[11px] text-slate-300 leading-relaxed bg-[#121214] rounded-lg px-3 py-2.5"
+                            style={{ border: '1px solid #23262D' }}
                           >
                             {d.description}
                           </p>

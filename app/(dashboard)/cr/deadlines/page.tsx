@@ -10,7 +10,7 @@ export const revalidate = 0; // force dynamic rendering
 
 const colorThemes = {
   red: {
-    bg: 'linear-gradient(90deg, rgba(239,68,68,0.09) 0%, rgba(11,15,35,0.65) 100%)',
+    bg: 'linear-gradient(90deg, rgba(239,68,68,0.09) 0%, rgba(26,29,36,0.65) 100%)',
     border: '1px solid rgba(239,68,68,0.28)',
     accent: 'linear-gradient(180deg, #ef4444, #f87171)',
     badgeBg: 'rgba(239,68,68,0.15)',
@@ -21,7 +21,7 @@ const colorThemes = {
     iconBorder: '1px solid rgba(239,68,68,0.2)',
   },
   yellow: {
-    bg: 'linear-gradient(90deg, rgba(245,158,11,0.07) 0%, rgba(11,15,35,0.65) 100%)',
+    bg: 'linear-gradient(90deg, rgba(245,158,11,0.07) 0%, rgba(26,29,36,0.65) 100%)',
     border: '1px solid rgba(245,158,11,0.22)',
     accent: 'linear-gradient(180deg, #f59e0b, #fbbf24)',
     badgeBg: 'rgba(245,158,11,0.12)',
@@ -32,7 +32,7 @@ const colorThemes = {
     iconBorder: '1px solid rgba(245,158,11,0.18)',
   },
   green: {
-    bg: 'linear-gradient(90deg, rgba(16,185,129,0.06) 0%, rgba(11,15,35,0.65) 100%)',
+    bg: 'linear-gradient(90deg, rgba(16,185,129,0.06) 0%, rgba(26,29,36,0.65) 100%)',
     border: '1px solid rgba(16,185,129,0.2)',
     accent: 'linear-gradient(180deg, #10b981, #34d399)',
     badgeBg: 'rgba(16,185,129,0.1)',
@@ -43,7 +43,7 @@ const colorThemes = {
     iconBorder: '1px solid rgba(16,185,129,0.18)',
   },
   gray: {
-    bg: 'rgba(11,15,35,0.4)',
+    bg: 'rgba(26,29,36,0.4)',
     border: '1px solid rgba(148,163,184,0.12)',
     accent: 'linear-gradient(180deg, #64748b, #94a3b8)',
     badgeBg: 'rgba(148,163,184,0.08)',
@@ -78,7 +78,7 @@ export default async function CRDeadlinesPage() {
           <h1 className="page-title">Deadlines</h1>
           <p className="page-subtitle">Track academic submissions, projects, and assignment deadlines</p>
         </div>
-        <Link href="/cr/deadlines/new" className="btn-primary self-start sm:self-auto flex-shrink-0">
+        <Link href="/cr/deadlines/new" className="btn-yellow self-start sm:self-auto flex-shrink-0">
           <Plus className="w-4 h-4" />
           New Deadline
         </Link>
@@ -91,7 +91,7 @@ export default async function CRDeadlinesPage() {
           <p className="text-sm text-muted-foreground max-w-md">
             All assignments and submissions are up to date! Add a deadline to notify the class.
           </p>
-          <Link href="/cr/deadlines/new" className="btn-primary mt-2">
+          <Link href="/cr/deadlines/new" className="btn-yellow mt-2">
             <Plus className="w-4 h-4" />
             Create Deadline
           </Link>
@@ -130,7 +130,7 @@ export default async function CRDeadlinesPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-slate-800/40 border border-slate-700/50 text-[#94a3b8] flex items-center gap-1">
-                          <BookOpen className="w-2.5 h-2.5 text-indigo-400" />
+                          <BookOpen className="w-2.5 h-2.5 text-emerald-400" />
                           {deadline.subject}
                         </span>
                         <h3 className="text-sm font-extrabold text-white break-words leading-snug">
@@ -166,7 +166,7 @@ export default async function CRDeadlinesPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/cr/deadlines/${deadline.id}`}
-                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all"
                       >
                         Q&A Panel
                         <ArrowRight className="w-3.5 h-3.5" />

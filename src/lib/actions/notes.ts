@@ -30,22 +30,36 @@ export async function createNote(formData: FormData) {
       return { error: parsed.error.issues[0].message };
     }
 
-    const { error } = await supabase.from('notes').insert({
-      title: parsed.data.title,
-      content: parsed.data.content ?? null,
-      drive_link: parsed.data.drive_link || null,
-      is_public: isPublic,
-      user_id: user.id,
-    });
-
-    if (error) return { error: error.message };
-
+    // Role check for pending resource gate
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
     const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+
+    let finalIsPublic = false;
+    let finalIsPending = false;
+
+    if (isPublic) {
+      if (isCR) {
+        finalIsPublic = true;
+      } else {
+        finalIsPending = true;
+      }
+    }
+
+    const { error } = await supabase.from('notes').insert({
+      title: parsed.data.title,
+      content: parsed.data.content ?? null,
+      drive_link: parsed.data.drive_link || null,
+      is_public: finalIsPublic,
+      is_pending: finalIsPending,
+      user_id: user.id,
+    });
+
+    if (error) return { error: error.message };
+
     const notesPath = isCR ? '/cr/notes' : '/student/notes';
 
     revalidatePath(notesPath);
@@ -81,26 +95,39 @@ export async function updateNote(id: string, formData: FormData) {
       return { error: parsed.error.issues[0].message };
     }
 
-    const { error } = await supabase
-      .from('notes')
-      .update({
-        title: parsed.data.title,
-        content: parsed.data.content ?? null,
-        drive_link: parsed.data.drive_link || null,
-        is_public: isPublic,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('user_id', user.id); // RLS guard
-
-    if (error) return { error: error.message };
-
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
     const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+
+    let finalIsPublic = false;
+    let finalIsPending = false;
+
+    if (isPublic) {
+      if (isCR) {
+        finalIsPublic = true;
+      } else {
+        finalIsPending = true;
+      }
+    }
+
+    const { error } = await supabase
+      .from('notes')
+      .update({
+        title: parsed.data.title,
+        content: parsed.data.content ?? null,
+        drive_link: parsed.data.drive_link || null,
+        is_public: finalIsPublic,
+        is_pending: finalIsPending,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('user_id', user.id); // RLS guard for update
+
+    if (error) return { error: error.message };
+
     const notesPath = isCR ? '/cr/notes' : '/student/notes';
 
     revalidatePath(notesPath);
@@ -124,11 +151,18 @@ export async function deleteNote(id: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
 
-    const { error } = await supabase
-      .from('notes')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id); // RLS guard
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+
+    let query = supabase.from('notes').delete().eq('id', id);
+    if (!isCR) {
+      query = query.eq('user_id', user.id); // Student can only delete own
+    }
+    const { error } = await query;
 
     if (error) return { error: error.message };
 
@@ -138,5 +172,42 @@ export async function deleteNote(id: string) {
   } catch (err: any) {
     console.error('deleteNote error:', err);
     return { error: err.message || 'An unexpected error occurred during deletion.' };
+  }
+}
+
+export async function approveNote(id: string) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const isCR = profile?.role === 'cr' || profile?.role === 'admin';
+
+    if (!isCR) {
+      return { error: 'Unauthorized: Only CRs and Admins can approve resources.' };
+    }
+
+    const { error } = await supabase
+      .from('notes')
+      .update({
+        is_public: true,
+        is_pending: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/student/notes');
+    revalidatePath('/cr/notes');
+    return { success: true };
+  } catch (err: any) {
+    console.error('approveNote error:', err);
+    return { error: err.message || 'An unexpected error occurred during approval.' };
   }
 }

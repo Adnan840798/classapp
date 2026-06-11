@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { Award, FileText, Calendar, ArrowUpRight } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -47,21 +48,20 @@ export default async function StudentResultsPage() {
               key={res.id}
               className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
               style={{
-                background: 'rgba(11,14,30,0.4)',
-                border: '1px solid #1e2a4a',
+                background: '#1A1D24',
+                border: '1px solid #23262D',
               }}
             >
-              {/* Left purple colored accent line */}
               <div
                 className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ background: 'linear-gradient(180deg, #6366f1, #a855f7)' }}
+                style={{ background: 'linear-gradient(180deg, #34D399, #059669)' }}
               />
 
               <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {/* Left section: Icon + Title */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                    <Award className="w-4 h-4 text-indigo-400" />
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Award className="w-4 h-4 text-emerald-400" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-extrabold text-white break-words leading-snug">
@@ -79,16 +79,15 @@ export default async function StudentResultsPage() {
                   </span>
                   <div className="flex items-center gap-2">
                     {res.result_sheet_url ? (
-                      <a
-                        href={res.result_sheet_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
-                      >
-                        <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>View Marksheet</span>
-                        <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
-                      </a>
+                      <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
+                        <button
+                          className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>View Marksheet</span>
+                          <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
+                        </button>
+                      </AttachmentViewer>
                     ) : (
                       <span className="text-[10px] text-slate-600 italic hidden sm:inline">No attachment</span>
                     )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
@@ -29,7 +29,27 @@ const notifTypeIcon: Record<NotifType, NotifTypeConfig> = {
   },
   system: {
     icon: Bell,
-    bg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
+    bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+  },
+  qna: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+  },
+  qna_announcement: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+  },
+  qna_deadline: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+  },
+  qna_event: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+  },
+  resource_pending: {
+    icon: BookMarked,
+    bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
   },
 };
 
@@ -41,6 +61,16 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
       return refId ? `${prefix}/deadlines/${refId}` : `${prefix}/deadlines`;
     case 'result':
       return `${prefix}/results`;
+    case 'qna':
+      return `${prefix}/timeline`;
+    case 'qna_announcement':
+      return refId ? `${prefix}/announcements/${refId}` : `${prefix}/announcements`;
+    case 'qna_deadline':
+      return refId ? `${prefix}/deadlines/${refId}` : `${prefix}/deadlines`;
+    case 'qna_event':
+      return refId ? `${prefix}/calendar/${refId}` : `${prefix}/calendar`;
+    case 'resource_pending':
+      return `${prefix}/notes`;
     default:
       return `${prefix}/timeline`;
   }
@@ -82,7 +112,7 @@ export function NotificationBell() {
       <button
         id="notification-bell-btn"
         onClick={handleBellClick}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#141b34] bg-[#050711] hover:bg-[#141b34]/40 hover:text-white transition-all duration-200 text-slate-400 cursor-pointer"
+        className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#23262D] bg-[#0E0F11] hover:bg-[#23262D]/40 hover:text-white transition-all duration-200 text-slate-400 cursor-pointer"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
         <Bell className="w-4 h-4" />
@@ -96,21 +126,21 @@ export function NotificationBell() {
       {/* Dropdown */}
       {isOpen && (
         <div
-          className="absolute right-0 top-12 w-80 rounded-2xl border border-[#141b34]/80 bg-[#0a0e1c]/95 backdrop-blur-xl z-50 overflow-hidden fade-in"
+          className="absolute right-0 top-12 w-80 rounded-2xl border border-[#23262D]/80 bg-[#121214]/95 backdrop-blur-xl z-50 overflow-hidden fade-in"
           style={{
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 40px -10px rgba(99, 102, 241, 0.15)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 40px -10px rgba(52, 211, 153, 0.15)',
           }}
           role="dialog"
           aria-label="Notifications"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4.5 py-3.5 border-b border-[#141b34]">
+          <div className="flex items-center justify-between px-4.5 py-3.5 border-b border-[#23262D]">
             <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Notifications</h3>
             <div className="flex items-center gap-3">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-[10px] font-bold text-[#6366f1] hover:text-[#4f46e5] flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-[10px] font-bold text-[#34D399] hover:text-[#059669] flex items-center gap-1 transition-colors cursor-pointer"
                   title="Mark all as read"
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
@@ -146,8 +176,8 @@ export function NotificationBell() {
                       href={getNotifHref(notif.type, notif.reference_id, prefix)}
                       onClick={() => setIsOpen(false)}
                       className={cn(
-                        'flex gap-3.5 p-3.5 transition-all duration-200 hover:bg-[#6366f1]/5 relative border-b border-[#141b34]/50 last:border-b-0 group',
-                        !notif.is_read && 'bg-[#6366f1]/[0.03]'
+                        'flex gap-3.5 p-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group',
+                        !notif.is_read && 'bg-[#34D399]/[0.03]'
                       )}
                     >
                       {/* Left: Type Icon with dynamic colors */}
@@ -170,13 +200,13 @@ export function NotificationBell() {
 
                       {/* Unread indicator dot */}
                       {!notif.is_read && (
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#6366f1] shadow-[0_0_8px_#6366f1]" />
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#34D399] shadow-[0_0_8px_#34D399]" />
                       )}
                     </Link>
                   );
                 })}
                 {remainingCount > 0 && (
-                  <div className="px-4 py-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-t border-[#141b34] bg-[#0c1228]/50">
+                  <div className="px-4 py-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-t border-[#23262D] bg-[#1A1D24]/50">
                     + {remainingCount} more notifications
                   </div>
                 )}

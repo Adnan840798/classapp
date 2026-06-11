@@ -72,7 +72,7 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))',
+              background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))',
             }}
           >
             <GraduationCap className="w-4 h-4 text-white" />
@@ -96,9 +96,9 @@ export function Sidebar({ onClose, isMobile }: SidebarProps) {
           className="text-xs font-semibold px-2 py-1 rounded-full"
           style={{
             background: isCR
-              ? 'hsl(220 91% 58% / 0.15)'
+              ? 'hsl(160 84% 51% / 0.15)'
               : 'hsl(142 76% 36% / 0.15)',
-            color: isCR ? 'hsl(220 91% 65%)' : 'hsl(142 76% 44%)',
+            color: isCR ? 'hsl(160 84% 51%)' : 'hsl(142 76% 44%)',
           }}
         >
           {profile?.role?.toUpperCase() ?? 'STUDENT'}

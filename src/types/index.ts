@@ -5,7 +5,7 @@
 export type UserRole = 'admin' | 'cr' | 'student';
 export type EventType = 'exam' | 'class' | 'holiday' | 'submission' | 'other';
 export type AttachmentType = 'image' | 'pdf';
-export type NotifType = 'announcement' | 'deadline' | 'result' | 'system';
+export type NotifType = 'announcement' | 'deadline' | 'result' | 'system' | 'qna' | 'resource_pending' | 'qna_announcement' | 'qna_deadline' | 'qna_event';
 export type DeadlineColor = 'green' | 'yellow' | 'red' | 'gray';
 
 // ── Profile ────────────────────────────────────────────────
@@ -26,6 +26,7 @@ export interface Profile {
   department: string | null;
   notif_enabled: boolean;
   notif_sound_on: boolean;
+  cr_last_read_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -114,6 +115,7 @@ export interface Note {
   content: string | null;
   drive_link: string | null;
   is_public: boolean;
+  is_pending: boolean;
   updated_at: string;
   created_at: string;
   creator?: {

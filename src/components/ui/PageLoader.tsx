@@ -9,7 +9,7 @@ export function PageLoader() {
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background">
       <div
         className="flex items-center justify-center w-14 h-14 rounded-2xl animate-pulse"
-        style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}
+        style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}
       >
         <GraduationCap className="w-7 h-7 text-white" />
       </div>

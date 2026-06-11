@@ -41,7 +41,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
             onClick={() => setFilter(type)}
             className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer ${
               filter === type
-                ? 'bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.35)]'
+                ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
@@ -71,10 +71,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                 className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
                 style={{
                   background: isPublic
-                    ? 'linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(11,15,35,0.65) 100%)'
-                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(11,15,35,0.45) 100%)',
+                    ? 'linear-gradient(90deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.65) 100%)'
+                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
                   border: isPublic
-                    ? '1px solid rgba(99,102,241,0.25)'
+                    ? '1px solid rgba(52,211,153,0.25)'
                     : '1px solid rgba(148,163,184,0.13)',
                 }}
               >
@@ -83,7 +83,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background: isPublic
-                      ? 'linear-gradient(180deg, #6366f1, #8b5cf6)'
+                      ? 'linear-gradient(180deg, #34D399, #059669)'
                       : 'linear-gradient(180deg, #475569, #1e293b)',
                   }}
                 />
@@ -96,13 +96,13 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                     <div
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{
-                        background: isPublic ? 'rgba(99,102,241,0.12)' : 'rgba(148,163,184,0.08)',
+                        background: isPublic ? 'rgba(52,211,153,0.12)' : 'rgba(148,163,184,0.08)',
                         border: isPublic
-                          ? '1px solid rgba(99,102,241,0.25)'
+                          ? '1px solid rgba(52,211,153,0.25)'
                           : '1px solid rgba(148,163,184,0.15)',
                       }}
                     >
-                      <FileText className={`w-4 h-4 ${isPublic ? 'text-indigo-400' : 'text-slate-400'}`} />
+                      <FileText className={`w-4 h-4 ${isPublic ? 'text-emerald-400' : 'text-slate-400'}`} />
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -123,8 +123,13 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                     {/* Metadata: badge + timestamp */}
                     <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 min-w-[80px]">
                       {isOwner ? (
-                        isPublic ? (
-                          <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                        note.is_pending ? (
+                          <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            Pending Approval
+                          </span>
+                        ) : isPublic ? (
+                          <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                             <Globe className="w-2.5 h-2.5" />
                             Public
                           </span>

@@ -156,7 +156,7 @@ export default function NewAnnouncementPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="btn-primary"
+              className="btn-yellow"
             >
               {isPending ? (
                 <>

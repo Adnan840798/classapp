@@ -158,7 +158,7 @@ export default function NewDeadlinePage() {
             <button
               type="submit"
               disabled={isPending}
-              className="btn-primary"
+              className="btn-yellow"
             >
               {isPending ? (
                 <>

@@ -120,7 +120,7 @@ export default function PublishResultPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="btn-primary"
+              className="btn-yellow"
             >
               {isPending ? (
                 <>

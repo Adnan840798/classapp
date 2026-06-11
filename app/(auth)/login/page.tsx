@@ -203,7 +203,7 @@ export default function LoginPage() {
         <Link href="/" className="inline-flex flex-col items-center group cursor-pointer select-none">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 shadow-lg transition-transform group-hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, hsl(220 91% 58%), hsl(260 80% 60%))' }}
+            style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}
           >
             <GraduationCap className="w-7 h-7 text-white" />
           </div>
