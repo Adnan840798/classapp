@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked } from 'lucide-react';
@@ -75,35 +75,89 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const [translationY, setTranslationY] = useState<number>(0);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY);
-    setIsDragging(false);
-  };
+  // ── Gesture state ──
+  const dragState = useRef<{
+    startY: number;
+    startTime: number;
+    lastY: number;
+    lastTime: number;
+    active: boolean;
+    startScrollTop: number;
+  } | null>(null);
+  const [translateY, setTranslateY] = useState(0);
+  const [dragging, setDragging] = useState(false);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY === null) return;
-    const currentY = e.touches[0].clientY;
-    const diffY = currentY - touchStartY;
+  const handleSheetTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const scrollTop = listRef.current?.scrollTop ?? 0;
+    dragState.current = {
+      startY: touch.clientY,
+      startTime: Date.now(),
+      lastY: touch.clientY,
+      lastTime: Date.now(),
+      active: false,
+      startScrollTop: scrollTop,
+    };
+  }, []);
 
-    if (diffY > 0) {
-      setIsDragging(true);
-      setTranslationY(diffY);
+  const handleSheetTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!dragState.current) return;
+    const touch = e.touches[0];
+    const dy = touch.clientY - dragState.current.startY;
+    const scrollTop = listRef.current?.scrollTop ?? 0;
+
+    dragState.current.lastY = touch.clientY;
+    dragState.current.lastTime = Date.now();
+
+    // Only allow drag-down dismiss when scrolled to top and moving downward
+    const canDrag = dy > 0 && scrollTop <= 2 && dragState.current.startScrollTop <= 2;
+
+    if (!canDrag) return;
+
+    // Activate drag once we've moved 10px to avoid false positives
+    if (!dragState.current.active && dy > 10) {
+      dragState.current.active = true;
+      setDragging(true);
     }
-  };
 
-  const handleTouchEnd = () => {
-    if (touchStartY === null) return;
-    if (isDragging && translationY > 80) {
-      setIsOpen(false);
+    if (dragState.current.active) {
+      // Add rubber-banding: full drag for first 150px, then dampen
+      const damped = dy <= 150 ? dy : 150 + (dy - 150) * 0.25;
+      setTranslateY(Math.max(0, damped));
     }
-    setTouchStartY(null);
-    setTranslationY(0);
-    setIsDragging(false);
-  };
+  }, []);
+
+  const handleSheetTouchEnd = useCallback(() => {
+    if (!dragState.current || !dragState.current.active) {
+      dragState.current = null;
+      setDragging(false);
+      setTranslateY(0);
+      return;
+    }
+
+    const { startY, startTime, lastY, lastTime } = dragState.current;
+    const totalDy = lastY - startY;
+    const totalTime = Math.max(1, lastTime - startTime);
+    const velocity = totalDy / totalTime; // px/ms
+
+    dragState.current = null;
+    setDragging(false);
+
+    // Dismiss if: velocity > 0.45 px/ms OR dragged more than 120px
+    if (velocity > 0.45 || totalDy > 120) {
+      // Animate out quickly, then close
+      setTranslateY(window.innerHeight);
+      setTimeout(() => {
+        setIsOpen(false);
+        setTranslateY(0);
+      }, 240);
+    } else {
+      // Snap back
+      setTranslateY(0);
+    }
+  }, []);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -222,11 +276,15 @@ export function NotificationBell() {
         onClick={() => setIsOpen(false)}
         aria-hidden="true"
       />
-      {/* Sheet */}
+      {/* Sheet — touch handlers cover the ENTIRE sheet */}
       <div
+        onTouchStart={handleSheetTouchStart}
+        onTouchMove={handleSheetTouchMove}
+        onTouchEnd={handleSheetTouchEnd}
         className={cn(
           "relative z-10 flex flex-col rounded-t-3xl overflow-hidden",
-          !isDragging && "transition-transform duration-200"
+          // Only apply CSS transition when snapping back (not while actively dragging)
+          !dragging && "transition-transform duration-[240ms] ease-out"
         )}
         style={{
           background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
@@ -234,55 +292,52 @@ export function NotificationBell() {
           borderBottom: 'none',
           maxHeight: '82dvh',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.06)',
-          transform: `translateY(${translationY}px)`,
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform',
+          animation: translateY === 0 && !dragging ? 'sheet-up 0.32s cubic-bezier(0.16,1,0.3,1) both' : undefined,
         }}
       >
-        {/* Drag handle header area */}
-        <div 
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="flex flex-col shrink-0 cursor-grab active:cursor-grabbing select-none"
-        >
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-1.5">
-            <div className="w-10 h-1.5 rounded-full bg-slate-700/80" />
+        {/* Drag handle — purely visual, touch works on whole sheet */}
+        <div className="flex justify-center pt-3 pb-1.5 shrink-0 select-none">
+          <div className={cn(
+            "rounded-full transition-all duration-150",
+            dragging ? "w-12 h-1.5 bg-slate-500" : "w-10 h-1.5 bg-slate-700/80"
+          )} />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pb-3 border-b border-[#23262D] shrink-0">
+          <div className="flex items-center gap-2.5">
+            <Bell className="w-4 h-4 text-[#34D399]" />
+            <h3 className="font-bold text-sm text-white">Notifications</h3>
+            {unreadCount > 0 && (
+              <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
+                {unreadCount}
+              </span>
+            )}
           </div>
-          
-          {/* Draggable header content wrapper */}
-          <div className="flex items-center justify-between px-4 pb-3 border-b border-[#23262D]">
-            <div className="flex items-center gap-2.5">
-              <Bell className="w-4 h-4 text-[#34D399]" />
-              <h3 className="font-bold text-sm text-white">Notifications</h3>
-              {unreadCount > 0 && (
-                <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <button
-                  onClick={markAllRead}
-                  className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
-                >
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span>Mark all read</span>
-                </button>
-              )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
               <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
-                aria-label="Close notifications"
+                onClick={markAllRead}
+                className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
               >
-                <X className="w-4 h-4" />
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Mark all read</span>
               </button>
-            </div>
+            )}
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+              aria-label="Close notifications"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* List (Non-draggable list items scroll normally) */}
-        <div className="flex-1 overflow-y-auto overscroll-contain">
+        {/* Notification list — uses listRef for scroll-position-aware gesture detection */}
+        <div ref={listRef} className="flex-1 overflow-y-auto overscroll-contain">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-14 px-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700/40 flex items-center justify-center">
@@ -306,7 +361,7 @@ export function NotificationBell() {
         </div>
 
         {/* Safe area bottom spacer */}
-        <div className="h-safe-area-bottom shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }} />
+        <div className="shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }} />
       </div>
       <style>{`
         @keyframes sheet-up {
