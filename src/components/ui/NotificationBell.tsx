@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
@@ -44,13 +45,21 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
 function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: string; onClose: () => void }) {
   const typeConfig = notifTypeIcon[notif.type] || notifTypeIcon.system;
   const IconComponent = typeConfig.icon;
+  const href = getNotifHref(notif.type, notif.reference_id, prefix);
+
+  const handleClick = () => {
+    // Delay calling onClose so Next.js's router has time to execute transition before unmounting
+    setTimeout(() => {
+      onClose();
+    }, 150);
+  };
 
   return (
     <Link
-      href={getNotifHref(notif.type, notif.reference_id, prefix)}
-      onClick={onClose}
+      href={href}
+      onClick={handleClick}
       className={cn(
-        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10',
+        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
         !notif.is_read && 'bg-[#34D399]/[0.03]'
       )}
     >
@@ -76,6 +85,7 @@ export function NotificationBell() {
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   // ── Gesture state ──
   const dragState = useRef<{
@@ -160,6 +170,11 @@ export function NotificationBell() {
   }, []);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Close notifications panel automatically on route transition
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   const prefix = profile?.role === 'cr' || profile?.role === 'admin' ? '/cr' : '/student';
 
