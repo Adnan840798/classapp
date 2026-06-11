@@ -271,14 +271,14 @@ export function DayDetailPanel({
 
           {/* Tabs */}
           <div
-            className="flex flex-shrink-0"
+            className="flex flex-shrink-0 overflow-x-auto scrollbar-none scroll-smooth-ios"
             style={{ borderBottom: '1px solid #23262D', background: '#121214' }}
           >
             {TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="flex-1 text-[12px] font-semibold py-3.5 transition-all cursor-pointer relative"
+                className="flex-1 min-w-[85px] sm:min-w-0 text-[11px] sm:text-[12px] font-bold py-3.5 transition-all cursor-pointer relative whitespace-nowrap text-center px-1"
                 style={{
                   color: activeTab === tab.key ? '#ffffff' : '#64748b',
                   borderBottom: activeTab === tab.key ? '2px solid #34D399' : '2px solid transparent',

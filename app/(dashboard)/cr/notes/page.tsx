@@ -37,7 +37,7 @@ export default async function CRNotesPage() {
           <h1 className="page-title">Class Resources</h1>
           <p className="page-subtitle">Your private study notebook and class-shared external links.</p>
         </div>
-        <Link href="/cr/notes/new" className="btn-yellow self-start sm:self-auto">
+        <Link href="/cr/notes/new" className="btn-yellow w-full sm:w-auto justify-center">
           <Plus className="w-4 h-4" />
           Create Resource
         </Link>
@@ -45,7 +45,7 @@ export default async function CRNotesPage() {
 
       {/* Pending Resources Queue */}
       {pendingNotes && pendingNotes.length > 0 && (
-        <div className="flex flex-col gap-4 bg-amber-500/[0.02] border border-amber-500/10 p-6 rounded-2xl">
+        <div className="flex flex-col gap-4 bg-amber-500/[0.02] border border-amber-500/10 p-4 sm:p-6 rounded-2xl">
           <h2 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             Pending Approval ({pendingNotes.length})

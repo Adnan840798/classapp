@@ -174,14 +174,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     }
   }, [selectedWeek, currentWeek, hasScrolledInit]);
 
-  function scrollWeeks(direction: 'left' | 'right') {
-    if (weekListRef.current) {
-      weekListRef.current.scrollBy({
-        left: direction === 'left' ? -200 : 200,
-        behavior: 'smooth',
-      });
-    }
-  }
+
 
   function getWeekRangeLabel(weekNum: number): { line1: string; line2: string } {
     const { saturday } = getWeekDates(weekNum);
@@ -204,6 +197,22 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   const displayGroups = getHolidayGroups(weekRanges, totalWeeks).filter(
     (group) => isCR || group.type !== 'holiday_group'
   );
+
+  const currentGroupIndex = displayGroups.findIndex((g) => g.weekNums.includes(selectedWeek));
+
+  function scrollWeeks(direction: 'left' | 'right') {
+    if (direction === 'left') {
+      if (currentGroupIndex > 0) {
+        const prevGroup = displayGroups[currentGroupIndex - 1];
+        setSelectedWeek(prevGroup.weekNums[0]);
+      }
+    } else {
+      if (currentGroupIndex < displayGroups.length - 1) {
+        const nextGroup = displayGroups[currentGroupIndex + 1];
+        setSelectedWeek(nextGroup.weekNums[0]);
+      }
+    }
+  }
 
   const isWholeWeekHoliday = weekRanges[selectedWeek - 1]?.isFullHoliday;
 
@@ -451,8 +460,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               {/* Left arrow */}
               <button
                 onClick={() => scrollWeeks('left')}
+                disabled={currentGroupIndex <= 0}
                 aria-label="Scroll left"
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 style={{ background: '#1A1D24', border: '1px solid #23262D' }}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -652,8 +662,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               {/* Right arrow */}
               <button
                 onClick={() => scrollWeeks('right')}
+                disabled={currentGroupIndex >= displayGroups.length - 1}
                 aria-label="Scroll right"
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 style={{ background: '#1A1D24', border: '1px solid #23262D' }}
               >
                 <ChevronRight className="w-4 h-4" />
@@ -885,7 +896,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           onClick={() => handleToggleHoliday(selectedWeek, index)}
                           disabled={isTogglingHoliday}
                           title="Mark as Holiday"
-                          className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
+                          className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
                         >
                           <Umbrella className="w-4 h-4" />
                         </button>

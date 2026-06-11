@@ -34,7 +34,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Filter tabs */}
-      <div className="flex items-center gap-2 self-start p-1 rounded-xl border border-white/[0.06] bg-white/[0.03]">
+      <div className="flex items-center gap-2 self-start p-1 rounded-xl border border-white/[0.06] bg-white/[0.03] max-w-full overflow-x-auto scrollbar-none scroll-smooth-ios">
         {(['all', 'private', 'public'] as const).map((type) => (
           <button
             key={type}
@@ -158,10 +158,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Open Google Drive"
-                          className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all"
+                          className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all cursor-pointer"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Drive</span>
+                          <span className="hidden sm:inline">Drive</span>
                         </a>
                       )}
 
@@ -171,10 +171,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           <Link
                             href={`${notesPath}/${note.id}`}
                             title="Edit Resource"
-                            className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
                           >
                             <Edit2 className="w-3 h-3" />
-                            Edit
+                            <span className="hidden sm:inline">Edit</span>
                           </Link>
                           <DeleteButton
                             id={note.id}

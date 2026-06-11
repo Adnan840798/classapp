@@ -28,7 +28,7 @@ export default async function StudentNotesPage() {
           <h1 className="page-title">Class Resources</h1>
           <p className="page-subtitle">Your private study notebook and class-shared external links.</p>
         </div>
-        <Link href="/student/notes/new" className="btn-yellow self-start sm:self-auto">
+        <Link href="/student/notes/new" className="btn-yellow w-full sm:w-auto justify-center">
           <Plus className="w-4 h-4" />
           Create Resource
         </Link>

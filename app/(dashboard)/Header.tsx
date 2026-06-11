@@ -61,13 +61,13 @@ export function Header() {
         {/* Mobile menu trigger */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+          className="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer active:bg-slate-800/60 flex-shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 touch-compact">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
             style={{
@@ -118,10 +118,18 @@ export function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleProfileClick}
-                className="w-8 h-8 rounded-full bg-[#34D399] text-[#121214] flex items-center justify-center text-xs font-bold border border-[#34D399]/20 transition-transform hover:scale-105 cursor-pointer"
+                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full bg-[#34D399] text-[#121214] flex items-center justify-center text-sm lg:text-xs font-bold border border-[#34D399]/20 transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
                 aria-label="User profile menu"
               >
-                {initials}
+                {profile.profile_pic_url ? (
+                  <img
+                    src={profile.profile_pic_url}
+                    alt={profile.full_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  initials
+                )}
               </button>
               
               {/* Simple dropdown menu on click */}

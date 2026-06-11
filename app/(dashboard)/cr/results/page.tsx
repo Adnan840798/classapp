@@ -28,7 +28,7 @@ export default async function CRResultsPage() {
           <h1 className="page-title">Exam Results</h1>
           <p className="page-subtitle">Publish and manage academic marksheets for the class</p>
         </div>
-        <Link href="/cr/results/publish" className="btn-yellow self-start sm:self-auto flex-shrink-0">
+        <Link href="/cr/results/publish" className="btn-yellow w-full sm:w-auto justify-center flex-shrink-0">
           <Plus className="w-4 h-4" />
           Publish Result
         </Link>

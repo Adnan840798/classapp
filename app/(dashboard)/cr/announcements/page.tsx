@@ -41,7 +41,7 @@ export default async function CRAnnouncementsPage() {
           <h1 className="page-title">Announcements</h1>
           <p className="page-subtitle">Manage class announcements, notifications, and Telegram posts</p>
         </div>
-        <Link href="/cr/announcements/new" className="btn-yellow self-start sm:self-auto flex-shrink-0">
+        <Link href="/cr/announcements/new" className="btn-yellow w-full sm:w-auto justify-center flex-shrink-0">
           <Plus className="w-4 h-4" />
           New Announcement
         </Link>

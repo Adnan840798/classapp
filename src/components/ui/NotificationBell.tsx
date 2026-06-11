@@ -93,9 +93,15 @@ export function NotificationBell() {
   // Close on outside click (desktop only)
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+      const target = e.target as Node;
+      const bellBtn = document.getElementById('notification-bell-btn');
+      if (
+        (dropdownRef.current && dropdownRef.current.contains(target)) ||
+        (bellBtn && bellBtn.contains(target))
+      ) {
+        return;
       }
+      setIsOpen(false);
     }
     if (isOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -108,9 +114,12 @@ export function NotificationBell() {
     return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen]);
 
-  function handleOpen() {
-    setIsOpen(true);
-    if (unreadCount > 0) markAllRead();
+  function handleToggle() {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next && unreadCount > 0) markAllRead();
+      return next;
+    });
   }
 
   if (!profile?.notif_enabled) return null;
@@ -219,13 +228,13 @@ export function NotificationBell() {
       {/* Bell trigger button */}
       <button
         id="notification-bell-btn"
-        onClick={handleOpen}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#23262D] bg-[#0E0F11] hover:bg-[#23262D]/60 hover:text-white transition-all duration-200 text-slate-400 cursor-pointer"
+        onClick={handleToggle}
+        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-lg border border-[#23262D] bg-[#0E0F11] hover:bg-[#23262D]/60 hover:text-white transition-all duration-200 text-slate-400 cursor-pointer flex-shrink-0"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center px-1 shadow-lg shadow-red-500/30">
+          <span className="absolute top-1.5 right-1.5 lg:-top-1.5 lg:-right-1.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center px-1 shadow-lg shadow-red-500/30">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

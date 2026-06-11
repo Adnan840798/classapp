@@ -110,10 +110,12 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Minimum touch target for interactive elements */
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
+  /* Minimum touch target for interactive elements on mobile/tablet */
+  @media (max-width: 1023px) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
   /* Exception: small inline badges/chips */
   .touch-compact, .touch-compact * {
