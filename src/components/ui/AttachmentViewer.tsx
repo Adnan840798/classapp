@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
 import {
   X,
   Download,
@@ -14,6 +15,19 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react';
+
+const PDFViewerInner = dynamic(
+  () => import('./PDFViewerInner').then((mod) => mod.PDFViewerInner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10">
+        <Loader2 className="w-9 h-9 text-[#34D399] animate-spin" />
+        <p className="text-sm font-medium text-slate-400">Loading viewer...</p>
+      </div>
+    ),
+  }
+);
 
 interface AttachmentViewerProps {
   url: string;
@@ -304,20 +318,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
               {/* Inline PDF viewer using same-origin blob URL */}
               {pdfBlobUrl && (
-                <object
-                  data={pdfBlobUrl}
-                  type="application/pdf"
-                  className="w-full flex-1"
-                  style={{ minHeight: 'calc(92dvh - 56px)', border: 'none' }}
-                >
-                  {/* Fallback for browsers that don't support <object> PDF rendering */}
-                  <iframe
-                    src={pdfBlobUrl}
-                    title={name}
-                    className="w-full h-full"
-                    style={{ border: 'none', minHeight: 'calc(92dvh - 56px)' }}
-                  />
-                </object>
+                <PDFViewerInner file={pdfBlobUrl} />
               )}
             </div>
           )}
