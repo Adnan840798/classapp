@@ -39,102 +39,116 @@ export default function CapacitorHandler() {
     let backButtonListener: any = null;
     let authSubscription: any = null;
 
-    if (isNative) {
-      const setupBackButton = async () => {
-        try {
-          const { App } = await import('@capacitor/app');
-          const { Toast } = await import('@capacitor/toast');
+    const setupBackButton = async () => {
+      try {
+        const { App } = await import('@capacitor/app');
+        const { Toast } = await import('@capacitor/toast');
 
-          let lastBackPress = 0;
+        let lastBackPress = 0;
 
-          backButtonListener = await App.addListener('backButton', async (data) => {
-            const pathname = window.location.pathname;
-            const isRootPath = ['/', '/login', '/student', '/cr', '/admin'].includes(pathname);
+        backButtonListener = await App.addListener('backButton', async (data) => {
+          const pathname = window.location.pathname;
+          const isRootPath = ['/', '/login', '/student', '/cr', '/admin'].includes(pathname);
 
-            if (isRootPath || !data.canGoBack) {
-              const now = Date.now();
-              if (now - lastBackPress < 2000) {
-                await App.exitApp();
-              } else {
-                lastBackPress = now;
-                await Toast.show({
-                  text: 'Press back again to exit',
-                  duration: 'short',
-                  position: 'bottom',
-                });
-              }
+          if (isRootPath || !data.canGoBack) {
+            const now = Date.now();
+            if (now - lastBackPress < 2000) {
+              await App.exitApp();
             } else {
-              window.history.back();
+              lastBackPress = now;
+              await Toast.show({
+                text: 'Press back again to exit',
+                duration: 'short',
+                position: 'bottom',
+              });
             }
-          });
-        } catch (err) {
-          console.error('Failed to setup native Capacitor back button listener', err);
-        }
-      };
-
-      const setupPushNotifications = async () => {
-        try {
-          const { PushNotifications } = await import('@capacitor/push-notifications');
-          const { saveFcmToken } = await import('@/lib/actions/push');
-
-          await PushNotifications.removeAllListeners();
-
-          await PushNotifications.addListener('registration', async (token) => {
-            console.log('[CapacitorHandler] FCM token registered:', token.value);
-            try {
-              await saveFcmToken(token.value);
-            } catch (err) {
-              console.error('[CapacitorHandler] saveFcmToken error:', err);
-            }
-          });
-
-          await PushNotifications.addListener('registrationError', (err) => {
-            console.error('[CapacitorHandler] Push registration error:', err);
-          });
-
-          await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-            console.log('[CapacitorHandler] Push notification received in foreground:', notification);
-          });
-
-          const permission = await PushNotifications.requestPermissions();
-          if (permission.receive === 'granted') {
-            await PushNotifications.register();
+          } else {
+            window.history.back();
           }
-        } catch (err) {
-          console.error('[CapacitorHandler] Failed to initialize push notifications', err);
+        });
+      } catch (err) {
+        console.error('Failed to setup native Capacitor back button listener', err);
+      }
+    };
+
+    const setupPushNotifications = async () => {
+      try {
+        const { PushNotifications } = await import('@capacitor/push-notifications');
+        const { saveFcmToken } = await import('@/lib/actions/push');
+
+        await PushNotifications.removeAllListeners();
+
+        await PushNotifications.addListener('registration', async (token) => {
+          console.log('[CapacitorHandler] FCM token registered:', token.value);
+          try {
+            await saveFcmToken(token.value);
+          } catch (err) {
+            console.error('[CapacitorHandler] saveFcmToken error:', err);
+          }
+        });
+
+        await PushNotifications.addListener('registrationError', (err) => {
+          console.error('[CapacitorHandler] Push registration error:', err);
+        });
+
+        await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+          console.log('[CapacitorHandler] Push notification received in foreground:', notification);
+        });
+
+        const permission = await PushNotifications.requestPermissions();
+        if (permission.receive === 'granted') {
+          await PushNotifications.register();
         }
-      };
+      } catch (err) {
+        console.error('[CapacitorHandler] Failed to initialize push notifications', err);
+      }
+    };
 
-      // Watch auth state changes to trigger registration once authenticated
-      const initPushAuthWatcher = async () => {
-        try {
-          const { getSupabaseBrowserClient } = await import('@/lib/supabase/client');
-          const supabase = getSupabaseBrowserClient();
+    // Watch auth state changes to trigger registration once authenticated
+    const initPushAuthWatcher = async () => {
+      try {
+        const { getSupabaseBrowserClient } = await import('@/lib/supabase/client');
+        const supabase = getSupabaseBrowserClient();
 
-          // Check if session exists immediately
-          const { data: { session } } = await supabase.auth.getSession();
+        // Check if session exists immediately
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setupPushNotifications();
+        }
+
+        // Listen to updates
+        const { data } = supabase.auth.onAuthStateChange((event: any, session: any) => {
           if (session?.user) {
             setupPushNotifications();
           }
+        });
+        authSubscription = data.subscription;
+      } catch (err) {
+        console.error('[CapacitorHandler] Error in auth watcher registration:', err);
+      }
+    };
 
-          // Listen to updates
-          const { data } = supabase.auth.onAuthStateChange((event: any, session: any) => {
-            if (session?.user) {
-              setupPushNotifications();
-            }
-          });
-          authSubscription = data.subscription;
-        } catch (err) {
-          console.error('[CapacitorHandler] Error in auth watcher registration:', err);
-        }
-      };
-
-      setupBackButton();
-      initPushAuthWatcher();
-    }
+    // Polling mechanism to wait for window.Capacitor injection
+    let checkAttempts = 0;
+    const capacitorInterval = setInterval(() => {
+      checkAttempts++;
+      const hasCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
+      
+      if (hasCapacitor) {
+        clearInterval(capacitorInterval);
+        document.body.classList.add('is-native');
+        setupBackButton();
+        initPushAuthWatcher();
+        console.log('[CapacitorHandler] Capacitor bridge successfully detected.');
+      } else if (checkAttempts >= 30) {
+        clearInterval(capacitorInterval);
+        console.log('[CapacitorHandler] Capacitor bridge detection timed out (not running inside APK WebView).');
+      }
+    }, 100);
 
     return () => {
       clearTimeout(timer);
+      clearInterval(capacitorInterval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
