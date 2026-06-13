@@ -222,4 +222,153 @@ export async function getVapidPublicKey() {
   return vapidPublicKey || null;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FCM Push Notifications (Android APK via Firebase Cloud Messaging)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Saves (upserts) the FCM device token for the currently logged-in user
+ * into their profiles row. Called from the Android app after token registration.
+ */
+export async function saveFcmToken(token: string) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ fcm_token: token })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('[saveFcmToken] DB Error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[saveFcmToken] FCM token saved for user:', user.id);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[saveFcmToken] Error:', error);
+    return { success: false, error: error.message || 'Internal server error' };
+  }
+}
+
+/**
+ * Sends an FCM push notification to all users who have registered an FCM token.
+ * Uses the Firebase Cloud Messaging Legacy HTTP API.
+ * Requires FCM_SERVER_KEY in environment variables.
+ */
+export async function sendFCMPush(payload: {
+  title: string;
+  body: string;
+  url?: string;
+}) {
+  const fcmServerKey = process.env.FCM_SERVER_KEY;
+
+  if (!fcmServerKey) {
+    console.warn('[sendFCMPush] FCM_SERVER_KEY not configured. Skipping FCM push.');
+    return { success: false, error: 'FCM_SERVER_KEY not configured' };
+  }
+
+  try {
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Fetch all profiles that have a registered FCM token
+    const { data: profiles, error } = await adminClient
+      .from('profiles')
+      .select('id, fcm_token')
+      .not('fcm_token', 'is', null);
+
+    if (error) {
+      console.error('[sendFCMPush] Error fetching FCM tokens:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (!profiles || profiles.length === 0) {
+      console.log('[sendFCMPush] No FCM tokens registered. Skipping.');
+      return { success: true, sentCount: 0 };
+    }
+
+    const tokens = profiles
+      .map((p) => p.fcm_token as string)
+      .filter(Boolean);
+
+    if (tokens.length === 0) {
+      return { success: true, sentCount: 0 };
+    }
+
+    // Send to all registered tokens via FCM Legacy HTTP API
+    const fcmPayload = {
+      registration_ids: tokens,
+      notification: {
+        title: payload.title,
+        body: payload.body,
+        icon: '/icons/icon-192.png',
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+      },
+      data: {
+        url: payload.url || '/',
+        title: payload.title,
+        body: payload.body,
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          channel_id: 'classapp_default',
+        },
+      },
+    };
+
+    const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `key=${fcmServerKey}`,
+      },
+      body: JSON.stringify(fcmPayload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('[sendFCMPush] FCM API error:', response.status, text);
+      return { success: false, error: `FCM API error: ${response.status}` };
+    }
+
+    const result = await response.json();
+    console.log(`[sendFCMPush] FCM broadcast complete. Success: ${result.success}, Failure: ${result.failure}`);
+
+    // Clean up invalid/expired tokens
+    if (result.results && Array.isArray(result.results)) {
+      const invalidTokenIds: string[] = [];
+      result.results.forEach((r: any, i: number) => {
+        if (r.error === 'NotRegistered' || r.error === 'InvalidRegistration') {
+          invalidTokenIds.push(profiles[i].id);
+        }
+      });
+
+      if (invalidTokenIds.length > 0) {
+        console.log(`[sendFCMPush] Clearing ${invalidTokenIds.length} invalid FCM tokens.`);
+        await adminClient
+          .from('profiles')
+          .update({ fcm_token: null })
+          .in('id', invalidTokenIds);
+      }
+    }
+
+    return { success: true, sentCount: result.success };
+  } catch (error: any) {
+    console.error('[sendFCMPush] Failed sending FCM push:', error);
+    return { success: false, error: error.message || 'Internal server error' };
+  }
+}
+
+
 

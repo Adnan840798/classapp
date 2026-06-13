@@ -37,6 +37,7 @@ export default function CapacitorHandler() {
 
     // 4. Capacitor Hardware Back Button & Exit Confirmation Toast
     let backButtonListener: any = null;
+    let authSubscription: any = null;
 
     if (isNative) {
       const setupBackButton = async () => {
@@ -71,7 +72,65 @@ export default function CapacitorHandler() {
         }
       };
 
+      const setupPushNotifications = async () => {
+        try {
+          const { PushNotifications } = await import('@capacitor/push-notifications');
+          const { saveFcmToken } = await import('@/lib/actions/push');
+
+          await PushNotifications.removeAllListeners();
+
+          await PushNotifications.addListener('registration', async (token) => {
+            console.log('[CapacitorHandler] FCM token registered:', token.value);
+            try {
+              await saveFcmToken(token.value);
+            } catch (err) {
+              console.error('[CapacitorHandler] saveFcmToken error:', err);
+            }
+          });
+
+          await PushNotifications.addListener('registrationError', (err) => {
+            console.error('[CapacitorHandler] Push registration error:', err);
+          });
+
+          await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            console.log('[CapacitorHandler] Push notification received in foreground:', notification);
+          });
+
+          const permission = await PushNotifications.requestPermissions();
+          if (permission.receive === 'granted') {
+            await PushNotifications.register();
+          }
+        } catch (err) {
+          console.error('[CapacitorHandler] Failed to initialize push notifications', err);
+        }
+      };
+
+      // Watch auth state changes to trigger registration once authenticated
+      const initPushAuthWatcher = async () => {
+        try {
+          const { getSupabaseBrowserClient } = await import('@/lib/supabase/client');
+          const supabase = getSupabaseBrowserClient();
+
+          // Check if session exists immediately
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            setupPushNotifications();
+          }
+
+          // Listen to updates
+          const { data } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+            if (session?.user) {
+              setupPushNotifications();
+            }
+          });
+          authSubscription = data.subscription;
+        } catch (err) {
+          console.error('[CapacitorHandler] Error in auth watcher registration:', err);
+        }
+      };
+
       setupBackButton();
+      initPushAuthWatcher();
     }
 
     return () => {
@@ -84,6 +143,9 @@ export default function CapacitorHandler() {
         backButtonListener.remove().catch((err: any) => {
           console.error('Error removing back button listener', err);
         });
+      }
+      if (authSubscription) {
+        authSubscription.unsubscribe();
       }
     };
   }, []);

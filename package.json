@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",
+    "@capacitor/push-notifications": "^8.1.1",
     "@capacitor/toast": "^8.0.1",
     "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@radix-ui/react-avatar": "^1.1.11",

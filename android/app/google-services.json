@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "543792230000",
+    "project_id": "classapp-f5b04",
+    "storage_bucket": "classapp-f5b04.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:543792230000:android:fcd91a2f5b301dd1958eb5",
+        "android_client_info": {
+          "package_name": "com.classapp.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA084ubAZTbaQcNwQudh2huhiPykyYBwW4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
