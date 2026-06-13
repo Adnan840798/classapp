@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ClassApp — Offline</title>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #131926;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --brand-green: #34d399;
+      --brand-green-hover: #10b981;
+      --accent-red: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-center: center;
+      height: 100vh;
+      width: 100vw;
+      padding: 24px;
+      overflow: hidden;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid #1e293b;
+      border-radius: 24px;
+      padding: 32px 24px;
+      width: 100%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    /* Glow top border line */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+    }
+
+    .icon-container {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background-color: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .btn-retry {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-retry:active {
+      transform: scale(0.98);
+      opacity: 0.95;
+    }
+
+    .logo-text {
+      margin-bottom: 32px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      background: linear-gradient(135deg, #34d399, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-text">ClassApp</div>
+    
+    <div class="card">
+      <div class="icon-container">
+        <!-- WifiOff SVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 1l22 22"/>
+          <path d="M16.72 11.06A10.94 10.94 0 0 0 19 9.5"/>
+          <path d="M5 9.5a10.94 10.94 0 0 0 5.83 2.84"/>
+          <path d="M12 18.5a2.5 2.5 0 0 0 0-5"/>
+          <path d="M8.58 12.58a6.37 6.37 0 0 0 1.9 1.9"/>
+          <path d="M16.29 16.29a6.4 6.4 0 0 0 .11-1.81"/>
+        </svg>
+      </div>
+      
+      <h1>Connection Lost</h1>
+      <p>It looks like you are currently offline. Please check your internet connection and try again.</p>
+      
+      <button class="btn-retry" onclick="retryConnection()">Retry Connection</button>
+    </div>
+  </div>
+
+  <script>
+    function retryConnection() {
+      // Reload back to the app's main remote entry URL
+      window.location.href = "/";
+    }
+  </script>
+</body>
+</html>

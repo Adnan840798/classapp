@@ -8,6 +8,7 @@ const config = {
   webDir: 'public',
   server: {
     url: 'https://classapp0.vercel.app',
+    errorPath: 'error.html',
     cleartext: false,
   },
 };

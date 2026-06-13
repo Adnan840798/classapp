@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dark theme background color -->
+    <item android:drawable="@color/splash_background" />
+
+    <!-- Centered high-resolution launcher icon -->
+    <item
+        android:drawable="@mipmap/ic_launcher"
+        android:gravity="center"
+        android:width="96dp"
+        android:height="96dp" />
+</layer-list>

@@ -54,7 +54,8 @@ export function Header() {
   const initials = profile ? getInitials(profile.full_name) : 'U';
 
   return (
-    <header className="w-full h-16 border-b border-[#23262D] bg-[#0E0F11] flex items-center justify-between px-4 lg:px-8 flex-shrink-0 z-40 sticky top-0">
+    <header className="w-full border-b border-[#23262D] bg-[#0E0F11] flex-shrink-0 z-40 sticky top-0 pt-[env(safe-area-inset-top,0px)]">
+      <div className="w-full h-16 flex items-center justify-between px-4 lg:px-8">
       
       {/* Left section: Logo + badge */}
       <div className="flex items-center gap-4">
@@ -273,6 +274,7 @@ export function Header() {
           </div>
         </div>
       )}
+      </div>
     </header>
   );
 }
