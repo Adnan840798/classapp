@@ -91,8 +91,17 @@ export default function CapacitorHandler() {
           console.error('[CapacitorHandler] Push registration error:', err);
         });
 
-        await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
           console.log('[CapacitorHandler] Push notification received in foreground:', notification);
+          try {
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({
+              text: `📢 ${notification.title}\n${notification.body || ''}`,
+              duration: 'long',
+            });
+          } catch (err) {
+            console.error('Failed to show toast in foreground:', err);
+          }
         });
 
         const permission = await PushNotifications.requestPermissions();
