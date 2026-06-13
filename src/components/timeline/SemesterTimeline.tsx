@@ -370,10 +370,10 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         .holiday-shimmer { animation: shimmer 3s ease-in-out infinite; }
         @keyframes week-glow-breathing {
           0%, 100% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 14px 1px rgba(52,211,153,0.15), inset 0 0 12px 0 rgba(52,211,153,0.03);
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 11px 1px rgba(52,211,153,0.12), inset 0 0 10px 0 rgba(52,211,153,0.02);
           }
           50% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 28px 3px rgba(52,211,153,0.35), inset 0 0 20px 0 rgba(52,211,153,0.08);
+            box-shadow: 0 0 0 1.5px #34D399, 0 0 22px 2px rgba(52,211,153,0.28), inset 0 0 16px 0 rgba(52,211,153,0.06);
           }
         }
         @keyframes row-glow-breathing {
@@ -421,15 +421,14 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         }
         .btn-inline-mark-holiday {
           background: #1A1D24;
-          border: 1px solid rgba(245, 158, 11, 0.2);
-          color: rgba(251, 191, 36, 0.85);
+          border: 1px solid #23262D;
+          color: #94a3b8;
           transition: all 0.2s ease;
         }
         .btn-inline-mark-holiday:hover:not(:disabled) {
-          background: rgba(245, 158, 11, 0.12);
-          border-color: rgba(245, 158, 11, 0.5);
-          color: #fbbf24;
-          box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
         }
       `}</style>
 
@@ -564,6 +563,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             ? '1px solid rgba(52,211,153,0.3)' 
                             : '1px solid #23262D',
                         marginTop: 0,
+                        opacity: isSelected ? 1 : 0.6,
                       }}
                     >
                       {/* CURRENT badge */}
@@ -604,7 +604,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         style={{
                           fontSize: 11,
                           color: isSelected ? '#94a3b8' : '#475569',
-                          fontWeight: 500,
+                          fontWeight: 400,
+                          opacity: 0.6,
                         }}
                       >
                         {rangeLabel.line1} - {rangeLabel.line2}
@@ -772,7 +773,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       >
                         {/* Left side: Day name + Date */}
                         <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase tracking-wider" style={{ color: '#4b5563' }}>
+                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase" style={{ color: '#4b5563', letterSpacing: '0.05em' }}>
                             {day.dayName}
                           </span>
                           <span
@@ -787,7 +788,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                         {/* Holiday center content */}
-                        <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-amber-500/80">
+                        <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-slate-400">
                           <Umbrella className="w-4 h-4 flex-shrink-0" />
                           <span className="text-[12px] sm:text-[13px] font-bold uppercase tracking-wider">
                             Holiday Break
@@ -814,8 +815,11 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     <div key={day.dateStr} className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedDayIndex(index)}
-                        className={`flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${isActive ? 'row-glow z-10' : 'hover:bg-white/[0.02]'
-                          }`}
+                        className={`flex-1 flex items-center py-3 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${
+                          isActive 
+                            ? 'px-4 sm:px-7 z-10' 
+                            : 'px-3 sm:px-6 hover:bg-white/[0.02]'
+                        }`}
                         style={{
                           background: isActive ? 'rgba(52,211,153,0.08)' : '#1A1D24',
                           borderColor: isActive ? '#34D399' : '#23262D',
@@ -824,7 +828,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       >
                         {/* Left side: Day name + Date */}
                         <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-white leading-none uppercase tracking-wider">
+                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-white leading-none uppercase" style={{ letterSpacing: '0.05em' }}>
                             {day.dayName}
                           </span>
                           <span
@@ -849,7 +853,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                         {/* Three count columns */}
                         <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
-                          <div className="w-full max-w-md lg:max-w-lg flex items-center justify-between">
+                          <div className="w-full max-w-2xl lg:max-w-3xl flex items-center justify-between">
                             {/* Deadlines */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
                               <CalendarGridIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />

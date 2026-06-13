@@ -56,8 +56,11 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
   // ── PDF: fetch from Supabase → blob URL → renders inline on every device ──
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(true); // true by default → no blank flash
   const [pdfError, setPdfError] = useState(false);
+
+  // ── Video buffering loader ──
+  const [videoLoading, setVideoLoading] = useState(true);
 
   const kind = detectKind(url);
   const name = fileName || url.split('/').pop()?.split('?')[0] || 'Attachment';
@@ -325,12 +328,21 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* VIDEO — plays inline */}
           {kind === 'video' && (
-            <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+            <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+              {/* Video buffering spinner */}
+              {videoLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10 rounded-xl">
+                  <Loader2 className="w-9 h-9 text-purple-400 animate-spin" />
+                  <p className="text-sm font-medium text-slate-400">Loading video…</p>
+                </div>
+              )}
               <video
                 src={url}
                 controls
                 autoPlay
                 playsInline
+                onLoadStart={() => setVideoLoading(true)}
+                onCanPlay={() => setVideoLoading(false)}
                 className="w-full max-h-full rounded-xl shadow-2xl"
                 style={{ background: '#000', maxHeight: 'calc(92dvh - 56px)' }}
               />
@@ -375,7 +387,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   return (
     <>
       <div
-        onClick={() => { setOpen(true); setZoom(false); setImgLoaded(false); }}
+        onClick={() => { setOpen(true); setZoom(false); setImgLoaded(false); setVideoLoading(true); setPdfLoading(true); setPdfBlobUrl(null); setPdfError(false); }}
         className="contents"
         role="button"
         tabIndex={0}
