@@ -5,10 +5,10 @@
 const config = {
   appId: 'com.classapp.app',
   appName: 'ClassApp',
-  webDir: 'out',
+  webDir: 'public',
   server: {
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app',
-    cleartext: true,
+    url: 'https://classapp0.vercel.app',
+    cleartext: false,
   },
 };
 

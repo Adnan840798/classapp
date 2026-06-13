@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ClassApp</string>
+    <string name="title_activity_main">ClassApp</string>
+    <string name="package_name">com.classapp.app</string>
+    <string name="custom_url_scheme">com.classapp.app</string>
+</resources>
