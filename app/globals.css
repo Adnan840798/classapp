@@ -435,3 +435,18 @@
     overscroll-behavior: contain;
   }
 }
+
+/* ── Capacitor Native App Overrides ──────────────── */
+body.is-native {
+  /* Push headers down to respect status bar safe area */
+  header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(4rem + env(safe-area-inset-top, 0px)) !important;
+  }
+  
+  /* Apply bottom inset padding for screens with bottom nav indicators */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
+

@@ -71,14 +71,13 @@ jobs:
             -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      # ── 10. Rename APK with version + commit SHA ────────────────────────────
+      # ── 10. Rename APK ──────────────────────────────────────────────────────
       - name: Rename APK
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
           mv android/app/build/outputs/apk/release/app-release.apk \
-             android/app/build/outputs/apk/release/classapp-${SHORT_SHA}.apk
-          echo "APK_PATH=android/app/build/outputs/apk/release/classapp-${SHORT_SHA}.apk" >> $GITHUB_ENV
-          echo "APK_NAME=classapp-${SHORT_SHA}.apk" >> $GITHUB_ENV
+             android/app/build/outputs/apk/release/classapp0.apk
+          echo "APK_PATH=android/app/build/outputs/apk/release/classapp0.apk" >> $GITHUB_ENV
+          echo "APK_NAME=classapp0.apk" >> $GITHUB_ENV
 
       # ── 11. Upload APK as workflow artifact ─────────────────────────────────
       - name: Upload APK artifact
