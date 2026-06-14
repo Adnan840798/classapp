@@ -146,8 +146,8 @@ export default async function CRDeadlinesPage() {
                   </div>
 
                   {/* Right section: Due Date + Action Button + Delete Button */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
-                    <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-3.5 sm:gap-6 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-[#23262D]/40 sm:border-t-0">
+                    <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto">
                       <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
                         Due: {formatDateTime(deadline.due_date)}
@@ -163,7 +163,7 @@ export default async function CRDeadlinesPage() {
                         {formatDaysRemaining(deadline.daysRemaining)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <Link
                         href={`/cr/deadlines/${deadline.id}`}
                         className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"

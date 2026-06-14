@@ -201,6 +201,17 @@ export default function CapacitorHandler() {
           </div>
           <Loader2 className="h-5 w-5 animate-spin mt-1" style={{ color: '#10b981' }} />
         </div>
+
+        {/* Bottom progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden" style={{ background: 'rgba(16,185,129,0.1)' }}>
+          <div
+            className="h-full"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #10b981, transparent)',
+              animation: 'slide-progress 1.5s ease-in-out infinite',
+            }}
+          />
+        </div>
       </div>
     );
   }

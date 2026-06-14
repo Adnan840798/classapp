@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Notification } from '@/types';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useProfile } from '@/context/ProfileContext';
+import { playNotificationChime } from '@/lib/utils/audio';
 
 export function useNotifications() {
   const { profile, setProfile } = useProfile();
@@ -15,12 +16,7 @@ export function useNotifications() {
   // Helper to play sound if enabled
   const playSound = () => {
     if (profile?.notif_sound_on && profile?.notif_enabled) {
-      if (!audioRef.current) {
-        audioRef.current = new Audio('/sounds/notification.mp3');
-      }
-      audioRef.current.play().catch(() => {
-        // Browser may block autoplay — ignore
-      });
+      playNotificationChime();
     }
   };
 
@@ -34,7 +30,7 @@ export function useNotifications() {
         .from('my_notifications')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(15);
+        .limit(30);
 
       if (error) {
         console.error('Failed to load notifications:', error);
@@ -85,7 +81,7 @@ export function useNotifications() {
           setNotifications((prev) => {
             const updated = [newNotif, ...prev]
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, 15);
+              .slice(0, 30);
             return updated;
           });
           setUnreadCount((count) => count + 1);
@@ -134,7 +130,7 @@ export function useNotifications() {
               setNotifications((prev) => {
                 const updated = [newNotif, ...prev]
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .slice(0, 15);
+                  .slice(0, 30);
                 return updated;
               });
               setUnreadCount((count) => count + 1);
@@ -178,7 +174,7 @@ export function useNotifications() {
                 setNotifications((prev) => {
                   const updated = [newNotif, ...prev]
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                    .slice(0, 15);
+                    .slice(0, 30);
                   return updated;
                 });
                 setUnreadCount((count) => count + 1);

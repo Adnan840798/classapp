@@ -7,6 +7,7 @@ import { updateProfile, deleteUserAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { usePushEnrollment } from '@/lib/hooks/usePushEnrollment';
+import { playNotificationChime } from '@/lib/utils/audio';
 
 interface ProfileFormProps {
   profile: Profile;
@@ -212,7 +213,13 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             </div>
             <button
               type="button"
-              onClick={() => setNotifEnabled((prev) => !prev)}
+              onClick={() => {
+                const nextVal = !notifEnabled;
+                setNotifEnabled(nextVal);
+                if (nextVal && notifSoundOn) {
+                  playNotificationChime();
+                }
+              }}
               disabled={isPending}
               className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
                 notifEnabled
@@ -232,7 +239,13 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             </div>
             <button
               type="button"
-              onClick={() => setNotifSoundOn((prev) => !prev)}
+              onClick={() => {
+                const nextVal = !notifSoundOn;
+                setNotifSoundOn(nextVal);
+                if (nextVal && notifEnabled) {
+                  playNotificationChime();
+                }
+              }}
               disabled={isPending || !notifEnabled}
               className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
                 notifSoundOn && notifEnabled

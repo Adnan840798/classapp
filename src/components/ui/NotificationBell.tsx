@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
@@ -43,6 +44,7 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
 }
 
 function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: string; onClose: () => void }) {
+  const router = useRouter();
   const typeConfig = notifTypeIcon[notif.type] || notifTypeIcon.system;
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
@@ -65,8 +67,16 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
     // If finger moved more than 10px in any direction, it was a scroll — ignore
     if (dx > 10 || dy > 10) return;
 
-    // Genuine tap: close panel after a short delay so Next.js router fires first
-    setTimeout(() => onClose(), 120);
+    // Genuine tap: navigate first, then close panel after a small delay
+    e.preventDefault();
+    router.push(href);
+    setTimeout(() => onClose(), 150);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push(href);
+    setTimeout(() => onClose(), 150);
   };
 
   return (
@@ -74,6 +84,7 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
       href={href}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onClick={handleClick}
       className={cn(
         'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
         !notif.is_read && 'bg-[#34D399]/[0.03]'
@@ -99,9 +110,14 @@ export function NotificationBell() {
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  const INITIAL_COUNT = 8;
+  const visibleNotifs = showAll ? notifications : notifications.slice(0, INITIAL_COUNT);
+  const hiddenCount = notifications.length - INITIAL_COUNT;
 
   // ── Gesture state ──
   const dragState = useRef<{
@@ -190,6 +206,7 @@ export function NotificationBell() {
   // Close notifications panel automatically on route transition
   useEffect(() => {
     setIsOpen(false);
+    setShowAll(false);
   }, [pathname]);
 
   const prefix = profile?.role === 'cr' || profile?.role === 'admin' ? '/cr' : '/student';
@@ -232,11 +249,30 @@ export function NotificationBell() {
     setIsOpen((prev) => {
       const next = !prev;
       if (next && unreadCount > 0) markAllRead();
+      if (!next) setShowAll(false);
       return next;
     });
   }
 
   if (!profile?.notif_enabled) return null;
+
+  // Load More button — shared between desktop and mobile
+  const handleLoadMore = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAll(true);
+  };
+
+  const loadMoreButton = !showAll && hiddenCount > 0 ? (
+    <button
+      onClick={handleLoadMore}
+      onTouchEnd={handleLoadMore}
+      className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] uppercase tracking-wider transition-all hover:bg-[#34D399]/5 border-t border-[#23262D]/50 cursor-pointer"
+    >
+      <ChevronDown className="w-3.5 h-3.5" />
+      Show {hiddenCount} more notification{hiddenCount !== 1 ? 's' : ''}
+    </button>
+  ) : null;
 
   // ── The panel content (shared between desktop dropdown and mobile sheet) ──
   const panelContent = (
@@ -284,14 +320,10 @@ export function NotificationBell() {
           </div>
         ) : (
           <>
-            {notifications.slice(0, 8).map((notif) => (
+            {visibleNotifs.map((notif) => (
               <NotifItem key={notif.id} notif={notif} prefix={prefix} onClose={() => setIsOpen(false)} />
             ))}
-            {notifications.length > 8 && (
-              <div className="px-4 py-3.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#1A1D24]/40">
-                + {notifications.length - 8} more
-              </div>
-            )}
+            {loadMoreButton}
           </>
         )}
       </div>
@@ -318,7 +350,7 @@ export function NotificationBell() {
           background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderBottom: 'none',
-          maxHeight: '65dvh',
+          maxHeight: '72dvh',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.06)',
           transform: `translateY(${translateY}px)`,
           willChange: 'transform',
@@ -377,14 +409,10 @@ export function NotificationBell() {
             </div>
           ) : (
             <>
-              {notifications.slice(0, 8).map((notif) => (
+              {visibleNotifs.map((notif) => (
                 <NotifItem key={notif.id} notif={notif} prefix={prefix} onClose={() => setIsOpen(false)} />
               ))}
-              {notifications.length > 8 && (
-                <div className="px-4 py-3.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#1A1D24]/40">
-                  + {notifications.length - 8} more
-                </div>
-              )}
+              {loadMoreButton}
             </>
           )}
         </div>
@@ -423,7 +451,7 @@ export function NotificationBell() {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="hidden lg:flex lg:flex-col absolute right-0 top-12 w-[360px] max-h-[520px] rounded-2xl overflow-hidden z-50"
+          className="hidden lg:flex lg:flex-col absolute right-0 top-12 w-[360px] max-h-[540px] rounded-2xl overflow-hidden z-50"
           style={{
             background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
             border: '1px solid rgba(255,255,255,0.07)',
