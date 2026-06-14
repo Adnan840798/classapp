@@ -104,6 +104,16 @@ export default function CapacitorHandler() {
           }
         });
 
+        await PushNotifications.addListener('pushNotificationActionPerformed', async (action) => {
+          console.log('[CapacitorHandler] Push notification action performed:', action);
+          const data = action.notification.data;
+          const url = data?.url;
+          if (url) {
+            console.log('[CapacitorHandler] Redirecting to URL from push notification:', url);
+            window.location.href = url;
+          }
+        });
+
         const permission = await PushNotifications.requestPermissions();
         if (permission.receive === 'granted') {
           await PushNotifications.register();

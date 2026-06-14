@@ -44,46 +44,20 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
 }
 
 function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: string; onClose: () => void }) {
-  const router = useRouter();
   const typeConfig = notifTypeIcon[notif.type] || notifTypeIcon.system;
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
 
-  // Track touch start position to distinguish tap from scroll
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const t = e.changedTouches[0];
-    const dx = Math.abs(t.clientX - touchStartRef.current.x);
-    const dy = Math.abs(t.clientY - touchStartRef.current.y);
-    touchStartRef.current = null;
-
-    // If finger moved more than 10px in any direction, it was a scroll — ignore
-    if (dx > 10 || dy > 10) return;
-
-    // Genuine tap: navigate first, then close panel after a small delay
-    e.preventDefault();
-    router.push(href);
-    setTimeout(() => onClose(), 150);
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    router.push(href);
-    setTimeout(() => onClose(), 150);
+  const handleClick = () => {
+    // Delay closing slightly so navigation registers and begins
+    setTimeout(() => {
+      onClose();
+    }, 150);
   };
 
   return (
     <Link
       href={href}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       className={cn(
         'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
@@ -436,13 +410,14 @@ export function NotificationBell() {
       <button
         id="notification-bell-btn"
         onClick={handleToggle}
-        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-lg border border-[#23262D] bg-[#0E0F11] hover:bg-[#23262D]/60 hover:text-white transition-all duration-200 text-slate-400 cursor-pointer flex-shrink-0"
+        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-xl border border-slate-800/80 bg-slate-900/45 hover:bg-[#34D399]/10 hover:border-[#34D399]/30 hover:text-[#34D399] transition-all duration-300 text-slate-400 cursor-pointer flex-shrink-0 shadow-lg shadow-black/20"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4 transition-transform duration-300" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 lg:-top-1.5 lg:-right-1.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center px-1 shadow-lg shadow-red-500/30">
-            {unreadCount > 99 ? '99+' : unreadCount}
+          <span className="absolute top-2.5 right-2.5 lg:top-1.5 lg:right-1.5 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34D399] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#34D399] shadow-[0_0_8px_#34D399]"></span>
           </span>
         )}
       </button>
