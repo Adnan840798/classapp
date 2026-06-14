@@ -48,17 +48,24 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
 
-  const handleClick = () => {
-    // Delay closing slightly so navigation registers and begins
+  const handleNavigation = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Direct native browser redirect (highly robust for mobile web and native app portals)
+    window.location.href = href;
+    
+    // Close panel after a tiny delay
     setTimeout(() => {
       onClose();
-    }, 150);
+    }, 100);
   };
 
   return (
-    <Link
+    <a
       href={href}
-      onClick={handleClick}
+      onClick={handleNavigation}
+      onTouchEnd={handleNavigation}
       className={cn(
         'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
         !notif.is_read && 'bg-[#34D399]/[0.03]'
@@ -75,7 +82,7 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
       {!notif.is_read && (
         <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_8px_#34D399]" />
       )}
-    </Link>
+    </a>
   );
 }
 

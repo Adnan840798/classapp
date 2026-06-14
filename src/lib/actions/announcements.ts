@@ -135,7 +135,7 @@ export async function createAnnouncement(formData: FormData) {
       await sendWebPush({
         title: `📢 ${parsed.data.title}`,
         body: parsed.data.body.slice(0, 150),
-        url: '/student/announcements',
+        url: `/student/announcements/${announcement.id}`,
       });
     } catch (pushErr) {
       console.error('Web push notification failed (non-fatal):', pushErr);
@@ -146,7 +146,7 @@ export async function createAnnouncement(formData: FormData) {
       await sendFCMPush({
         title: `📢 ${parsed.data.title}`,
         body: parsed.data.body.slice(0, 150),
-        url: '/student/announcements',
+        url: `/student/announcements/${announcement.id}`,
       });
     } catch (fcmErr) {
       console.error('FCM push notification failed (non-fatal):', fcmErr);

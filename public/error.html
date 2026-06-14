@@ -6,13 +6,14 @@
   <title>ClassApp — Offline</title>
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --card-bg: #131926;
+      --bg-color: #080e0f;
+      --card-bg: #0E0F11;
+      --border-color: rgba(52, 211, 153, 0.15);
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --brand-green: #34d399;
-      --brand-green-hover: #10b981;
-      --accent-red: #f87171;
+      --accent-green: #34d399;
+      --btn-grad-start: #065f46;
+      --btn-grad-end: #10b981;
     }
 
     * {
@@ -27,12 +28,21 @@
       color: var(--text-main);
       display: flex;
       align-items: center;
-      justify-center: center;
+      justify-content: center;
       height: 100vh;
       width: 100vw;
       padding: 24px;
       overflow: hidden;
-      justify-content: center;
+      position: relative;
+    }
+
+    /* Ambient glow */
+    .ambient-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 60% 45% at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+      z-index: 0;
     }
 
     .container {
@@ -42,19 +52,51 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      z-index: 10;
+    }
+
+    .logo-container {
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Green logo square matching splash screen */
+    .app-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+    }
+
+    .logo-text {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #34d399, #6ee7b7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .card {
       background-color: var(--card-bg);
-      border: 1px solid #1e293b;
+      border: 1px solid var(--border-color);
       border-radius: 24px;
-      padding: 32px 24px;
+      padding: 28px 24px;
       width: 100%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px -5px rgba(52, 211, 153, 0.05);
       position: relative;
+      overflow: hidden;
     }
 
-    /* Glow top border line */
+    /* Top accent line matching app style */
     .card::before {
       content: '';
       position: absolute;
@@ -62,86 +104,89 @@
       left: 0;
       width: 100%;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
     }
 
     .icon-container {
-      width: 64px;
-      height: 64px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background-color: rgba(248, 113, 113, 0.1);
-      border: 1px solid rgba(248, 113, 113, 0.2);
-      color: var(--accent-red);
+      background-color: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: var(--accent-green);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       margin-left: auto;
       margin-right: auto;
       animation: pulse 2s infinite ease-in-out;
     }
 
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+      0% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.9; }
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       color: var(--text-main);
-      margin-bottom: 12px;
-      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
     }
 
     p {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
       line-height: 1.6;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
 
     .btn-retry {
       display: block;
       width: 100%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, var(--btn-grad-start), var(--btn-grad-end));
       color: white;
       border: none;
       padding: 14px 20px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       border-radius: 14px;
       cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      transition: all 0.25s ease-in-out;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
     }
 
     .btn-retry:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
+      box-shadow: 0 2px 5px rgba(16, 185, 129, 0.15);
       opacity: 0.95;
-    }
-
-    .logo-text {
-      margin-bottom: 32px;
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: -0.05em;
-      background: linear-gradient(135deg, #34d399, #10b981);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
   </style>
 </head>
 <body>
 
+  <div class="ambient-glow"></div>
+
   <div class="container">
-    <div class="logo-text">ClassApp</div>
+    <div class="logo-container">
+      <div class="app-logo">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="24,10 6,20 24,30 42,20" fill="white" fill-opacity="0.95" />
+          <path d="M14 24.5V33C14 33 18 37 24 37C30 37 34 33 34 33V24.5L24 29.5L14 24.5Z" fill="white" fill-opacity="0.85" />
+          <line x1="42" y1="20" x2="42" y2="28" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+          <circle cx="42" cy="30" r="2" fill="white" fill-opacity="0.9" />
+        </svg>
+      </div>
+      <div class="logo-text">ClassApp</div>
+    </div>
     
     <div class="card">
       <div class="icon-container">
         <!-- WifiOff SVG -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 1l22 22"/>
           <path d="M16.72 11.06A10.94 10.94 0 0 0 19 9.5"/>
           <path d="M5 9.5a10.94 10.94 0 0 0 5.83 2.84"/>
@@ -151,8 +196,8 @@
         </svg>
       </div>
       
-      <h1>Connection Lost</h1>
-      <p>It looks like you are currently offline. Please check your internet connection and try again.</p>
+      <h1>No Internet Connection</h1>
+      <p>Your device is currently offline. Please check your Wi-Fi or mobile data and try again.</p>
       
       <button class="btn-retry" onclick="retryConnection()">Retry Connection</button>
     </div>

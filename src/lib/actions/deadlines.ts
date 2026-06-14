@@ -69,11 +69,10 @@ export async function createDeadline(formData: FormData) {
 
     // Send Web Push notification (browsers)
     try {
-      // Format simple relative date check if possible, or just print the subject
       await sendWebPush({
         title: `⏰ Deadline: ${parsed.data.title}`,
         body: `New deadline for ${parsed.data.subject}.`,
-        url: '/student/deadlines',
+        url: `/student/deadlines/${deadline.id}`,
       });
     } catch (pushErr) {
       console.error('Web push notification failed (non-fatal):', pushErr);
@@ -84,7 +83,7 @@ export async function createDeadline(formData: FormData) {
       await sendFCMPush({
         title: `⏰ Deadline: ${parsed.data.title}`,
         body: `New deadline for ${parsed.data.subject}.`,
-        url: '/student/deadlines',
+        url: `/student/deadlines/${deadline.id}`,
       });
     } catch (fcmErr) {
       console.error('FCM push notification failed (non-fatal):', fcmErr);

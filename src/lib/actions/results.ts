@@ -125,7 +125,7 @@ export async function publishResult(formData: FormData) {
       console.error('broadcast_notification RPC error:', rpcError);
     }
 
-    // Send Web Push notification (browsers)
+    // Send Web Push notification (browsers) — results land on the results page
     try {
       await sendWebPush({
         title: `📊 Result Published: ${parsed.data.exam_name}`,

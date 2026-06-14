@@ -4,9 +4,11 @@ import { ProfileProvider } from '@/context/ProfileContext';
 import { Profile } from '@/types';
 import { Header } from './Header';
 import { Footer } from '@/components/layout/Footer';
-import PushEnrollmentInitializer from '@/components/layout/PushEnrollmentInitializer';
 
 export const revalidate = 0;
+
+import { NotificationProvider } from '@/context/NotificationContext';
+import { InAppNotificationStack } from '@/components/ui/InAppNotificationStack';
 
 export default async function DashboardLayout({
   children,
@@ -57,14 +59,16 @@ export default async function DashboardLayout({
 
   return (
     <ProfileProvider initialProfile={profile as Profile}>
-      <PushEnrollmentInitializer />
-      <div className="flex flex-col h-screen overflow-hidden bg-[#121214]">
-        <Header />
-        <div className="flex-1 overflow-y-auto bg-[#121214] flex flex-col">
-          <main className="px-4 lg:px-8 py-4 sm:py-6 flex-1">{children}</main>
-          <Footer />
+      <NotificationProvider>
+        <div className="flex flex-col h-screen overflow-hidden bg-[#121214]">
+          <Header />
+          <div className="flex-1 overflow-y-auto bg-[#121214] flex flex-col">
+            <main className="px-4 lg:px-8 py-4 sm:py-6 flex-1">{children}</main>
+            <Footer />
+          </div>
         </div>
-      </div>
+        <InAppNotificationStack />
+      </NotificationProvider>
     </ProfileProvider>
   );
 }

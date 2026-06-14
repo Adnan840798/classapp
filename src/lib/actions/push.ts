@@ -145,74 +145,8 @@ export async function sendWebPush(payload: {
   body: string;
   url: string;
 }) {
-  try {
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      console.error('[sendWebPush] VAPID keys are missing from environment.');
-      return { success: false, error: 'VAPID keys not configured.' };
-    }
-
-    // Use the Supabase Service Role client to retrieve subscriptions for all users
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    
-    // Fetch all active devices
-    const { data: devices, error } = await supabase
-      .from('push_devices')
-      .select('id, endpoint, p256dh, auth');
-
-    if (error) {
-      console.error('[sendWebPush] Error fetching devices:', error);
-      return { success: false, error: error.message };
-    }
-
-    if (!devices || devices.length === 0) {
-      return { success: true, sentCount: 0 };
-    }
-
-    const payloadString = JSON.stringify(payload);
-
-    // Send to all devices in parallel, clean up expired ones
-    const sendPromises = devices.map(async (device) => {
-      try {
-        const pushSubscription = {
-          endpoint: device.endpoint,
-          keys: {
-            p256dh: device.p256dh,
-            auth: device.auth
-          }
-        };
-
-        await webpush.sendNotification(pushSubscription, payloadString);
-        return { success: true, id: device.id };
-      } catch (err: any) {
-        // Delete device from DB if push service reports expired or gone (410, 404)
-        // This automatically cascade deletes links in user_push_devices
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          console.log(`[sendWebPush] Device subscription expired (status: ${err.statusCode}), deleting device id: ${device.id}`);
-          await supabase
-            .from('push_devices')
-            .delete()
-            .eq('id', device.id);
-        } else {
-          console.error(`[sendWebPush] Error sending push to device ID ${device.id}:`, err);
-        }
-        return { success: false, id: device.id, error: err.message };
-      }
-    });
-
-    const results = await Promise.allSettled(sendPromises);
-    const successCount = results.filter(
-      (r) => r.status === 'fulfilled' && r.value.success
-    ).length;
-
-    console.log(`[sendWebPush] Finished broadcasting web push to ${successCount}/${devices.length} unique active devices.`);
-    return { success: true, sentCount: successCount };
-  } catch (error: any) {
-    console.error('[sendWebPush] Failed sending web push notifications:', error);
-    return { success: false, error: error.message || 'Internal server error' };
-  }
+  // Web push is disabled in favor of native Android APK push notifications
+  return { success: true, sentCount: 0 };
 }
 
 /**

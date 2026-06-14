@@ -71,12 +71,78 @@ export default function CapacitorHandler() {
       }
     };
 
+    const navigateToUrl = (url: string | null | undefined) => {
+      if (!url) return;
+      // Ensure relative paths stay inside the app
+      const target = url.startsWith('http') ? new URL(url).pathname + new URL(url).search : url;
+      console.log('[CapacitorHandler] Navigating to notification URL:', target);
+      window.location.href = target;
+    };
+
+    const extractUrl = (data: any): string | null => {
+      if (!data) return null;
+      // Some Android versions wrap FCM data inside a nested object or stringify it
+      if (data.url) return data.url;
+      if (data.data?.url) return data.data.url;
+      try {
+        const parsed = typeof data === 'string' ? JSON.parse(data) : null;
+        if (parsed?.url) return parsed.url;
+      } catch (_) {}
+      return null;
+    };
+
     const setupPushNotifications = async () => {
       try {
         const { PushNotifications } = await import('@capacitor/push-notifications');
+        const { App } = await import('@capacitor/app');
         const { saveFcmToken } = await import('@/lib/actions/push');
 
         await PushNotifications.removeAllListeners();
+
+        // ── Path 1: Cold-start from lock screen ────────────────────────────────
+        // When Android launches the app by tapping a notification from the lock
+        // screen or notification shade, Capacitor exposes the deep-link URL via
+        // App.getLaunchUrl(). We read it once on startup and navigate immediately.
+        try {
+          const launchUrl = await App.getLaunchUrl();
+          if (launchUrl?.url) {
+            console.log('[CapacitorHandler] Cold-start launch URL:', launchUrl.url);
+            navigateToUrl(launchUrl.url);
+          }
+        } catch (err) {
+          console.warn('[CapacitorHandler] getLaunchUrl unavailable:', err);
+        }
+
+        // ── Path 2: App in background / notification tray tap ─────────────────
+        // Fired when the user taps a notification while the app is in the
+        // background. Also covers taps from the notification shade/lock screen
+        // when the app is NOT fully killed.
+        await PushNotifications.addListener('pushNotificationActionPerformed', async (action) => {
+          console.log('[CapacitorHandler] Push notification action performed:', action);
+          const url = extractUrl(action.notification.data);
+          if (url) {
+            navigateToUrl(url);
+          } else {
+            console.warn('[CapacitorHandler] No URL found in notification action data:', action.notification.data);
+          }
+        });
+
+        // ── Path 3: Foreground notification received ───────────────────────────
+        // When a notification arrives while the app is open and in the foreground
+        // (screen on, app visible), the OS does NOT show a system notification
+        // banner — so we show a Capacitor Toast as a fallback.
+        await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+          console.log('[CapacitorHandler] Push notification received in foreground:', notification);
+          try {
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({
+              text: `📢 ${notification.title}\n${notification.body || ''}`,
+              duration: 'long',
+            });
+          } catch (err) {
+            console.error('[CapacitorHandler] Failed to show foreground toast:', err);
+          }
+        });
 
         await PushNotifications.addListener('registration', async (token) => {
           console.log('[CapacitorHandler] FCM token registered:', token.value);
@@ -89,29 +155,6 @@ export default function CapacitorHandler() {
 
         await PushNotifications.addListener('registrationError', (err) => {
           console.error('[CapacitorHandler] Push registration error:', err);
-        });
-
-        await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-          console.log('[CapacitorHandler] Push notification received in foreground:', notification);
-          try {
-            const { Toast } = await import('@capacitor/toast');
-            await Toast.show({
-              text: `📢 ${notification.title}\n${notification.body || ''}`,
-              duration: 'long',
-            });
-          } catch (err) {
-            console.error('Failed to show toast in foreground:', err);
-          }
-        });
-
-        await PushNotifications.addListener('pushNotificationActionPerformed', async (action) => {
-          console.log('[CapacitorHandler] Push notification action performed:', action);
-          const data = action.notification.data;
-          const url = data?.url;
-          if (url) {
-            console.log('[CapacitorHandler] Redirecting to URL from push notification:', url);
-            window.location.href = url;
-          }
         });
 
         const permission = await PushNotifications.requestPermissions();
