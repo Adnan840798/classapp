@@ -48,10 +48,52 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
 
-  const handleNavigation = (e: React.MouseEvent | React.TouchEvent) => {
+  // Track touch position and start time to differentiate a fast tap/click from scrolling/dragging
+  const touchStart = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStart.current.x;
+    const dy = touch.clientY - touchStart.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const duration = Date.now() - touchStart.current.time;
+
+    // Reset touch tracking
+    touchStart.current = null;
+
+    // If moved more than 8 pixels, or touch duration is longer than 250ms,
+    // count it as a drag, scroll, or hold — not a clean click tap.
+    if (distance > 8 || duration > 250) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
-    
+    navigate();
+  };
+
+  const handleTouchCancel = () => {
+    touchStart.current = null;
+  };
+
+  const handleMouseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate();
+  };
+
+  const navigate = () => {
     // Direct native browser redirect (highly robust for mobile web and native app portals)
     window.location.href = href;
     
@@ -64,8 +106,10 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
   return (
     <a
       href={href}
-      onClick={handleNavigation}
-      onTouchEnd={handleNavigation}
+      onClick={handleMouseClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       className={cn(
         'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
         !notif.is_read && 'bg-[#34D399]/[0.03]'
