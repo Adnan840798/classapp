@@ -52,7 +52,7 @@ export function UserAvatar({ profile, size = 'md', className }: UserAvatarProps)
         className
       )}
       style={{
-        background: `linear-gradient(135deg, hsl(${stringToHue(profile.full_name)} 70% 55%), hsl(${stringToHue(profile.full_name) + 40} 70% 55%))`,
+        background: '#4A5B66',
       }}
       aria-label={profile.full_name}
     >

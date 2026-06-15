@@ -23,7 +23,7 @@ export default async function RootPage() {
   if (user) {
     const { data } = await supabase
       .from('profiles')
-      .select('role, full_name, email')
+      .select('role, full_name, email, profile_pic_url')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -136,7 +136,9 @@ export default async function RootPage() {
                       <span className="text-[10px] text-muted-foreground">
                         Published: {formatDate(notice.created_at)}
                       </span>
-                      <span className="badge badge-public text-[9px]">Public</span>
+                      <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
+                        Public
+                      </span>
                     </div>
                     <h3 className="text-base font-bold text-foreground mb-1 leading-snug">
                       {notice.title}
@@ -150,12 +152,12 @@ export default async function RootPage() {
                     <div className="mt-4 pt-3 border-t border-border/50">
                       <AttachmentViewer url={notice.attachment_url} fileName={`${notice.title}_attachment`}>
                         <button
-                          className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline cursor-pointer"
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer"
                         >
                           {notice.attachment_type === 'image' ? (
-                            <ImageIcon className="w-3.5 h-3.5" />
+                            <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
                           ) : (
-                            <FileText className="w-3.5 h-3.5" />
+                            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                           )}
                           <span>View Public Attachment</span>
                         </button>

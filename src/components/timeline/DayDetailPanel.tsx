@@ -62,8 +62,8 @@ function SquarePlusIcon({ className }: { className?: string }) {
 function BookmarkIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <rect x="3" y="3" width="18" height="18" rx="3" fill="#34D399" fillOpacity="0.15" />
-      <path d="M8 3h8a1 1 0 0 1 1 1v16l-5-3-5 3V4a1 1 0 0 1 1-1z" fill="#34D399" />
+      <rect x="3" y="3" width="18" height="18" rx="3" fill="#8B5CF6" fillOpacity="0.15" />
+      <path d="M8 3h8a1 1 0 0 1 1 1v16l-5-3-5 3V4a1 1 0 0 1 1-1z" fill="#8B5CF6" />
     </svg>
   );
 }
@@ -319,7 +319,7 @@ export function DayDetailPanel({
                   >
                     <span className="text-[10px] font-bold text-slate-400 leading-none mb-2.5">Announcements</span>
                     <div className="flex items-center gap-2">
-                      <MegaphoneIcon className="w-5 h-5 text-emerald-400" />
+                      <MegaphoneIcon className="w-5 h-5 text-brand-purple" />
                       <span className="text-[20px] font-black text-white leading-none">{announcements.length}</span>
                     </div>
                   </button>
@@ -332,7 +332,7 @@ export function DayDetailPanel({
                   >
                     <span className="text-[10px] font-bold text-slate-400 leading-none mb-2.5">Results</span>
                     <div className="flex items-center gap-2">
-                      <SquarePlusIcon className="w-5 h-5 text-emerald-400" />
+                      <SquarePlusIcon className="w-5 h-5 text-brand-cyan" />
                       <span className="text-[20px] font-black text-white leading-none">{results.length}</span>
                     </div>
                   </button>
@@ -344,14 +344,24 @@ export function DayDetailPanel({
                     <h3 className="text-[14px] font-bold text-white">
                       Deadlines ({deadlines.length})
                     </h3>
-                    {isCR && (
-                      <a
-                        href={`/cr/deadlines/new?date=${dateStr}`}
-                        className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        + Add Deadline
-                      </a>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {isCR && (
+                        <a
+                          href={`/cr/deadlines/new?date=${dateStr}`}
+                          className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          + Add Deadline
+                        </a>
+                      )}
+                      {deadlines.length > 0 && (
+                        <button
+                          onClick={() => setActiveTab('deadlines')}
+                          className="text-[12px] font-semibold cursor-pointer transition-colors text-emerald-400 hover:text-emerald-300"
+                        >
+                          View all
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {deadlines.length === 0 ? (
                     <EmptyState label="No deadlines due today" />
@@ -395,14 +405,12 @@ export function DayDetailPanel({
                         </a>
                       )}
                       {announcements.length > 0 && (
-                        <Link
-                          href={`${prefix}/announcements`}
-                          onClick={onClose}
-                          className="text-[12px] font-semibold cursor-pointer"
-                          style={{ color: '#6EE7B7' }}
+                        <button
+                          onClick={() => setActiveTab('announcements')}
+                          className="text-[12px] font-semibold cursor-pointer transition-colors text-brand-purple hover:text-brand-purple/80"
                         >
                           View all
-                        </Link>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -419,7 +427,7 @@ export function DayDetailPanel({
                           style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                         >
                           {/* Purple bookmark icon */}
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(52,211,153,0.12)' }}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(139, 92, 246, 0.12)' }}>
                             <BookmarkIcon className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -443,14 +451,24 @@ export function DayDetailPanel({
                     <h3 className="text-[14px] font-bold text-white">
                       Results ({results.length})
                     </h3>
-                    {isCR && (
-                      <a
-                        href={`/cr/results/publish?date=${dateStr}`}
-                        className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        + Add Result
-                      </a>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {isCR && (
+                        <a
+                          href={`/cr/results/publish?date=${dateStr}`}
+                          className="text-xs font-semibold text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          + Add Result
+                        </a>
+                      )}
+                      {results.length > 0 && (
+                        <button
+                          onClick={() => setActiveTab('results')}
+                          className="text-[12px] font-semibold cursor-pointer transition-colors text-brand-cyan hover:text-brand-cyan/80"
+                        >
+                          View all
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {results.length === 0 ? (
                     <EmptyState label="No results published today" />
@@ -464,7 +482,7 @@ export function DayDetailPanel({
                           className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:brightness-110"
                           style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                         >
-                          <SquarePlusIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                          <SquarePlusIcon className="w-5 h-5 text-brand-cyan flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-bold text-white leading-none">{r.exam_name}</p>
                             {r.result_sheet_url && (
@@ -473,7 +491,7 @@ export function DayDetailPanel({
                               </p>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-brand-cyan flex-shrink-0" />
                         </Link>
                       ))}
                     </div>
@@ -513,13 +531,18 @@ export function DayDetailPanel({
                         </div>
                         <p className="text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap line-clamp-3">{a.body}</p>
                         {a.attachment_url && (
-                          <span
-                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold"
-                            style={{ color: '#6EE7B7' }}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            Has attachment
-                          </span>
+                          <div className="mt-1 flex items-center">
+                            <AttachmentViewer url={a.attachment_url} fileName={`${a.title}_attachment`}>
+                              <button
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer hover:brightness-110"
+                                style={{ background: 'rgba(52,211,153,0.12)', color: '#6EE7B7', border: '1px solid rgba(52,211,153,0.2)' }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>View Attachment</span>
+                              </button>
+                            </AttachmentViewer>
+                          </div>
                         )}
                         <div
                           className="flex items-center gap-2 pt-2.5 text-[10px] text-slate-500 font-semibold"
@@ -543,7 +566,7 @@ export function DayDetailPanel({
                   <a
                     href={`/cr/results/publish?date=${dateStr}`}
                     className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all mb-4 cursor-pointer"
-                    style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                    style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.25)' }}
                   >
                     <SquarePlusIcon className="w-4 h-4" />
                     + Add Result for this Day
@@ -559,7 +582,7 @@ export function DayDetailPanel({
                         className="px-4 py-4 rounded-xl flex items-center gap-4"
                         style={{ background: '#1A1D24', border: '1px solid #23262D' }}
                       >
-                        <SquarePlusIcon className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                        <SquarePlusIcon className="w-6 h-6 text-brand-cyan flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-bold text-white">{r.exam_name}</p>
                           <p className="text-[11px] text-slate-400 mt-1">
@@ -571,7 +594,7 @@ export function DayDetailPanel({
                             <AttachmentViewer url={r.result_sheet_url} fileName={`${r.exam_name}_results`}>
                               <button
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
-                                style={{ background: 'rgba(52,211,153,0.12)', color: '#6EE7B7', border: '1px solid rgba(52,211,153,0.2)' }}
+                                style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.2)' }}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 View
@@ -583,7 +606,7 @@ export function DayDetailPanel({
                             href={`${prefix}/results`}
                             onClick={onClose}
                             className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                            style={{ background: 'rgba(16,185,129,0.10)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}
+                            style={{ background: 'rgba(56, 189, 248, 0.10)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.2)' }}
                           >
                             <ChevronRight className="w-3 h-3" />
                           </Link>
@@ -622,13 +645,13 @@ export function DayDetailPanel({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-start gap-3">
-                            <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                            <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
                             <div>
                               <p className="text-[13px] font-bold text-white">{d.title}</p>
                               <p className="text-[11px] text-slate-400 mt-1">Due {formatTime(d.due_date)}</p>
                             </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
                         </div>
                         {d.description && (
                           <p

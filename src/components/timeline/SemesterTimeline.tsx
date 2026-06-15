@@ -867,7 +867,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                             {/* Announcements */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
-                              <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
+                              <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-purple flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
                                 <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.announcements.length}</div>
@@ -878,7 +878,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                             {/* Results */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
-                              <SquarePlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
+                              <SquarePlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-cyan flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Results</div>
                                 <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.results.length}</div>
@@ -890,7 +890,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         {/* Right chevron */}
                         <ChevronRight
                           className="w-4 h-4 flex-shrink-0 transition-colors"
-                          style={{ color: isActive ? '#6EE7B7' : '#4b5563' }}
+                          style={{ color: isActive ? '#38BDF8' : '#4b5563' }}
                         />
                       </button>
 

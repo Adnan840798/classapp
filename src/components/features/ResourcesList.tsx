@@ -161,7 +161,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all cursor-pointer"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline ml-1">Drive</span>
+                          <span className="ml-1">View</span>
                         </a>
                       )}
 

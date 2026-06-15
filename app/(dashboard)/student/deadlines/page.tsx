@@ -159,7 +159,7 @@ export default async function StudentDeadlinesPage() {
                       href={`/student/deadlines/${deadline.id}`}
                       className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap self-end sm:self-auto"
                     >
-                      Q&amp;A Panel
+                      Question &amp; Answer
                       <ArrowRight className="w-3 h-3 flex-shrink-0" />
                     </Link>
                   </div>

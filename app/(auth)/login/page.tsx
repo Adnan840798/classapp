@@ -87,10 +87,21 @@ export default function LoginPage() {
       if (signInError) throw new Error(signInError.message);
       if (!data.user) throw new Error('Login failed. Please try again.');
 
+      // Fetch the user's profile to determine their role and redirect to the right timeline.
+      const supabaseForProfile = getSupabaseBrowserClient();
+      const { data: profileData } = await supabaseForProfile
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      const role = profileData?.role;
+      const redirectTo = role === 'cr' || role === 'admin'
+        ? '/cr/timeline'
+        : '/student/timeline';
+
       // Force a full page reload so the server receives the fresh session cookie.
-      // router.push() is a soft navigation — it re-uses stale request cookies,
-      // causing the server to see no session and redirect back to /login.
-      window.location.href = '/';
+      window.location.href = redirectTo;
 
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
@@ -181,7 +192,7 @@ export default function LoginPage() {
 
       if (signUpData.session) {
         // Logged in immediately — force full reload so server sees the new session cookie
-        window.location.href = '/';
+        window.location.href = '/student/timeline';
       } else {
         // Needs email confirmation
         setIsSuccess(true);

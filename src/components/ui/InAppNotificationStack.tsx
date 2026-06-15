@@ -14,9 +14,9 @@ interface NotifTypeConfig {
 }
 
 const notifTypeIcon: Record<string, NotifTypeConfig> = {
-  announcement:     { icon: Megaphone,     bg: 'bg-rose-500/10 border-rose-500/20 text-rose-400' },
+  announcement:     { icon: Megaphone,     bg: 'bg-brand-purple/10 border-brand-purple/20 text-brand-purple' },
   deadline:         { icon: Clock,         bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  result:           { icon: Trophy,        bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  result:           { icon: Trophy,        bg: 'bg-brand-cyan/10 border-brand-cyan/20 text-brand-cyan' },
   system:           { icon: Bell,          bg: 'bg-slate-500/10 border-slate-500/20 text-slate-400' },
   qna:              { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
   qna_announcement: { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
@@ -194,14 +194,14 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       className={cn(
-        'w-full rounded-2xl select-none relative pointer-events-auto border border-emerald-500/20 overflow-hidden cursor-grab active:cursor-grabbing',
+        'w-full rounded-2xl select-none relative pointer-events-auto border border-brand-purple/20 overflow-hidden cursor-grab active:cursor-grabbing',
         isDragging ? 'transition-none' : 'transition-all duration-300 ease-out',
         isDismissing && 'opacity-0 scale-95'
       )}
       style={{
         background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
         boxShadow:
-          '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(52,211,153,0.12)',
+          '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(139,92,246,0.12)',
         transform: `translate3d(${offsetX}px, ${offsetY}px, 0)`,
         touchAction: 'none',
         willChange: 'transform, opacity',
@@ -222,7 +222,7 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
 
         {/* Text */}
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-emerald-400 uppercase tracking-wider text-[9px] mb-0.5">
+          <p className="font-bold text-brand-purple uppercase tracking-wider text-[9px] mb-0.5">
             {popup.type.replace(/_/g, ' ')}
           </p>
           <h4 className="text-sm font-bold leading-snug text-white truncate">
@@ -247,10 +247,10 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
         </button>
       </div>
 
-      {/* Auto-dismiss countdown progress bar (emerald → shrinks to nothing) */}
+      {/* Auto-dismiss countdown progress bar (purple → shrinks to nothing) */}
       <div className="w-full h-[3px] bg-slate-800/40">
         <div
-          className="h-full bg-emerald-500/70"
+          className="h-full bg-brand-purple/70"
           style={{
             width: barWidth,
             transition: isDragging ? 'none' : 'width 0.25s linear',

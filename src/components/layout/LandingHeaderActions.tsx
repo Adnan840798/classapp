@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { User, LogOut, ChevronDown, Shield } from 'lucide-react';
+import { User, LogOut, Shield } from 'lucide-react';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -10,6 +10,7 @@ interface Profile {
   role: string;
   full_name: string;
   email: string;
+  profile_pic_url?: string | null;
 }
 
 interface LandingHeaderActionsProps {
@@ -57,15 +58,21 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 bg-[#23262D]/30 hover:bg-[#23262D]/60 border border-[#23262D] rounded-xl px-3 py-1.5 transition-all cursor-pointer group"
+        className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-white flex items-center justify-center text-sm lg:text-xs font-bold border border-white/[0.08] transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+        style={{
+          background: '#4A5B66',
+        }}
+        aria-label="User profile menu"
       >
-        <div className="w-7 h-7 rounded-full bg-[#34D399] text-[#121214] flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-105">
-          {initials}
-        </div>
-        <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors hidden sm:inline-block">
-          {profile.full_name}
-        </span>
-        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {profile.profile_pic_url ? (
+          <img
+            src={profile.profile_pic_url}
+            alt={profile.full_name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          initials
+        )}
       </button>
 
       {isOpen && (

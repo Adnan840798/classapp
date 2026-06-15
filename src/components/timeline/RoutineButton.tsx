@@ -192,9 +192,9 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
           setError(null);
           setIsModalOpen(true);
         }}
-        className="group flex items-center gap-2.5 pl-2 pr-4 py-1.5 border border-[#34D399]/30 hover:border-[#34D399]/50 bg-[#34D399]/10 hover:bg-[#34D399]/20 rounded-xl transition-all cursor-pointer select-none active:scale-98"
+        className="group flex items-center gap-2.5 pl-2 pr-4 py-1.5 border border-brand-cyan/30 hover:border-brand-cyan/50 bg-brand-cyan/10 hover:bg-brand-cyan/20 rounded-xl transition-all cursor-pointer select-none active:scale-98"
       >
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-[#34D399]/20 bg-[#121214] flex-shrink-0">
+        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-brand-cyan/20 bg-[#121214] flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
@@ -202,7 +202,7 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
             className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200"
           />
         </div>
-        <span className="text-[#6EE7B7] group-hover:text-white font-semibold text-sm transition-colors">
+        <span className="text-brand-cyan group-hover:text-white font-semibold text-sm transition-colors">
           Class Routine
         </span>
       </button>

@@ -18,6 +18,45 @@ export function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  const [swipeTranslation, setSwipeTranslation] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    setIsSwiping(false);
+    setSwipeTranslation(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.touches[0];
+    const deltaX = touchStartRef.current.x - touch.clientX;
+    const deltaY = touchStartRef.current.y - touch.clientY;
+
+    if (deltaX > 0) {
+      if (!isSwiping && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        setIsSwiping(true);
+      }
+      if (isSwiping) {
+        if (e.cancelable) e.preventDefault();
+        setSwipeTranslation(deltaX);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isSwiping) {
+      if (swipeTranslation > 80) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+    touchStartRef.current = null;
+    setIsSwiping(false);
+    setSwipeTranslation(0);
+  };
+
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -119,7 +158,10 @@ export function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleProfileClick}
-                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full bg-[#34D399] text-[#121214] flex items-center justify-center text-sm lg:text-xs font-bold border border-[#34D399]/20 transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-white flex items-center justify-center text-sm lg:text-xs font-bold border border-white/[0.08] transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+                style={{
+                  background: '#4A5B66',
+                }}
                 aria-label="User profile menu"
               >
                 {profile.profile_pic_url ? (
@@ -196,10 +238,23 @@ export function Header() {
           <div
             className="absolute inset-0 bg-[#121214]/80 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
+            style={{
+              opacity: isSwiping ? Math.max(0, 1 - swipeTranslation / 220) : undefined,
+              transition: isSwiping ? 'none' : 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
           />
           
           {/* Menu Drawer */}
-          <div className="absolute left-0 top-0 bottom-0 w-64 bg-[#121214] border-r border-[#23262D] p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] flex flex-col justify-between slide-in-left-animation">
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              transform: isSwiping ? `translateX(-${swipeTranslation}px)` : undefined,
+              transition: isSwiping ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            className="absolute left-0 top-0 bottom-0 w-64 bg-[#121214] border-r border-[#23262D] p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] flex flex-col justify-between slide-in-left-animation"
+          >
             <style jsx>{`
               .slide-in-left-animation {
                 animation: slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);

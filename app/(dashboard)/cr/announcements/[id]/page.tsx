@@ -90,8 +90,14 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
             </div>
           </div>
           <div className="flex items-center gap-1.5 pr-[110px] sm:pr-0">
-            {announcement.is_public && (
-              <span className="badge badge-public">Public</span>
+            {announcement.is_public ? (
+              <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
+                Public
+              </span>
+            ) : (
+              <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-600/20 border border-slate-600/30 text-slate-400">
+                Class
+              </span>
             )}
           </div>
         </div>
@@ -110,7 +116,7 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
             <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
               <button
                 title="View Attachment"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-sky-400 border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15 active:scale-[0.97] transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer"
               >
                 {announcement.attachment_type === 'image' ? (
                   <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />

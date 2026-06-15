@@ -18,9 +18,9 @@ interface NotifTypeConfig {
 }
 
 const notifTypeIcon: Record<NotifType, NotifTypeConfig> = {
-  announcement: { icon: Megaphone,       bg: 'bg-rose-500/10 border-rose-500/20 text-rose-400' },
+  announcement: { icon: Megaphone,       bg: 'bg-brand-purple/10 border-brand-purple/20 text-brand-purple' },
   deadline:     { icon: Clock,           bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  result:       { icon: Trophy,          bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  result:       { icon: Trophy,          bg: 'bg-brand-cyan/10 border-brand-cyan/20 text-brand-cyan' },
   system:       { icon: Bell,            bg: 'bg-slate-500/10 border-slate-500/20 text-slate-400' },
   qna:          { icon: MessageCircle,   bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
   qna_announcement: { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
@@ -111,8 +111,8 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
       className={cn(
-        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-[#34D399]/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-[#34D399]/10 cursor-pointer',
-        !notif.is_read && 'bg-[#34D399]/[0.03]'
+        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-brand-purple/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-brand-purple/10 cursor-pointer',
+        !notif.is_read && 'bg-brand-purple/[0.03]'
       )}
     >
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0 transition-transform group-hover:scale-105', typeConfig.bg)}>
@@ -124,7 +124,7 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
         <p className="text-[10px] text-slate-500 mt-1.5 font-medium">{timeAgo(notif.created_at)}</p>
       </div>
       {!notif.is_read && (
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_8px_#34D399]" />
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-purple shadow-[0_0_8px_#8B5CF6]" />
       )}
     </a>
   );

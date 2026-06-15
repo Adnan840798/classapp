@@ -24,6 +24,8 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --color-brand-cyan: #38BDF8;
+  --color-brand-purple: #8B5CF6;
 }
 
 @layer base {
@@ -59,7 +61,7 @@
 
   .dark {
     /* ── Dark mode tokens ─────────────────────────── */
-    --background: 240 3% 8%;
+    --background: 240 5% 7.5%;
     --foreground: 210 20% 94%;
     --card: 220 14% 12%;
     --card-foreground: 210 20% 94%;

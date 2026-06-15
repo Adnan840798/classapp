@@ -59,14 +59,14 @@ export default async function CRResultsPage() {
             >
               <div
                 className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ background: 'linear-gradient(180deg, #34D399, #059669)' }}
+                style={{ background: 'linear-gradient(180deg, #38BDF8, #0ea5e9)' }}
               />
 
               <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {/* Left section: Icon + Title */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                    <Award className="w-4 h-4 text-emerald-400" />
+                  <div className="w-9 h-9 rounded-lg bg-brand-cyan/10 border border-brand-cyan/20 flex items-center justify-center flex-shrink-0">
+                    <Award className="w-4 h-4 text-brand-cyan" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-extrabold text-white break-words leading-snug">
@@ -86,7 +86,7 @@ export default async function CRResultsPage() {
                     {res.result_sheet_url ? (
                       <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
                         <button
-                          className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer"
                         >
                           <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                           <span>View Marksheet</span>

@@ -22,7 +22,7 @@ const PDFViewerInner = dynamic(
     ssr: false,
     loading: () => (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10">
-        <Loader2 className="w-9 h-9 text-[#34D399] animate-spin" />
+        <Loader2 className="w-9 h-9 text-amber-400 animate-spin" />
         <p className="text-sm font-medium text-slate-400">Loading viewer...</p>
       </div>
     ),
@@ -179,7 +179,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
         style={{
           background: 'linear-gradient(145deg, #16181D 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
-          boxShadow: '0 32px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(52,211,153,0.08)',
+          boxShadow: '0 32px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(245,158,11,0.08)',
           animation: 'av-in 0.22s cubic-bezier(0.34,1.56,0.64,1) both',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -192,8 +192,8 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
           {/* Left: icon + name */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
-              {kind === 'image' && <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />}
+              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              {kind === 'image' && <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />}
               {kind === 'pdf'   && <FileText  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400" />}
               {kind === 'video' && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />}
               {kind === 'doc'   && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" />}
@@ -220,7 +220,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             <button
               onClick={handleDownload}
               title="Download"
-              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-8 sm:px-3 rounded-lg text-xs font-bold text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/20 hover:bg-[#34D399] hover:text-[#0E0F11] hover:border-transparent transition-all duration-200 cursor-pointer"
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-8 sm:px-3 rounded-lg text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400 hover:text-[#0E0F11] hover:border-transparent transition-all duration-200 cursor-pointer"
             >
               <Download className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline ml-1.5">Download</span>
@@ -279,7 +279,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               {/* Loading */}
               {pdfLoading && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10">
-                  <Loader2 className="w-9 h-9 text-[#34D399] animate-spin" />
+                  <Loader2 className="w-9 h-9 text-amber-400 animate-spin" />
                   <p className="text-sm font-medium text-slate-400">Loading PDF…</p>
                 </div>
               )}
@@ -300,7 +300,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
                   <div className="flex gap-3">
                     <button
                       onClick={handleDownload}
-                      className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-[#0E0F11] bg-[#34D399] hover:bg-[#2ebd87] transition-all active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-[#0E0F11] bg-amber-400 hover:bg-amber-300 transition-all active:scale-95 cursor-pointer"
                     >
                       <Download className="w-4 h-4" />
                       Download
@@ -364,7 +364,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               </div>
               <button
                 onClick={handleDownload}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-extrabold text-[#0E0F11] bg-[#34D399] hover:bg-[#2ebd87] shadow-lg shadow-[#34D399]/20 transition-all cursor-pointer active:scale-95"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-extrabold text-[#0E0F11] bg-amber-400 hover:bg-amber-300 shadow-lg shadow-amber-400/20 transition-all cursor-pointer active:scale-95"
               >
                 <Download className="w-4 h-4" />
                 Download File

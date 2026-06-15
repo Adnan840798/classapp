@@ -85,6 +85,15 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
               <span className={`badge px-2.5 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${typeColor}`}>
                 {formatEventType(event.event_type)}
               </span>
+              {event.is_public ? (
+                <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
+                  Public
+                </span>
+              ) : (
+                <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-600/20 border border-slate-600/30 text-slate-400">
+                  Class
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="w-4 h-4" />
