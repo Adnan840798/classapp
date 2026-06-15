@@ -1,10 +1,5 @@
-import { Loader2 } from 'lucide-react';
-
-/**
- * Full-page loading screen shown during route transitions.
- * Matches the CapacitorHandler native splash screen design exactly —
- * dark background, graduation cap icon on green gradient, ClassApp text.
- */
+// Full-page loading screen shown during route transitions.
+// Typography-based branding: class in white, app in green shade.
 export function PageLoader() {
   return (
     <div
@@ -14,58 +9,36 @@ export function PageLoader() {
       {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 45% at 50% 50%, rgba(16,185,129,0.07) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse 60% 45% at 50% 50%, rgba(52,211,153,0.07) 0%, transparent 70%)' }}
       />
 
-      <div className="relative flex flex-col items-center gap-5">
-        {/* App icon — green rounded square with graduation cap */}
-        <div
-          className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl"
-          style={{
-            background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
-            boxShadow: '0 0 40px rgba(16,185,129,0.3)',
-          }}
-        >
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Graduation cap top */}
-            <polygon points="24,10 6,20 24,30 42,20" fill="white" fillOpacity="0.95" />
-            {/* Cap body */}
-            <path d="M14 24.5V33C14 33 18 37 24 37C30 37 34 33 34 33V24.5L24 29.5L14 24.5Z" fill="white" fillOpacity="0.85" />
-            {/* Tassel */}
-            <line x1="42" y1="20" x2="42" y2="28" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-            <circle cx="42" cy="30" r="2" fill="white" fillOpacity="0.9" />
-          </svg>
+      <div className="relative flex flex-col items-center gap-4">
+        {/* App name - white and green shade */}
+        <div className="text-4xl font-black tracking-tight text-white select-none">
+          Class<span className="text-[#34D399] drop-shadow-[0_0_12px_rgba(52,211,153,0.35)]">App</span>
         </div>
 
-        {/* App name */}
-        <div
-          className="text-3xl font-extrabold tracking-tight"
-          style={{
-            background: 'linear-gradient(135deg, #34d399, #6ee7b7)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          ClassApp
+        {/* Circular professional spinner */}
+        <div className="relative w-8 h-8 mt-2">
+          <div className="absolute inset-0 rounded-full border-[3px] border-emerald-500/10" />
+          <div className="absolute inset-0 rounded-full border-[3px] border-[#34D399] border-t-transparent animate-spin" />
         </div>
 
         {/* Subtitle */}
         <div
-          className="text-xs tracking-widest uppercase font-semibold animate-pulse"
+          className="text-[10px] tracking-[0.25em] uppercase font-bold mt-1"
           style={{ color: 'rgba(52,211,153,0.45)' }}
         >
-          Loading...
+          Loading
         </div>
-        <Loader2 className="h-5 w-5 animate-spin mt-1" style={{ color: '#10b981' }} />
       </div>
 
       {/* Bottom progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden" style={{ background: 'rgba(16,185,129,0.1)' }}>
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden" style={{ background: 'rgba(52,211,153,0.05)' }}>
         <div
           className="h-full"
           style={{
-            background: 'linear-gradient(90deg, transparent, #10b981, transparent)',
+            background: 'linear-gradient(90deg, transparent, #34D399, transparent)',
             animation: 'slide-progress 1.5s ease-in-out infinite',
           }}
         />
