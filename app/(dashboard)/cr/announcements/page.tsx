@@ -19,6 +19,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
+export const runtime = 'edge';
 export const revalidate = 0; // force dynamic rendering
 
 export default async function CRAnnouncementsPage() {

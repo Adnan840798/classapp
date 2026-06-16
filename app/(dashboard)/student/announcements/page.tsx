@@ -9,6 +9,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
+export const runtime = 'edge';
 export const revalidate = 0;
 
 export default async function StudentAnnouncementsPage() {

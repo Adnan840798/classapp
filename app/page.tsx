@@ -6,6 +6,7 @@ import { formatDateTime, formatDate, getEventTypeColor, formatEventType } from '
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
+export const runtime = 'edge';
 export const revalidate = 0; // force dynamic rendering
 
 export default async function RootPage() {

@@ -231,12 +231,37 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         .subscribe();
     }
 
+
     return () => {
       supabase.removeChannel(regularChannel);
       if (qnaChannel) supabase.removeChannel(qnaChannel);
       if (notesChannel) supabase.removeChannel(notesChannel);
     };
   }, [profile?.id, profile?.role, profile?.notif_sound_on, profile?.notif_enabled]);
+
+  // Listen for native foreground notification events to show them in-app
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const handleForegroundNotif = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const notification = customEvent.detail;
+      
+      triggerPopup({
+        id: notification.id || String(Date.now() + Math.random()),
+        title: notification.title || 'Academic Update',
+        message: notification.body || '',
+        type: (notification.data?.type || 'system') as any,
+        reference_id: notification.data?.reference_id || null,
+        created_at: new Date().toISOString(),
+      });
+    };
+
+    window.addEventListener('foreground-notification', handleForegroundNotif);
+    return () => {
+      window.removeEventListener('foreground-notification', handleForegroundNotif);
+    };
+  }, [profile?.id]);
 
   async function markAllRead() {
     if (!profile?.id || unreadCount === 0) return;
@@ -268,8 +293,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setActivePopups((prev) => prev.filter((p) => p.id !== id));
   }
 
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAllRead, activePopups, dismissPopup }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        markAllRead,
+        activePopups,
+        dismissPopup,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );

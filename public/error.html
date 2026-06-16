@@ -208,6 +208,16 @@
       // Reload back to the app's main remote entry URL
       window.location.href = "https://classapp0.vercel.app";
     }
+
+    // Automatically retry connection when online event fires
+    window.addEventListener('online', retryConnection);
+
+    // Periodic check in case WebView fails to fire the event immediately
+    setInterval(() => {
+      if (navigator.onLine) {
+        retryConnection();
+      }
+    }, 5000);
   </script>
 </body>
 </html>

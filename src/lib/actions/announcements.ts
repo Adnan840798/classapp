@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { sendTelegramMessage, sendTelegramFile } from '@/lib/telegram';
-import { compressFileForStorage } from '@/lib/utils/compress';
 import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
 
 const AnnouncementSchema = z.object({
@@ -64,6 +63,7 @@ export async function createAnnouncement(formData: FormData) {
       }
 
       // ── Step 2: Compress file for Supabase storage ──────────────
+      const { compressFileForStorage } = await import('@/lib/utils/compress');
       const { buffer, contentType, fileName } = await compressFileForStorage(file);
       const path = generateStoragePath(STORAGE_PATHS.ANNOUNCEMENTS, fileName);
 

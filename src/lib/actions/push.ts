@@ -12,7 +12,7 @@ const sanitizeEnvVar = (val: string | undefined) => {
 
 const vapidPublicKey = sanitizeEnvVar(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
 const vapidPrivateKey = sanitizeEnvVar(process.env.VAPID_PRIVATE_KEY);
-const vapidSubject = sanitizeEnvVar(process.env.VAPID_SUBJECT) || 'mailto:adnan@example.com';
+const vapidSubject = sanitizeEnvVar(process.env.VAPID_SUBJECT) || 'https://classapp0.vercel.app';
 
 // Initialize web-push configuration
 if (vapidPublicKey && vapidPrivateKey) {

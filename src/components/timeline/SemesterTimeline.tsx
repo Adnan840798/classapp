@@ -6,6 +6,8 @@ import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils
 import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks } from '@/lib/actions/timeline';
 import { RoutineButton } from './RoutineButton';
 import { DayDetailPanel } from './DayDetailPanel';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 interface SemesterTimelineProps {
   initialRoutineUrl: string | null;
@@ -121,6 +123,8 @@ function getHolidayGroups(weekRanges: { isFullHoliday: boolean }[], totalWeeks: 
 }
 
 export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelineProps) {
+  const router = useRouter();
+  const supabase = getSupabaseBrowserClient();
   const currentWeek = getCurrentWeekNumber();
   const [selectedWeek, setSelectedWeek] = useState<number>(currentWeek);
   const [weekData, setWeekData] = useState<any[]>([]);
@@ -147,6 +151,59 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     getHolidayDays().then(setHolidays);
     getTotalWeeks().then(setTotalWeeksState);
   }, []);
+
+  // Realtime subscription for semester timeline changes.
+  // Only subscribes to tables that are UNIQUE to the timeline view:
+  //   • holiday_days   — holiday toggling directly affects the week grid
+  //   • semester_config — total week count drives the week list
+  //   • class_routine   — routine image needs a server re-render
+  //
+  // announcements / deadlines / exam_results are intentionally NOT subscribed
+  // here — NotificationContext already calls router.refresh() for those tables,
+  // which re-renders the server component and passes fresh data down as props,
+  // making a second getTimelineData() call redundant and wasteful.
+  const holidayDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const channel = supabase
+      .channel('timeline-changes-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'holiday_days' },
+        () => {
+          // Debounce 600 ms so bulk holiday inserts don't each fire a DB fetch
+          if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
+          holidayDebounceRef.current = setTimeout(async () => {
+            const [updatedHolidays, updatedWeekData] = await Promise.all([
+              getHolidayDays(),
+              getTimelineData(selectedWeek),
+            ]);
+            setHolidays(updatedHolidays);
+            setWeekData(updatedWeekData);
+          }, 600);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'semester_config' },
+        async () => {
+          const updatedWeeks = await getTotalWeeks();
+          setTotalWeeksState(updatedWeeks);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'class_routine' },
+        () => {
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, router, selectedWeek]);
 
   // Scroll to current/selected week
   useEffect(() => {

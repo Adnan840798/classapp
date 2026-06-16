@@ -11,18 +11,85 @@ const AUTO_DISMISS_MS = 30_000; // 30 seconds
 interface NotifTypeConfig {
   icon: React.ComponentType<{ className?: string }>;
   bg: string;
+  borderColor: string;
+  glowShadow: string;
+  textClass: string;
+  progressBarClass: string;
 }
 
 const notifTypeIcon: Record<string, NotifTypeConfig> = {
-  announcement:     { icon: Megaphone,     bg: 'bg-brand-purple/10 border-brand-purple/20 text-brand-purple' },
-  deadline:         { icon: Clock,         bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  result:           { icon: Trophy,        bg: 'bg-brand-cyan/10 border-brand-cyan/20 text-brand-cyan' },
-  system:           { icon: Bell,          bg: 'bg-slate-500/10 border-slate-500/20 text-slate-400' },
-  qna:              { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
-  qna_announcement: { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
-  qna_deadline:     { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
-  qna_event:        { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
-  resource_pending: { icon: BookMarked,    bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  announcement: {
+    icon: Megaphone,
+    bg: 'bg-brand-purple/10 border-brand-purple/20 text-brand-purple',
+    borderColor: 'border-brand-purple/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(139,92,246,0.18)',
+    textClass: 'text-brand-purple',
+    progressBarClass: 'bg-brand-purple/70',
+  },
+  deadline: {
+    icon: Clock,
+    bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    borderColor: 'border-amber-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(245,158,11,0.18)',
+    textClass: 'text-amber-400',
+    progressBarClass: 'bg-amber-500/70',
+  },
+  result: {
+    icon: Trophy,
+    bg: 'bg-brand-cyan/10 border-brand-cyan/20 text-brand-cyan',
+    borderColor: 'border-brand-cyan/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(56,189,248,0.18)',
+    textClass: 'text-brand-cyan',
+    progressBarClass: 'bg-brand-cyan/70',
+  },
+  system: {
+    icon: Bell,
+    bg: 'bg-slate-500/10 border-slate-500/20 text-slate-400',
+    borderColor: 'border-slate-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(100,116,139,0.18)',
+    textClass: 'text-slate-400',
+    progressBarClass: 'bg-slate-500/70',
+  },
+  qna: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+    borderColor: 'border-sky-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(14,165,233,0.18)',
+    textClass: 'text-sky-400',
+    progressBarClass: 'bg-sky-500/70',
+  },
+  qna_announcement: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+    borderColor: 'border-sky-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(14,165,233,0.18)',
+    textClass: 'text-sky-400',
+    progressBarClass: 'bg-sky-500/70',
+  },
+  qna_deadline: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+    borderColor: 'border-sky-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(14,165,233,0.18)',
+    textClass: 'text-sky-400',
+    progressBarClass: 'bg-sky-500/70',
+  },
+  qna_event: {
+    icon: MessageCircle,
+    bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
+    borderColor: 'border-sky-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(14,165,233,0.18)',
+    textClass: 'text-sky-400',
+    progressBarClass: 'bg-sky-500/70',
+  },
+  resource_pending: {
+    icon: BookMarked,
+    bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    borderColor: 'border-amber-500/30',
+    glowShadow: '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(245,158,11,0.18)',
+    textClass: 'text-amber-400',
+    progressBarClass: 'bg-amber-500/70',
+  },
 };
 
 function getNotifHref(type: string, refId: string | null, prefix: string): string {
@@ -194,14 +261,14 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       className={cn(
-        'w-full rounded-2xl select-none relative pointer-events-auto border border-brand-purple/20 overflow-hidden cursor-grab active:cursor-grabbing',
+        'w-full rounded-2xl select-none relative pointer-events-auto border overflow-hidden cursor-grab active:cursor-grabbing',
+        typeConfig.borderColor,
         isDragging ? 'transition-none' : 'transition-all duration-300 ease-out',
         isDismissing && 'opacity-0 scale-95'
       )}
       style={{
         background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
-        boxShadow:
-          '0 10px 30px rgba(0,0,0,0.65), 0 0 25px -5px rgba(139,92,246,0.12)',
+        boxShadow: typeConfig.glowShadow,
         transform: `translate3d(${offsetX}px, ${offsetY}px, 0)`,
         touchAction: 'none',
         willChange: 'transform, opacity',
@@ -222,7 +289,7 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
 
         {/* Text */}
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-brand-purple uppercase tracking-wider text-[9px] mb-0.5">
+          <p className={cn("font-bold uppercase tracking-wider text-[9px] mb-0.5", typeConfig.textClass)}>
             {popup.type.replace(/_/g, ' ')}
           </p>
           <h4 className="text-sm font-bold leading-snug text-white truncate">
@@ -247,10 +314,10 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
         </button>
       </div>
 
-      {/* Auto-dismiss countdown progress bar (purple → shrinks to nothing) */}
+      {/* Auto-dismiss countdown progress bar (shrinks to nothing) */}
       <div className="w-full h-[3px] bg-slate-800/40">
         <div
-          className="h-full bg-brand-purple/70"
+          className={cn("h-full", typeConfig.progressBarClass)}
           style={{
             width: barWidth,
             transition: isDragging ? 'none' : 'width 0.25s linear',

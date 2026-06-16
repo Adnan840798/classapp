@@ -23,10 +23,13 @@ export default function CapacitorHandler() {
     // 2. Initial app load fade-out
     const timer = setTimeout(() => {
       setAppLoading(false);
-    }, 600);
+    }, 200);
 
     // 3. Connection Status Listener
-    const handleOnline = () => setIsOffline(false);
+    const handleOnline = () => {
+      setIsOffline(false);
+      window.location.reload();
+    };
     const handleOffline = () => setIsOffline(true);
 
     if (typeof window !== 'undefined') {
@@ -134,13 +137,10 @@ export default function CapacitorHandler() {
         await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
           console.log('[CapacitorHandler] Push notification received in foreground:', notification);
           try {
-            const { Toast } = await import('@capacitor/toast');
-            await Toast.show({
-              text: `📢 ${notification.title}\n${notification.body || ''}`,
-              duration: 'long',
-            });
+            // Dispatch custom window event to handle beautiful inside-app web notifications
+            window.dispatchEvent(new CustomEvent('foreground-notification', { detail: notification }));
           } catch (err) {
-            console.error('[CapacitorHandler] Failed to show foreground toast:', err);
+            console.error('[CapacitorHandler] Failed to dispatch foreground notification:', err);
           }
         });
 

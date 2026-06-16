@@ -4,7 +4,6 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { STORAGE_BUCKETS } from '@/lib/constants';
-import { compressFileForStorage } from '@/lib/utils/compress';
 import { getWeekDates, toISODateString } from '@/lib/utils/timelineDates';
 
 /**
@@ -86,6 +85,7 @@ export async function uploadRoutine(formData: FormData) {
     }
 
     // 2. Compress the image for storage
+    const { compressFileForStorage } = await import('@/lib/utils/compress');
     const { buffer, contentType, fileName } = await compressFileForStorage(file);
     const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const path = `routine/${Date.now()}-${safeName}`;

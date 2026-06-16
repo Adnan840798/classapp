@@ -29,8 +29,8 @@ export async function compressFileForStorage(file: File): Promise<{
   }
 
   if (file.type.startsWith('image/')) {
-    // Dynamically import sharp (it's a native module — must be server-side)
-    const sharp = (await import('sharp')).default;
+    // Use module.require to completely bypass Turbopack static analysis
+    const sharp = module.require('sharp');
 
     const compressedBuffer = await sharp(inputBuffer)
       .resize({
