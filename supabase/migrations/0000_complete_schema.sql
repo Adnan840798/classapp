@@ -45,24 +45,26 @@ END $$;
 
 -- ── profiles ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS profiles (
-  id                uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  full_name         text NOT NULL,
-  university_id     text UNIQUE NOT NULL,
-  email             text UNIQUE NOT NULL,
-  role              user_role NOT NULL DEFAULT 'student',
-  phone             text,
-  facebook_id       text,
-  whatsapp          text,
-  telegram_handle   text,
-  blood_group       text,
-  address           text,
-  profile_pic_url   text,
-  batch             text,
-  department        text,
-  notif_enabled     boolean DEFAULT true,
-  notif_sound_on    boolean DEFAULT true,
-  created_at        timestamptz DEFAULT now(),
-  updated_at        timestamptz DEFAULT now()
+  id                      uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name               text NOT NULL,
+  university_id           text UNIQUE NOT NULL,
+  email                   text UNIQUE NOT NULL,
+  role                    user_role NOT NULL DEFAULT 'student',
+  phone                   text,
+  facebook_id             text,
+  whatsapp                text,
+  telegram_handle         text,
+  blood_group             text,
+  address                 text,
+  profile_pic_url         text,
+  batch                   text,
+  department              text,
+  notif_enabled           boolean DEFAULT true,
+  notif_sound_on          boolean DEFAULT true,
+  -- TRUE until the student completes their first-login password reset
+  password_reset_required boolean NOT NULL DEFAULT true,
+  created_at              timestamptz DEFAULT now(),
+  updated_at              timestamptz DEFAULT now()
 );
 
 -- ── announcements ─────────────────────────────────────────
@@ -278,15 +280,18 @@ $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, university_id, role, batch, department)
+  INSERT INTO public.profiles (
+    id, email, full_name, university_id, role, batch, department, password_reset_required
+  )
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'university_id', NEW.id::text),
+    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'university_id', 'NOT_SET'),
     COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'student'),
-    NEW.raw_user_meta_data->>'batch',
-    NEW.raw_user_meta_data->>'department'
+    COALESCE(NEW.raw_user_meta_data->>'batch', 'N/A'),
+    COALESCE(NEW.raw_user_meta_data->>'department', 'N/A'),
+    TRUE  -- always force password reset on first login
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;

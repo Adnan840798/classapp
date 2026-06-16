@@ -2,139 +2,21 @@
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
-import webpush from 'web-push';
+// Web push is disabled in favor of native FCM push notifications.
 
-// Helper to sanitize variables (remove surrounding quotes or whitespace)
-const sanitizeEnvVar = (val: string | undefined) => {
-  if (!val) return '';
-  return val.trim().replace(/^["']|["']$/g, '');
-};
-
-const vapidPublicKey = sanitizeEnvVar(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
-const vapidPrivateKey = sanitizeEnvVar(process.env.VAPID_PRIVATE_KEY);
-const vapidSubject = sanitizeEnvVar(process.env.VAPID_SUBJECT) || 'https://classapp0.vercel.app';
-
-// Initialize web-push configuration
-if (vapidPublicKey && vapidPrivateKey) {
-  try {
-    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-  } catch (err) {
-    console.error('[Web Push Actions] Error configuring VAPID details:', err);
-  }
-} else {
-  console.warn('[Web Push Actions] VAPID keys not configured in environment variables.');
-}
 
 /**
  * Saves a new push subscription or updates an existing one for the logged in user
  */
-export async function saveSubscriptionAction(subscription: {
-  endpoint: string;
-  keys: { p256dh: string; auth: string };
-}) {
-  try {
-    const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Use the Supabase Service Role client to bypass RLS policies and retrieve/upsert devices for all users
-    const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // 1. Insert or update the device in push_devices
-    const { data: device, error: deviceError } = await adminClient
-      .from('push_devices')
-      .upsert({
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-      }, { onConflict: 'endpoint' })
-      .select()
-      .single();
-
-    if (deviceError) {
-      console.error('[saveSubscriptionAction] Device DB Error:', deviceError);
-      return { success: false, error: deviceError.message };
-    }
-
-    // 2. Link user to device in user_push_devices (if not already linked)
-    const { error: linkError } = await adminClient
-      .from('user_push_devices')
-      .upsert({
-        user_id: user.id,
-        device_id: device.id,
-      }, { onConflict: 'user_id,device_id' });
-
-    if (linkError) {
-      console.error('[saveSubscriptionAction] Link DB Error:', linkError);
-      return { success: false, error: linkError.message };
-    }
-
-    return { success: true, data: device };
-  } catch (error: any) {
-    console.error('[saveSubscriptionAction] Error:', error);
-    return { success: false, error: error.message || 'Internal server error' };
-  }
+export async function saveSubscriptionAction(subscription: any) {
+  return { success: true };
 }
 
 /**
  * Deletes a push subscription relationship for the logged in user
  */
 export async function deleteSubscriptionAction(endpoint: string) {
-  try {
-    const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Use admin client to query across relationships and delete relationship
-    const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // 1. Find the device by endpoint
-    const { data: device, error: findError } = await adminClient
-      .from('push_devices')
-      .select('id')
-      .eq('endpoint', endpoint)
-      .maybeSingle();
-
-    if (findError) {
-      console.error('[deleteSubscriptionAction] Error finding device:', findError);
-      return { success: false, error: findError.message };
-    }
-
-    if (!device) {
-      return { success: true }; // Device not registered or already removed
-    }
-
-    // 2. Delete the user-device relationship
-    const { error: deleteLinkError } = await adminClient
-      .from('user_push_devices')
-      .delete()
-      .match({ user_id: user.id, device_id: device.id });
-
-    if (deleteLinkError) {
-      console.error('[deleteSubscriptionAction] Error deleting link:', deleteLinkError);
-      return { success: false, error: deleteLinkError.message };
-    }
-
-    // Note: The database trigger 'trigger_cleanup_orphaned_push_devices' will automatically
-    // delete the row in 'push_devices' if there are no more users linked to it.
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('[deleteSubscriptionAction] Error:', error);
-    return { success: false, error: error.message || 'Internal server error' };
-  }
+  return { success: true };
 }
 
 /**
@@ -153,8 +35,9 @@ export async function sendWebPush(payload: {
  * Retrieves the public VAPID key dynamically from the server environment at runtime
  */
 export async function getVapidPublicKey() {
-  return vapidPublicKey || null;
+  return null;
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FCM Push Notifications (Android APK via Firebase Cloud Messaging)

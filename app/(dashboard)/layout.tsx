@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { ProfileProvider } from '@/context/ProfileContext';
 import { Profile } from '@/types';
@@ -32,6 +33,14 @@ export default async function DashboardLayout({
     .select('*')
     .eq('id', user.id)
     .single();
+
+  // Redirect to reset password if mandatory reset is flagged
+  const headerStore = await headers();
+  const activePath = headerStore.get('x-pathname') || '';
+  if (profile?.password_reset_required && activePath !== '/reset-password') {
+    redirect('/reset-password');
+  }
+
 
   // Auth user exists but profile row is missing (e.g. after a DB reset).
   // DO NOT redirect to /login — that would loop back here via the root page.

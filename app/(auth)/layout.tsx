@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
@@ -8,14 +9,28 @@ export const metadata: Metadata = {
 };
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  // If the user already has an active session, redirect them to the landing page.
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const pathname = (await headers()).get('x-pathname') ?? '';
 
-  if (user) {
-    redirect('/');
+  // Only redirect already-logged-in users away from /login.
+  // /reset-password must NOT redirect authenticated users — it IS their destination
+  // after logging in with a temp password (middleware sends them here).
+  if (pathname !== '/reset-password') {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Only redirect if their profile actually exists.
+      // If the profile is missing (e.g. after a DB wipe/reset), we must let them
+      // reach /login?error=profile_missing so the client-side signOut can run.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        redirect('/');
+      }
+    }
   }
 
   return (

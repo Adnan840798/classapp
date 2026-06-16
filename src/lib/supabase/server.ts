@@ -1,14 +1,17 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 // Server-side Supabase client — for RSC (React Server Components) and Server Actions
-// Uses cookie-based session management
-export async function getSupabaseServerClient() {
+// Memoized with React's cache() to ensure a single instance is built per request thread.
+export const getSupabaseServerClient = cache(async () => {
   const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -27,4 +30,5 @@ export async function getSupabaseServerClient() {
       },
     }
   );
-}
+});
+

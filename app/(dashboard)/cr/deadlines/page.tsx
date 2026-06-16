@@ -6,7 +6,6 @@ import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriori
 import { deleteDeadline } from '@/lib/actions/deadlines';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 
-export const runtime = 'edge';
 export const revalidate = 0; // force dynamic rendering
 
 const colorThemes = {

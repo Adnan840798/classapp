@@ -4,7 +4,6 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 
-export const runtime = 'edge';
 export const revalidate = 0; // force dynamic rendering
 
 const colorThemes = {

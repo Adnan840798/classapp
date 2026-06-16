@@ -90,15 +90,6 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
             </div>
           </div>
           <div className="flex items-center gap-1.5 pr-[110px] sm:pr-0">
-            {announcement.is_public ? (
-              <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
-                Public
-              </span>
-            ) : (
-              <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-600/20 border border-slate-600/30 text-slate-400">
-                Class
-              </span>
-            )}
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, X, LogOut, Bell, GraduationCap, User, Shield } from 'lucide-react';
+import { Menu, X, LogOut, Bell, GraduationCap, User, Shield, BookOpen } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -86,7 +86,11 @@ export function Header() {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    window.location.href = '/';
+    // Wipe tenant routing cookies so the login page starts with the join-code step
+    document.cookie = 'tenant_supabase_url=; Max-Age=0; path=/;';
+    document.cookie = 'tenant_supabase_anon_key=; Max-Age=0; path=/;';
+    localStorage.removeItem('tenant_class_name');
+    window.location.href = '/login';
   }
 
 
@@ -210,6 +214,15 @@ export function Header() {
                     My Profile
                   </Link>
 
+                  <Link
+                    href={`${prefix}/manual`}
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-emerald-500/10 rounded-xl transition-all"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                    User Manual
+                  </Link>
+
                   {/* Divider */}
                   <div className="h-[1px] bg-border/85 my-1" />
 
@@ -316,8 +329,16 @@ export function Header() {
               </div>
             </div>
 
-            {/* Footer with signout */}
-            <div className="border-t border-[#23262D] pt-4">
+            {/* Footer with manual + signout */}
+            <div className="border-t border-[#23262D] pt-4 flex flex-col gap-1">
+              <Link
+                href={`${prefix}/manual`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-300 hover:text-white hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4 text-emerald-400" />
+                User Manual
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"

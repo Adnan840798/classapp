@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { CalendarDays, Upload, X, Trash2, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { uploadRoutine, deleteRoutine } from '@/lib/actions/timeline';
+import { uploadRoutine, deleteRoutine } from '@/lib/actions/routine';
 import { useRouter } from 'next/navigation';
 
 interface RoutineButtonProps {

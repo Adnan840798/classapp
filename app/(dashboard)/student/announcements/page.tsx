@@ -8,8 +8,6 @@ import {
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
-
-export const runtime = 'edge';
 export const revalidate = 0;
 
 export default async function StudentAnnouncementsPage() {
@@ -118,15 +116,6 @@ export default async function StudentAnnouncementsPage() {
                         <span className="text-[10px] text-slate-400 font-bold">
                           {announcement.creator?.full_name || 'CR'}
                         </span>
-                        {announcement.is_public ? (
-                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
-                            Public
-                          </span>
-                        ) : (
-                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-600/20 border border-slate-600/30 text-slate-400">
-                            Class
-                          </span>
-                        )}
                       </div>
                       <p className="text-[9px] text-slate-500 font-medium">
                         {formatDateTime(announcement.created_at)}

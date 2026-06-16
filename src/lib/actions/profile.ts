@@ -217,3 +217,132 @@ export async function deleteUserAccount(targetUserId: string) {
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function createStudentAccount(input: {
+  email: string;
+  password: string;
+  full_name: string;
+  university_id: string;
+  batch?: string;
+  department?: string;
+}) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!callerProfile || (callerProfile.role !== 'cr' && callerProfile.role !== 'admin')) {
+      return { error: 'Access denied. Only Class Representatives or Admins can create accounts.' };
+    }
+
+    // Validate required fields
+    const email = input.email.trim().toLowerCase();
+    const full_name = input.full_name.trim();
+    const university_id = input.university_id.trim().toUpperCase();
+    if (!email || !full_name || !university_id || !input.password) {
+      return { error: 'Email, full name, university ID, and password are all required.' };
+    }
+    if (input.password.length < 8) {
+      return { error: 'Temporary password must be at least 8 characters.' };
+    }
+
+    // Pre-check: ensure university_id is not already taken
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('university_id', university_id)
+      .maybeSingle();
+    if (existingProfile) {
+      return { error: `University ID "${university_id}" is already registered to another account.` };
+    }
+
+    // Admin client uses service role — bypasses RLS and email confirmation
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Create the auth.users record.
+    // The handle_new_user database trigger will automatically INSERT a matching
+    // row in public.profiles (with password_reset_required = true) from the
+    // user_metadata we pass here. No manual upsert needed.
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: input.password,
+      email_confirm: true,
+      user_metadata: {
+        full_name,
+        university_id,
+        role: 'student',
+        batch: input.batch?.trim() || 'N/A',
+        department: input.department?.trim() || 'N/A',
+      },
+    });
+
+    if (createError || !newUser?.user) {
+      console.error('createStudentAccount auth error:', createError);
+      return { error: createError?.message || 'Failed to create auth account.' };
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true, userId: newUser.user.id };
+  } catch (err: any) {
+    console.error('createStudentAccount error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function resetFirstTimePassword(newPassword: string) {
+  try {
+    if (!newPassword || newPassword.length < 6) {
+      return { error: 'Password must be at least 6 characters long.' };
+    }
+
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Not authenticated. Please log in again.' };
+
+    // Step 1: Update the password in Supabase Auth using the user's own session.
+    // This is the correct approach — updateUser() operates on the currently
+    // signed-in user and doesn't require the service role.
+    const { error: authError } = await supabase.auth.updateUser({ password: newPassword });
+    if (authError) {
+      console.error('resetFirstTimePassword auth error:', authError);
+      return { error: authError.message };
+    }
+
+    // Step 2: Use the admin (service role) client to mark password_reset_required = false.
+    // We bypass the anon client here so RLS can never block this critical update.
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { error: dbError } = await supabaseAdmin
+      .from('profiles')
+      .update({ password_reset_required: false })
+      .eq('id', user.id);
+
+    if (dbError) {
+      console.error('resetFirstTimePassword profile update error:', dbError);
+      return { error: `Password updated but profile flag failed: ${dbError.message}` };
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true };
+  } catch (err: any) {
+    console.error('resetFirstTimePassword error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+

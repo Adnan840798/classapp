@@ -24,7 +24,7 @@ export default async function CRProfilePage() {
   if (profile.role === 'cr' || profile.role === 'admin') {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, university_id, email, phone, role')
+      .select('id, full_name, university_id, email, phone, role, password_reset_required')
       .order('university_id', { ascending: true });
     allProfiles = data || [];
   }

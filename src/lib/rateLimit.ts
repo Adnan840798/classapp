@@ -88,6 +88,25 @@ export function rateLimit(
 export function rateLimitResponse(result: RateLimitResult, pathname: string): Response {
   const retryAfterSec = Math.ceil((result.resetAt - Date.now()) / 1000);
 
+  if (pathname.startsWith('/api/')) {
+    return new Response(
+      JSON.stringify({
+        error: `Too many requests. Please try again in ${retryAfterSec} seconds.`,
+        retryAfter: retryAfterSec,
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Retry-After': String(retryAfterSec),
+          'X-RateLimit-Limit': String(result.limit),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
+        },
+      }
+    );
+  }
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>

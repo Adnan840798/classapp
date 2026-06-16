@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
-import { sendTelegramMessage, sendTelegramFile } from '@/lib/telegram';
+import { sendTelegramMessage, sendTelegramFile, escapeHTML } from '@/lib/telegram';
 import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
 
 const ResultSchema = z.object({
@@ -47,11 +47,10 @@ export async function publishResult(formData: FormData) {
         return { error: 'File must be under 5 MB.' };
       }
 
-      // ── Step 1: Send ORIGINAL file to Telegram (non-fatal) ──────
       try {
         const caption =
-          `📊 *Result Published*\n` +
-          `*Exam:* ${parsed.data.exam_name}\n\n` +
+          `📊 <b>Result Published</b>\n` +
+          `<b>Exam:</b> ${escapeHTML(parsed.data.exam_name)}\n\n` +
           `Results have been published. Check the app for details.`;
 
         const telegramResult = await sendTelegramFile(file, caption);
@@ -151,7 +150,7 @@ export async function publishResult(formData: FormData) {
     if (!file || file.size === 0) {
       try {
         const telegramTitle = `📊 Result Published`;
-        const telegramBody = `*Exam:* ${parsed.data.exam_name}\n\nResults have been published. Students can check their results in the app.`;
+        const telegramBody = `<b>Exam:</b> ${escapeHTML(parsed.data.exam_name)}\n\nResults have been published. Students can check their results in the app.`;
         const telegramResult = await sendTelegramMessage(telegramTitle, telegramBody);
         if (!telegramResult.success) {
           console.warn('Telegram result post failed (non-fatal):', telegramResult.error);

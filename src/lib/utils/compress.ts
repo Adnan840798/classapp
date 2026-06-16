@@ -29,8 +29,10 @@ export async function compressFileForStorage(file: File): Promise<{
   }
 
   if (file.type.startsWith('image/')) {
-    // Use module.require to completely bypass Turbopack static analysis
-    const sharp = module.require('sharp');
+    // Use dynamic string name to completely prevent Webpack/Turbopack from statically bundling native binary 'sharp' in Edge runtime builds
+    const libName = 'sharp';
+    const sharpModule = await import(libName);
+    const sharp = sharpModule.default || sharpModule;
 
     const compressedBuffer = await sharp(inputBuffer)
       .resize({

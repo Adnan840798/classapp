@@ -126,24 +126,7 @@ export default function NewAnnouncementPage() {
             disabled={isPending}
           />
 
-          {/* Public visibility checkbox only */}
-          <div className="flex flex-col gap-4 border-t border-border pt-4">
-            <div className="flex items-center gap-3">
-              <div className="relative flex items-center">
-                <input
-                  id="is_public"
-                  name="is_public"
-                  value="true"
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 bg-background"
-                  disabled={isPending}
-                />
-              </div>
-              <label htmlFor="is_public" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                Make <span className="text-emerald-400 font-semibold">Public</span> (Visible to unauthenticated visitors)
-              </label>
-            </div>
-          </div>
+
 
           {/* Form Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">

@@ -6,13 +6,12 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
-import { sendTelegramMessage, sendTelegramFile } from '@/lib/telegram';
+import { sendTelegramMessage, sendTelegramFile, escapeHTML } from '@/lib/telegram';
 import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
 
 const AnnouncementSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   body: z.string().min(1, 'Body is required').max(5000),
-  is_public: z.boolean().default(false),
 });
 
 export async function createAnnouncement(formData: FormData) {
@@ -27,7 +26,6 @@ export async function createAnnouncement(formData: FormData) {
     const raw = {
       title: formData.get('title') as string,
       body: formData.get('body') as string,
-      is_public: formData.get('is_public') === 'true',
     };
 
     const parsed = AnnouncementSchema.safeParse(raw);
@@ -53,7 +51,7 @@ export async function createAnnouncement(formData: FormData) {
 
       // ── Step 1: Send ORIGINAL file to Telegram first (non-fatal) ──
       try {
-        const caption = `📢 ${parsed.data.title}\n\n${parsed.data.body.slice(0, 900)}`;
+        const caption = `📢 <b>${escapeHTML(parsed.data.title)}</b>\n\n${escapeHTML(parsed.data.body).slice(0, 900)}`;
         const telegramResult = await sendTelegramFile(file, caption);
         if (!telegramResult.success) {
           console.warn('Telegram file post failed (non-fatal):', telegramResult.error);
@@ -105,7 +103,7 @@ export async function createAnnouncement(formData: FormData) {
         title: parsed.data.title,
         body: parsed.data.body,
         is_important: true, // always important
-        is_public: parsed.data.is_public,
+        is_public: false,   // always class-only
         attachment_url,
         attachment_type,
         created_by: user.id,

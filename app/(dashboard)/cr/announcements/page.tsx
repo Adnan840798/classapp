@@ -6,8 +6,6 @@ import {
   FileText,
   Image as ImageIcon,
   Calendar,
-  Globe,
-  Lock,
   Send,
   Megaphone,
   ArrowRight,
@@ -18,8 +16,6 @@ import { deleteAnnouncement } from '@/lib/actions/announcements';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
-
-export const runtime = 'edge';
 export const revalidate = 0; // force dynamic rendering
 
 export default async function CRAnnouncementsPage() {
@@ -139,15 +135,6 @@ export default async function CRAnnouncementsPage() {
                         <span className="text-[10px] text-slate-400 font-bold">
                           {announcement.creator?.full_name || 'CR'}
                         </span>
-                        {announcement.is_public ? (
-                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400">
-                            Public
-                          </span>
-                        ) : (
-                          <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-600/20 border border-slate-600/30 text-slate-400">
-                            Class
-                          </span>
-                        )}
                       </div>
                       <p className="text-[9px] text-slate-500 font-medium">
                         {formatDateTime(announcement.created_at)}

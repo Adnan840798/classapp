@@ -16,7 +16,6 @@ const LIMITS = {
 } as const;
 
 function getClientIp(req: NextRequest): string {
-  // Vercel sets x-forwarded-for; fall back to a sentinel so the limiter still works
   return (
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     req.headers.get('x-real-ip') ??
@@ -28,9 +27,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIp(request);
 
-  // ── 1. Apply rate limiting before anything else ───────────────────────────
+  // ── 1. Rate limiting ──────────────────────────────────────────────────────
   let bucket: keyof typeof LIMITS = 'page';
-
   if (pathname === '/login' || pathname.startsWith('/api/auth')) {
     bucket = 'auth';
   } else if (pathname.startsWith('/api/telegram')) {
@@ -41,64 +39,46 @@ export async function middleware(request: NextRequest) {
 
   const { limit, windowMs } = LIMITS[bucket];
   const rl = rateLimit(bucket, ip, limit, windowMs);
+  if (!rl.success) return rateLimitResponse(rl, pathname);
 
-  if (!rl.success) {
-    return rateLimitResponse(rl, pathname);
+  // Inject x-pathname so Server Components can read the route
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
+
+  const tenantUrl     = request.cookies.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = request.cookies.get('tenant_supabase_anon_key')?.value;
+
+  // Route classification
+  const isPublicPage = pathname === '/' || pathname === '/login' || pathname.startsWith('/api/');
+  const isResetPage  = pathname === '/reset-password';
+  const isAsset      = pathname.includes('.') || pathname.startsWith('/_next/');
+  const isDashboard  = !isPublicPage && !isResetPage && !isAsset;
+
+  // Both dashboard and reset-password require a tenant config + session
+  const needsAuth = isDashboard || isResetPage;
+
+  const hasSessionCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-'));
+
+  // ── 2. No tenant config → send to /login for any auth-required route ──────
+  if (!tenantUrl && needsAuth) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
-  // ── 2. Session cookie management (Supabase SSR requires a mutable response) ─
-  let supabaseResponse = NextResponse.next({ request });
-
-  // ── 3. Root path → auto-redirect authenticated users to their dashboard ────
-  if (pathname === '/') {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll(); },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-            supabaseResponse = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profile) {
-        const url = request.nextUrl.clone();
-        url.pathname = profile.role === 'cr' || profile.role === 'admin'
-          ? '/cr/timeline'
-          : '/student/timeline';
-        return NextResponse.redirect(url);
-      }
-    }
+  // ── Fast-path: no session cookie → skip DB call, redirect immediately ─────
+  if (!hasSessionCookie && needsAuth) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
-  // ── 4. Public & API paths pass through without auth check ─────────────────
-  const isPublic = pathname === '/' || pathname === '/login';
-  const isApi    = pathname.startsWith('/api/');
-
-  if (isPublic || isApi) {
-    return supabaseResponse;
-  }
-
-  // ── 5. Protected routes — verify session ──────────────────────────────────
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  // ── 3. Root path: always allow through so landing page can render ────────
+  // (Authenticated users see "Go to Dashboard" button on the landing page itself)
+  // Still redirect if password reset is required
+  if (pathname === '/' && tenantUrl && tenantAnonKey && hasSessionCookie) {
+    const supabase = createServerClient(tenantUrl, tenantAnonKey, {
       cookies: {
         getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {
@@ -109,16 +89,72 @@ export async function middleware(request: NextRequest) {
           );
         },
       },
+    });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('password_reset_required')
+        .eq('id', user.id)
+        .single();
+
+      // Only redirect away if the user still needs to reset their password
+      if (profile?.password_reset_required === true) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/reset-password';
+        return NextResponse.redirect(url);
+      }
     }
-  );
+  }
 
-  // IMPORTANT: getUser() must be called to refresh the session token.
-  const { data: { user } } = await supabase.auth.getUser();
+  // ── 4. Public & API paths pass through ────────────────────────────────────
+  if (isPublicPage) return supabaseResponse;
 
-  if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+  // ── 5. Auth-required routes (dashboard + /reset-password) — verify session ─
+  if (tenantUrl && tenantAnonKey) {
+    const supabase = createServerClient(tenantUrl, tenantAnonKey, {
+      cookies: {
+        getAll() { return request.cookies.getAll(); },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    });
+
+    // Verify session — also refreshes the token if close to expiry
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    // Bad/expired session → wipe stale cookies and send to login
+    if (error || !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      const failResponse = NextResponse.redirect(url);
+      failResponse.cookies.set('tenant_supabase_url', '', { maxAge: 0, path: '/' });
+      failResponse.cookies.set('tenant_supabase_anon_key', '', { maxAge: 0, path: '/' });
+      return failResponse;
+    }
+
+    // ── 6. Password-reset gate ──────────────────────────────────────────────
+    // Block ALL dashboard routes for accounts that still have a temporary
+    // password. /reset-password itself is excluded to avoid an infinite loop.
+    if (isDashboard) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('password_reset_required')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.password_reset_required === true) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/reset-password';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

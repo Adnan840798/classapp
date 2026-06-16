@@ -12,7 +12,18 @@ interface SendMessageResult {
 }
 
 /**
- * Sends a formatted text message to the class Telegram channel.
+ * Escapes special characters for Telegram HTML mode.
+ */
+export function escapeHTML(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Sends a formatted HTML message to the class Telegram channel.
  */
 export async function sendTelegramMessage(
   title: string,
@@ -26,8 +37,8 @@ export async function sendTelegramMessage(
     return { success: false, error: 'Telegram not configured' };
   }
 
-  // Format message with Markdown
-  const message = `📢 *${escapeMarkdown(title)}*\n\n${escapeMarkdown(body)}`;
+  // Format message with HTML tags
+  const message = `📢 <b>${escapeHTML(title)}</b>\n\n${escapeHTML(body)}`;
 
   try {
     const response = await fetch(
@@ -38,7 +49,7 @@ export async function sendTelegramMessage(
         body: JSON.stringify({
           chat_id: channelId,
           text: message,
-          parse_mode: 'MarkdownV2',
+          parse_mode: 'HTML',
         }),
       }
     );
@@ -57,16 +68,13 @@ export async function sendTelegramMessage(
 }
 
 /**
- * Sends a file (image or document) to the Telegram channel.
+ * Sends a file (image or document) with HTML formatted caption to the Telegram channel.
  *
  * For images  → uses sendPhoto  (inline preview in the channel).
  * For PDFs    → uses sendDocument (file download button).
  *
- * The file is sent at its ORIGINAL size — no compression applied here.
- * Compression happens separately before writing to Supabase storage.
- *
  * @param file     - The original File object (from FormData)
- * @param caption  - Short caption shown beneath the file in Telegram
+ * @param caption  - Short caption shown beneath the file in Telegram (will be escaped inside)
  */
 export async function sendTelegramFile(
   file: File,
@@ -87,8 +95,11 @@ export async function sendTelegramFile(
   try {
     const form = new FormData();
     form.set('chat_id', channelId);
+    
     // Telegram caption limit is 1024 chars; truncate safely
     form.set('caption', caption.slice(0, 1020));
+    form.set('parse_mode', 'HTML');
+    
     // Append the file under the correct field name for the API endpoint
     form.set(fieldName, file, file.name);
 
@@ -111,13 +122,4 @@ export async function sendTelegramFile(
     console.error('Failed to send Telegram file:', error);
     return { success: false, error: 'Network error sending Telegram file' };
   }
-}
-
-/**
- * Escapes special characters for Telegram MarkdownV2.
- * The hyphen (-) must be at the END of the character class to be treated as a
- * literal hyphen and not as a range operator.
- */
-function escapeMarkdown(text: string): string {
-  return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
 }

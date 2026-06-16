@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, Smartphone } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
 
 interface ProfileFormProps {
   profile: Profile;
-  allProfiles?: Pick<Profile, 'id' | 'full_name' | 'university_id' | 'email' | 'phone' | 'role'>[];
+  allProfiles?: Pick<Profile, 'id' | 'full_name' | 'university_id' | 'email' | 'phone' | 'role' | 'password_reset_required'>[];
 }
 
 export function ProfileForm({ profile: initialProfile, allProfiles = [] }: ProfileFormProps) {
@@ -33,6 +33,17 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
   const [searchTerm, setSearchTerm] = useState('');
   const [actionPendingId, setActionPendingId] = useState<string | null>(null);
   const [accountsList, setAccountsList] = useState(allProfiles);
+  const [activeAccountTab, setActiveAccountTab] = useState<'verified' | 'pending'>('verified');
+
+  // Create Student modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [newStudent, setNewStudent] = useState({
+    full_name: '', email: '', university_id: '',
+    password: '', batch: '', department: '',
+  });
 
 
 
@@ -58,14 +69,54 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
     }
   }
 
+  async function handleCreateStudent(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
+    setIsCreating(true);
+    try {
+      const res = await createStudentAccount(newStudent);
+      if (res.error) {
+        setCreateError(res.error);
+      } else {
+        setCreateSuccess(`Account created for ${newStudent.full_name}. They must reset their password on first login.`);
+        
+        // Append to accounts list locally so the modal updates in real-time
+        const createdUser = {
+          id: res.userId || Math.random().toString(),
+          full_name: newStudent.full_name,
+          email: newStudent.email,
+          university_id: newStudent.university_id.toUpperCase(),
+          phone: '',
+          role: 'student' as const,
+          password_reset_required: true,
+        };
+        setAccountsList(prev => [...prev, createdUser]);
+        
+        setNewStudent({ full_name: '', email: '', university_id: '', password: '', batch: '', department: '' });
+      }
+    } catch (err: any) {
+      setCreateError(err.message || 'Unexpected error.');
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
   const filteredAccounts = accountsList.filter((acc) => {
     const term = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       acc.full_name.toLowerCase().includes(term) ||
       acc.university_id.toLowerCase().includes(term) ||
       acc.email.toLowerCase().includes(term) ||
       (acc.phone && acc.phone.includes(term))
     );
+    if (!matchesSearch) return false;
+
+    if (activeAccountTab === 'pending') {
+      return acc.password_reset_required === true;
+    } else {
+      return acc.password_reset_required !== true;
+    }
   });
 
   async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -139,7 +190,8 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Left Column: Avatar & Notifications */}
       <div className="flex flex-col gap-6">
         {/* Avatar Card */}
@@ -253,14 +305,24 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             <p className="text-xs text-muted-foreground leading-relaxed">
               As a Class Representative, you can view, edit roles, and delete authorized student accounts for this batch.
             </p>
-            <button
-              type="button"
-              onClick={() => setIsManageModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 rounded-xl text-sm font-semibold text-[#34D399] border border-[#34D399]/20 hover:border-[#34D399]/40 bg-[#34D399]/10 hover:bg-[#34D399]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#34D399]/5 cursor-pointer"
-            >
-              <Users className="w-4 h-4 text-[#34D399]" />
-              Manage Accounts ({accountsList.length})
-            </button>
+            <div className="flex flex-col gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => { setIsCreateModalOpen(true); setCreateError(null); setCreateSuccess(null); }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border border-emerald-500/30 bg-emerald-500/15 hover:bg-emerald-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/5 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                Create Student Account
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#34D399] border border-[#34D399]/20 hover:border-[#34D399]/40 bg-[#34D399]/10 hover:bg-[#34D399]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#34D399]/5 cursor-pointer"
+              >
+                <Users className="w-4 h-4 text-[#34D399]" />
+                Manage Accounts ({accountsList.length})
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -434,6 +496,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
           </div>
         </div>
       </div>
+    </form>
 
       {/* Manage Student Accounts Modal */}
       {isManageModalOpen && (
@@ -462,7 +525,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             </div>
 
             {/* Search and Filters */}
-            <div className="p-4 md:p-6 border-b border-[#23262D] flex-shrink-0 bg-[#1A1D24]/20">
+            <div className="p-4 md:p-6 border-b border-[#23262D] flex-shrink-0 bg-[#1A1D24]/20 flex flex-col gap-4">
               <div className="relative">
                 <input
                   type="text"
@@ -482,6 +545,35 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                   </button>
                 )}
               </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-[#23262D]/60 -mx-4 md:-mx-6 px-4 md:px-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveAccountTab('verified')}
+                  className={`py-2 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+                    activeAccountTab === 'verified'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Verified ({accountsList.filter(a => a.password_reset_required !== true).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveAccountTab('pending')}
+                  className={`py-2 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                    activeAccountTab === 'pending'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Pending Verification ({accountsList.filter(a => a.password_reset_required === true).length})
+                  {accountsList.filter(a => a.password_reset_required === true).length > 0 && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* List Body */}
@@ -490,15 +582,20 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Users className="w-12 h-12 text-slate-600 mb-3" />
                   <p className="text-sm font-semibold text-slate-400">No student accounts found</p>
-                  <p className="text-xs text-slate-500 mt-1">Try adjusting your search terms</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {activeAccountTab === 'pending'
+                      ? 'No accounts are currently pending first-login activation'
+                      : 'No verified accounts match your search'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {/* Table Header (Desktop only) */}
                   <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 border-b border-[#23262D]/30">
-                    <div className="col-span-5">Student</div>
-                    <div className="col-span-4">Contact Details</div>
+                    <div className="col-span-4">Student</div>
+                    <div className="col-span-3">Contact Details</div>
                     <div className="col-span-1 text-center">Role</div>
+                    <div className="col-span-2 text-center">Status</div>
                     <div className="col-span-2 text-right pr-2">Actions</div>
                   </div>
 
@@ -512,7 +609,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         className="bg-[#1A1D24]/40 border border-[#23262D]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-[#1A1D24]/70"
                       >
                         {/* Student Meta Info */}
-                        <div className="col-span-1 md:col-span-5 flex items-center gap-3.5 min-w-0">
+                        <div className="col-span-1 md:col-span-4 flex items-center gap-3.5 min-w-0">
                           <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 uppercase flex-shrink-0">
                             {initials}
                           </div>
@@ -530,7 +627,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         </div>
 
                         {/* Contact Info */}
-                        <div className="col-span-1 md:col-span-4 flex flex-col gap-1.5 text-xs text-slate-400 min-w-0">
+                        <div className="col-span-1 md:col-span-3 flex flex-col gap-1.5 text-xs text-slate-400 min-w-0">
                           <a
                             href={`mailto:${student.email}`}
                             className="flex items-center gap-2 hover:text-white transition-colors truncate"
@@ -555,6 +652,20 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                           >
                             {student.role.toUpperCase()}
                           </span>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div className="col-span-1 md:col-span-2 flex items-center md:justify-center justify-start">
+                          {student.password_reset_required === true ? (
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-500/10 border-amber-500/30 text-amber-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              Pending Reset
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                              Verified
+                            </span>
+                          )}
                         </div>
 
                         {/* Actions */}
@@ -589,6 +700,148 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
           </div>
         </div>
       )}
-    </form>
+
+      {/* ── Create Student Account Modal ── */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#121214] border border-[#23262D] rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-5 border-b border-[#23262D] flex items-center justify-between bg-[#1A1D24]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}>
+                  <UserPlus className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">Create Student Account</h2>
+                  <p className="text-[10px] text-slate-400">Student must reset password on first login</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleCreateStudent} className="p-5 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
+              {createError && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  {createError}
+                </div>
+              )}
+              {createSuccess && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+                  <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  {createSuccess}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Full Name *</label>
+                  <input
+                    type="text" required
+                    value={newStudent.full_name}
+                    onChange={e => setNewStudent(s => ({ ...s, full_name: e.target.value }))}
+                    placeholder="e.g. Adnan Rahman"
+                    className="form-input text-sm"
+                    disabled={isCreating}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-300">University ID *</label>
+                  <input
+                    type="text" required
+                    value={newStudent.university_id}
+                    onChange={e => setNewStudent(s => ({ ...s, university_id: e.target.value }))}
+                    placeholder="e.g. CSE-2021-001"
+                    className="form-input text-sm font-mono uppercase"
+                    disabled={isCreating}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300">University Email *</label>
+                <input
+                  type="email" required
+                  value={newStudent.email}
+                  onChange={e => setNewStudent(s => ({ ...s, email: e.target.value }))}
+                  placeholder="student@university.edu"
+                  className="form-input text-sm"
+                  disabled={isCreating}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <KeyRound className="w-3 h-3 text-amber-400" />
+                  Temporary Password *
+                </label>
+                <input
+                  type="text" required minLength={8}
+                  value={newStudent.password}
+                  onChange={e => setNewStudent(s => ({ ...s, password: e.target.value }))}
+                  placeholder="Min. 8 characters — student will change this"
+                  className="form-input text-sm font-mono"
+                  disabled={isCreating}
+                />
+                <p className="text-[10px] text-amber-400/80">⚠ Share this password securely with the student. They will be forced to set a new one.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Batch (optional)</label>
+                  <input
+                    type="text"
+                    value={newStudent.batch}
+                    onChange={e => setNewStudent(s => ({ ...s, batch: e.target.value }))}
+                    placeholder="e.g. 2024"
+                    className="form-input text-sm"
+                    disabled={isCreating}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Department (optional)</label>
+                  <input
+                    type="text"
+                    value={newStudent.department}
+                    onChange={e => setNewStudent(s => ({ ...s, department: e.target.value }))}
+                    placeholder="e.g. Computer Science"
+                    className="form-input text-sm"
+                    disabled={isCreating}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2 border-t border-[#23262D]">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 border border-[#23262D] hover:bg-slate-800/40 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {isCreating ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
+                  ) : (
+                    <><UserPlus className="w-4 h-4" /> Create Account</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

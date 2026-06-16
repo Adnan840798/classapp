@@ -27,6 +27,7 @@ export interface Profile {
   notif_enabled: boolean;
   notif_sound_on: boolean;
   cr_last_read_at: string | null;
+  password_reset_required?: boolean;
   created_at: string;
   updated_at: string;
 }
