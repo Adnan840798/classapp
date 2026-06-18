@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Award, Calendar, FileText, ArrowUpRight, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { Plus, Award, Calendar, FileText, ArrowUpRight, Square, Trash2, Check, CheckSquare } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteResult, bulkDeleteResults } from '@/lib/actions/results';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -86,29 +86,51 @@ export function ResultsList({ results }: { results: Result[] }) {
       <div className="flex flex-col gap-3">
         {results.map((res) => {
           const isSelected = selectedIds.has(res.id);
-          return (
-            <div
-              key={res.id}
-              onClick={selectMode ? () => toggleItem(res.id) : undefined}
-              className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
-                selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-              } ${isSelected ? 'ring-2 ring-rose-500/60' : ''}`}
-              style={{
-                background: isSelected ? 'linear-gradient(90deg, rgba(239,68,68,0.1) 0%, rgba(26,29,36,0.65) 100%)' : '#1A1D24',
-                border: isSelected ? '1px solid rgba(239,68,68,0.5)' : '1px solid #23262D',
-              }}
-            >
-              <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: isSelected ? 'linear-gradient(180deg, #ef4444, #dc2626)' : 'linear-gradient(180deg, #38BDF8, #0ea5e9)' }} />
+            return (
+              <div
+                key={res.id}
+                onClick={selectMode ? () => toggleItem(res.id) : undefined}
+                className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
+                  selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
+                }`}
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
+                    : '#1A1D24',
+                  border: isSelected ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid #23262D',
+                  boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
+                }}
+              >
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{
+                    background: isSelected
+                      ? 'linear-gradient(180deg, #f43f5e, #be123c)'
+                      : 'linear-gradient(180deg, #38BDF8, #0ea5e9)'
+                  }}
+                />
 
-              <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {selectMode && (
-                    <div className="flex-shrink-0">
-                      {isSelected ? <CheckSquare className="w-5 h-5 text-rose-400" /> : <Square className="w-5 h-5 text-slate-600" />}
-                    </div>
-                  )}
-                  <div className="w-9 h-9 rounded-lg bg-brand-cyan/10 border border-brand-cyan/20 flex items-center justify-center flex-shrink-0">
-                    <Award className="w-4 h-4 text-brand-cyan" />
+                <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {selectMode && (
+                      <div className="flex-shrink-0">
+                        {isSelected ? (
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+                            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                        )}
+                      </div>
+                    )}
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: isSelected ? 'rgba(244, 63, 94, 0.12)' : 'rgba(56, 189, 248, 0.1)',
+                        border: isSelected ? '1px solid rgba(244, 63, 94, 0.25)' : '1px solid rgba(56, 189, 248, 0.2)',
+                      }}
+                    >
+                      <Award className={`w-4 h-4 ${isSelected ? 'text-rose-400' : 'text-brand-cyan'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-extrabold text-white break-words leading-snug">{res.exam_name}</h3>

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   Plus, Megaphone, FileText, ArrowRight,
-  CheckSquare, Square, Trash2,
+  Square, Trash2, Check, CheckSquare,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteAnnouncement, bulkDeleteAnnouncements } from '@/lib/actions/announcements';
@@ -109,16 +109,19 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
               onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
               className={`relative rounded-xl overflow-hidden transition-all duration-150 ${
                 selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-              } ${isSelected ? 'ring-2 ring-rose-500/60 ring-offset-0' : ''} animate-fade-in`}
+              } animate-fade-in`}
               style={{
-                background: isImportant
-                  ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
-                  : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
+                background: isSelected
+                  ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
+                  : isImportant
+                    ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
+                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
                 border: isSelected
-                  ? '1px solid rgba(239,68,68,0.5)'
+                  ? '1px solid rgba(244, 63, 94, 0.4)'
                   : isImportant
                     ? '1px solid rgba(52,211,153,0.28)'
                     : '1px solid rgba(148,163,184,0.15)',
+                boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
               }}
             >
               {/* Left accent bar */}
@@ -126,7 +129,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                 className="absolute left-0 top-0 bottom-0 w-1"
                 style={{
                   background: isSelected
-                    ? 'linear-gradient(180deg, #ef4444, #dc2626)'
+                    ? 'linear-gradient(180deg, #f43f5e, #be123c)'
                     : isImportant
                       ? 'linear-gradient(180deg, #34D399, #059669)'
                       : 'linear-gradient(180deg, #475569, #1e293b)',
@@ -138,20 +141,31 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   {selectMode && (
                     <div className="flex-shrink-0 mt-0.5">
-                      {isSelected
-                        ? <CheckSquare className="w-5 h-5 text-rose-400" />
-                        : <Square className="w-5 h-5 text-slate-600" />
-                      }
+                      {isSelected ? (
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+                          <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                      )}
                     </div>
                   )}
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: isImportant ? 'rgba(52,211,153,0.12)' : 'rgba(148,163,184,0.08)',
-                      border: isImportant ? '1px solid rgba(52,211,153,0.25)' : '1px solid rgba(148,163,184,0.15)',
+                      background: isSelected
+                        ? 'rgba(244, 63, 94, 0.12)'
+                        : isImportant
+                          ? 'rgba(52,211,153,0.12)'
+                          : 'rgba(148,163,184,0.08)',
+                      border: isSelected
+                        ? '1px solid rgba(244, 63, 94, 0.25)'
+                        : isImportant
+                          ? '1px solid rgba(52,211,153,0.25)'
+                          : '1px solid rgba(148,163,184,0.15)',
                     }}
                   >
-                    <Megaphone className={`w-5 h-5 ${isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
+                    <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">

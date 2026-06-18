@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Clock, BookOpen, Calendar, ArrowRight, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { Plus, Clock, BookOpen, Calendar, ArrowRight, Square, Trash2, Check, CheckSquare } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import { deleteDeadline, bulkDeleteDeadlines } from '@/lib/actions/deadlines';
@@ -39,6 +39,13 @@ const colorThemes = {
     accent: 'linear-gradient(180deg, #64748b, #94a3b8)',
     badgeBg: 'rgba(148,163,184,0.08)', badgeBorder: '1px solid rgba(148,163,184,0.15)', badgeText: '#94a3b8',
     iconColor: 'text-slate-400', iconBg: 'rgba(148,163,184,0.06)', iconBorder: '1px solid rgba(148,163,184,0.12)',
+  },
+  selected: {
+    bg: 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)',
+    border: '1px solid rgba(244, 63, 94, 0.4)',
+    accent: 'linear-gradient(180deg, #f43f5e, #be123c)',
+    badgeBg: 'rgba(244,63,94,0.12)', badgeBorder: '1px solid rgba(244,63,94,0.25)', badgeText: '#f43f5e',
+    iconColor: 'text-rose-400', iconBg: 'rgba(244,63,94,0.12)', iconBorder: '1px solid rgba(244,63,94,0.25)',
   },
 };
 
@@ -113,27 +120,34 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
       {/* List */}
       <div className="flex flex-col gap-3">
         {activeDeadlines.map((deadline) => {
-          const theme = colorThemes[deadline.color] || colorThemes.green;
           const isSelected = selectedIds.has(deadline.id);
+          const theme = isSelected ? colorThemes.selected : (colorThemes[deadline.color] || colorThemes.green);
           return (
             <div
               key={deadline.id}
               onClick={selectMode ? () => toggleItem(deadline.id) : undefined}
               className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
                 selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-              } ${isSelected ? 'ring-2 ring-rose-500/60' : ''}`}
+              }`}
               style={{
-                background: isSelected ? 'linear-gradient(90deg, rgba(239,68,68,0.1) 0%, rgba(26,29,36,0.65) 100%)' : theme.bg,
-                border: isSelected ? '1px solid rgba(239,68,68,0.5)' : theme.border,
+                background: theme.bg,
+                border: theme.border,
+                boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
               }}
             >
-              <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: isSelected ? 'linear-gradient(180deg, #ef4444, #dc2626)' : theme.accent }} />
+              <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: theme.accent }} />
 
               <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   {selectMode && (
                     <div className="flex-shrink-0 mt-0.5">
-                      {isSelected ? <CheckSquare className="w-5 h-5 text-rose-400" /> : <Square className="w-5 h-5 text-slate-600" />}
+                      {isSelected ? (
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+                          <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                      )}
                     </div>
                   )}
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: theme.iconBg, border: theme.iconBorder }}>
