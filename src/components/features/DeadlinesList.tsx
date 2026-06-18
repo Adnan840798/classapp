@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Plus, Clock, BookOpen, Calendar, ArrowRight, CheckSquare, Square, Trash2 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
-import { enrichDeadlines, formatDaysRemaining, DeadlineWithColor } from '@/lib/utils/deadlinePriority';
+import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import { deleteDeadline, bulkDeleteDeadlines } from '@/lib/actions/deadlines';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { EditDeadlineModal } from '@/components/features/EditDeadlineModal';
