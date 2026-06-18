@@ -76,7 +76,7 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
         {/* Card Accent Line */}
         <div className="absolute top-0 left-0 w-full h-[3px]" style={{
           background: enriched.color === 'red' ? 'linear-gradient(90deg, #ef4444, #f87171)' : 
-                      enriched.color === 'orange' ? 'linear-gradient(90deg, #f97316, #fb923c)' : 
+                      enriched.color === 'yellow' ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 
                       'linear-gradient(90deg, #6b7280, #9ca3af)'
         }} />
 
