@@ -36,7 +36,11 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    window.location.href = '/';
+    // Wipe tenant routing cookies
+    document.cookie = 'tenant_supabase_url=; Max-Age=0; path=/;';
+    document.cookie = 'tenant_supabase_anon_key=; Max-Age=0; path=/;';
+    localStorage.removeItem('tenant_class_name');
+    window.location.href = '/login';
   }
 
   if (!profile) {

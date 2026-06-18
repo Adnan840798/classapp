@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Eye, EyeOff, ShieldAlert, Loader2, KeyRound } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Eye, EyeOff, ShieldAlert, Loader2, KeyRound, CheckCircle2, Mail } from 'lucide-react';
 import { resetFirstTimePassword } from '@/lib/actions/profile';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+
+type FlowMode = 'first-login' | 'email-recovery' | 'loading';
 
 export default function ResetPasswordPage() {
+  const [mode, setMode] = useState<FlowMode>('loading');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -13,12 +16,36 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    // Check URL params to detect if this is an email-recovery link from Supabase
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = hashParams.get('access_token');
+    const hashType = hashParams.get('type');
+
+    if (type === 'recovery' || hashType === 'recovery') {
+      // This is an email reset link — Supabase puts the session in the URL hash
+      setMode('email-recovery');
+
+      // If there's an access_token in the hash, set the session so updateUser() works
+      if (accessToken) {
+        const refreshToken = hashParams.get('refresh_token') || '';
+        const supabase = getSupabaseBrowserClient();
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .catch(console.error);
+      }
+    } else {
+      setMode('first-login');
+    }
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
       return;
     }
 
@@ -29,15 +56,21 @@ export default function ResetPasswordPage() {
 
     setIsLoading(true);
     try {
-      const res = await resetFirstTimePassword(password);
-      if (res && res.error) {
-        throw new Error(res.error);
+      if (mode === 'email-recovery') {
+        // For email recovery, use the Supabase client directly
+        // The session was set from the URL hash, so updateUser() will work
+        const supabase = getSupabaseBrowserClient();
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+        if (updateError) throw new Error(updateError.message);
+        setSuccess(true);
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+      } else {
+        // First-login flow — uses the existing server action
+        const res = await resetFirstTimePassword(password);
+        if (res && res.error) throw new Error(res.error);
+        setSuccess(true);
+        setTimeout(() => { window.location.href = '/'; }, 1500);
       }
-      setSuccess(true);
-      setTimeout(() => {
-        // Redirect to timeline root page which will auto-route to student/cr dashboard
-        window.location.href = '/';
-      }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to update password. Please try again.');
     } finally {
@@ -45,19 +78,41 @@ export default function ResetPasswordPage() {
     }
   }
 
+  if (mode === 'loading') {
+    return (
+      <div className="w-full max-w-md fade-in flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const isRecovery = mode === 'email-recovery';
+
   return (
     <div className="w-full max-w-md fade-in">
       {/* Header */}
       <div className="text-center mb-8 select-none">
         <div
           className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 shadow-lg"
-          style={{ background: 'linear-gradient(135deg, hsl(265, 85%, 60%), hsl(275, 80%, 48%))' }}
+          style={{
+            background: isRecovery
+              ? 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))'
+              : 'linear-gradient(135deg, hsl(265, 85%, 60%), hsl(275, 80%, 48%))',
+          }}
         >
-          <KeyRound className="w-7 h-7 text-white" />
+          {isRecovery ? (
+            <Mail className="w-7 h-7 text-white" />
+          ) : (
+            <KeyRound className="w-7 h-7 text-white" />
+          )}
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Activate Account</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-white">
+          {isRecovery ? 'Reset Password' : 'Activate Account'}
+        </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Choose a new password to secure your class account
+          {isRecovery
+            ? 'Enter a new password for your account'
+            : 'Choose a new password to secure your class account'}
         </p>
       </div>
 
@@ -65,24 +120,28 @@ export default function ResetPasswordPage() {
       <div className="glass-card p-8">
         {success ? (
           <div className="text-center flex flex-col items-center gap-4 py-6">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold animate-bounce">
-              ✓
+            <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+              <CheckCircle2 className="w-7 h-7 text-emerald-400" />
             </div>
             <h2 className="text-lg font-bold text-white">Password Updated!</h2>
             <p className="text-xs text-slate-400">
-              Securing your profile and loading your classroom dashboard...
+              {isRecovery
+                ? 'Redirecting to sign in…'
+                : 'Securing your profile and loading your classroom dashboard…'}
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="flex items-start gap-2.5 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300 text-xs leading-relaxed">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                You are logging in with a default password. For security reasons, you must set a new personal password before accessing ClassApp.
-              </span>
-            </div>
+            {!isRecovery && (
+              <div className="flex items-start gap-2.5 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300 text-xs leading-relaxed">
+                <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>
+                  You are logging in with a default password. For security, you must set a new personal password before accessing ClassApp.
+                </span>
+              </div>
+            )}
 
-            {/* Password */}
+            {/* New Password */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className="text-xs font-semibold text-slate-300">
                 New Password
@@ -93,8 +152,9 @@ export default function ResetPasswordPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min 6 characters"
+                  placeholder="At least 8 characters"
                   required
+                  minLength={8}
                   className="form-input pr-10"
                   disabled={isLoading}
                 />
@@ -136,10 +196,10 @@ export default function ResetPasswordPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Securing Profile…
+                  {isRecovery ? 'Updating Password…' : 'Securing Profile…'}
                 </>
               ) : (
-                'Activate Account'
+                isRecovery ? 'Set New Password' : 'Activate Account'
               )}
             </button>
           </form>

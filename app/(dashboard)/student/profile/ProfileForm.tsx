@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -45,7 +45,38 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
     password: '', batch: '', department: '',
   });
 
+  // Change Password states
+  const [cpCurrentPass, setCpCurrentPass] = useState('');
+  const [cpNewPass, setCpNewPass] = useState('');
+  const [cpConfirmPass, setCpConfirmPass] = useState('');
+  const [cpShowCurrent, setCpShowCurrent] = useState(false);
+  const [cpShowNew, setCpShowNew] = useState(false);
+  const [cpPending, setCpPending] = useState(false);
+  const [cpError, setCpError] = useState<string | null>(null);
+  const [cpSuccess, setCpSuccess] = useState(false);
 
+
+
+  async function handleRoleToggle(targetUser: typeof allProfiles[0]) {
+    const newRole = targetUser.role === 'cr' || targetUser.role === 'admin' ? 'student' : 'cr';
+    const label = newRole === 'cr' ? 'promote to CR' : 'demote to Student';
+    if (!confirm(`Are you sure you want to ${label} ${targetUser.full_name}?\n\nThey will need to sign out and back in for the change to take effect.`)) return;
+    setActionPendingId(targetUser.id);
+    try {
+      const res = await updateUserRole(targetUser.id, newRole);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        setAccountsList(prev => prev.map(acc =>
+          acc.id === targetUser.id ? { ...acc, role: newRole } : acc
+        ));
+      }
+    } catch (err) {
+      alert('Failed to update role');
+    } finally {
+      setActionPendingId(null);
+    }
+  }
 
   async function handleDeleteAccount(targetUser: typeof allProfiles[0]) {
     if (!confirm(`WARNING: Are you sure you want to permanently delete ${targetUser.full_name}'s account (${targetUser.university_id})?\n\nThis will remove their profile and all associated data. This action cannot be undone.`)) {
@@ -495,6 +526,133 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
             </button>
           </div>
         </div>
+
+        {/* ── Change Password Card ────────────────────────── */}
+        <div className="glass-card p-6 md:p-8 flex flex-col gap-5">
+          <div className="flex items-center gap-2 border-b border-border pb-3">
+            <KeyRound className="w-4 h-4 text-amber-400" />
+            <h3 className="font-bold text-sm text-foreground">Change Password</h3>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-1">
+            Enter your current password to set a new one. Minimum 8 characters.
+          </p>
+
+          {cpError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              {cpError}
+            </div>
+          )}
+          {cpSuccess && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              Password changed successfully!
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4">
+            {/* Current Password */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground">Current Password</label>
+              <div className="relative">
+                <input
+                  type={cpShowCurrent ? 'text' : 'password'}
+                  value={cpCurrentPass}
+                  onChange={e => setCpCurrentPass(e.target.value)}
+                  placeholder="Your current password"
+                  className="form-input pr-10"
+                  disabled={cpPending}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCpShowCurrent(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* New Password */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground">New Password</label>
+              <div className="relative">
+                <input
+                  type={cpShowNew ? 'text' : 'password'}
+                  value={cpNewPass}
+                  onChange={e => setCpNewPass(e.target.value)}
+                  placeholder="At least 8 characters"
+                  className="form-input pr-10"
+                  disabled={cpPending}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCpShowNew(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground">Confirm New Password</label>
+              <input
+                type="password"
+                value={cpConfirmPass}
+                onChange={e => setCpConfirmPass(e.target.value)}
+                placeholder="Repeat new password"
+                className="form-input"
+                disabled={cpPending}
+              />
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                disabled={cpPending || !cpCurrentPass || !cpNewPass || !cpConfirmPass}
+                onClick={async () => {
+                  setCpError(null);
+                  setCpSuccess(false);
+                  if (cpNewPass !== cpConfirmPass) {
+                    setCpError('New passwords do not match.');
+                    return;
+                  }
+                  if (cpNewPass.length < 8) {
+                    setCpError('New password must be at least 8 characters.');
+                    return;
+                  }
+                  setCpPending(true);
+                  try {
+                    const res = await changePassword(cpCurrentPass, cpNewPass);
+                    if (res.error) {
+                      setCpError(res.error);
+                    } else {
+                      setCpSuccess(true);
+                      setCpCurrentPass('');
+                      setCpNewPass('');
+                      setCpConfirmPass('');
+                    }
+                  } catch (err: any) {
+                    setCpError(err.message || 'An error occurred.');
+                  } finally {
+                    setCpPending(false);
+                  }
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {cpPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Updating…</>
+                ) : (
+                  <><KeyRound className="w-4 h-4" /> Update Password</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
 
@@ -672,6 +830,28 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
                         <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#23262D]/40 pt-3 md:pt-0 md:border-0">
                           <div className="flex items-center gap-2 ml-auto md:ml-0">
 
+                            {/* Role Toggle Button — only for non-self rows */}
+                            {!isSelf && (
+                              <button
+                                type="button"
+                                disabled={actionPendingId !== null}
+                                onClick={() => handleRoleToggle(student)}
+                                className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50 ${
+                                  student.role === 'cr' || student.role === 'admin'
+                                    ? 'border-amber-500/30 hover:bg-amber-500/10 text-amber-400 hover:text-amber-300'
+                                    : 'border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300'
+                                }`}
+                                title={student.role === 'cr' || student.role === 'admin' ? 'Demote to Student' : 'Promote to CR'}
+                              >
+                                {actionPendingId === student.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : student.role === 'cr' || student.role === 'admin' ? (
+                                  <UserCheck className="w-4 h-4" />
+                                ) : (
+                                  <Shield className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
 
                             {/* Delete Button */}
                             {!isSelf && (

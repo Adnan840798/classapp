@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, CheckSquare, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { verifyAndConnectClass } from '@/lib/actions/auth-tenant';
+import { requestPasswordReset } from '@/lib/actions/profile';
 
 export default function LoginPage() {
   const captchaRef = useRef<HCaptcha>(null);
@@ -22,6 +23,13 @@ export default function LoginPage() {
   const [joinCode, setJoinCode] = useState('');
   const [className, setClassName] = useState('');
   const [isClassConnected, setIsClassConnected] = useState(false);
+
+  // Forgot password flow
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotPending, setForgotPending] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -72,7 +80,6 @@ export default function LoginPage() {
   }
 
   function handleSwitchClass() {
-    // Clear tenant cookies on the client side
     document.cookie = 'tenant_supabase_url=; Max-Age=0; path=/;';
     document.cookie = 'tenant_supabase_anon_key=; Max-Age=0; path=/;';
     localStorage.removeItem('tenant_class_name');
@@ -82,6 +89,8 @@ export default function LoginPage() {
     setError(null);
     setCaptchaToken(isLocalhost ? 'dev-bypass-token' : null);
     captchaRef.current?.resetCaptcha();
+    setShowForgotPassword(false);
+    setForgotSent(false);
   }
 
   async function handleSignIn(e: React.FormEvent) {
@@ -123,7 +132,13 @@ export default function LoginPage() {
         password,
       });
 
-      if (signInError) throw new Error(signInError.message);
+      if (signInError) {
+        // Show forgot password hint on bad credentials
+        if (signInError.message.toLowerCase().includes('invalid') || signInError.message.toLowerCase().includes('credentials')) {
+          throw new Error(signInError.message + ' — Did you forget your password?');
+        }
+        throw new Error(signInError.message);
+      }
       if (!data.user) throw new Error('Login failed. Please try again.');
 
       // Fetch the user's profile to determine role and first-login status
@@ -144,7 +159,6 @@ export default function LoginPage() {
         ? '/cr/timeline'
         : '/student/timeline';
 
-      // Force reload to sync session cookies
       window.location.href = redirectTo;
 
     } catch (err: unknown) {
@@ -154,6 +168,26 @@ export default function LoginPage() {
       setCaptchaToken(null);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError(null);
+    if (!forgotEmail.trim()) {
+      setForgotError('Please enter your email address.');
+      return;
+    }
+    setForgotPending(true);
+    try {
+      // requestPasswordReset validates the email exists in this class before sending
+      await requestPasswordReset(forgotEmail.trim().toLowerCase());
+      // Always show success (prevents email enumeration)
+      setForgotSent(true);
+    } catch (err: any) {
+      setForgotError(err.message || 'Failed to send reset email. Please try again.');
+    } finally {
+      setForgotPending(false);
     }
   }
 
@@ -178,7 +212,7 @@ export default function LoginPage() {
       {/* Card */}
       <div className="glass-card p-8">
         {!isClassConnected ? (
-          // Join Code Registration Form
+          // ── Step 1: Join Code ──────────────────────────────
           <form onSubmit={handleVerifyJoinCode} className="flex flex-col gap-5">
             <div className="text-center mb-2">
               <h2 className="text-lg font-bold text-white flex items-center justify-center gap-2">
@@ -223,8 +257,84 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+        ) : showForgotPassword ? (
+          // ── Forgot Password Flow ───────────────────────────
+          <div className="flex flex-col gap-5">
+            <button
+              onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotError(null); setForgotEmail(''); }}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors w-fit"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to Sign In
+            </button>
+
+            <div className="text-center">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-3 mx-auto"
+                style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}
+              >
+                <Mail className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h2 className="text-base font-bold text-white">Reset Password</h2>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Enter the email linked to your <strong className="text-slate-300">{className}</strong> account. We'll send a reset link if it exists.
+              </p>
+            </div>
+
+            {forgotSent ? (
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Check your inbox</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    If <span className="text-slate-300">{forgotEmail}</span> is registered, a reset link has been sent. Check your spam folder too.
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-300">
+                    University Email
+                  </label>
+                  <input
+                    id="forgotEmail"
+                    type="email"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    placeholder="you@university.edu"
+                    required
+                    className="form-input"
+                    disabled={forgotPending}
+                  />
+                </div>
+
+                {forgotError && (
+                  <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                    {forgotError}
+                  </div>
+                )}
+
+                <button type="submit" disabled={forgotPending} className="btn-primary">
+                  {forgotPending ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
         ) : (
-          // Authenticated Login Form
+          // ── Step 2: Sign In ────────────────────────────────
           <form onSubmit={handleSignIn} className="flex flex-col gap-5">
             {/* Connected Class Status Badge */}
             <div className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 text-xs">
@@ -261,9 +371,18 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
+                  className="text-[11px] text-slate-500 hover:text-emerald-400 transition-colors underline underline-offset-2"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   id="password"
@@ -318,6 +437,15 @@ export default function LoginPage() {
             {error && (
               <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                 {error}
+                {error.includes('forget') && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
+                    className="mt-1 block text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                  >
+                    Reset your password →
+                  </button>
+                )}
               </div>
             )}
 

@@ -346,3 +346,83 @@ export async function resetFirstTimePassword(newPassword: string) {
   }
 }
 
+/**
+ * Changes the authenticated user's password after verifying their current password.
+ * Used from the Profile page when the user knows their old password.
+ */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  try {
+    if (!newPassword || newPassword.length < 8) {
+      return { error: 'New password must be at least 8 characters long.' };
+    }
+    if (currentPassword === newPassword) {
+      return { error: 'New password must be different from your current password.' };
+    }
+
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !user.email) return { error: 'Not authenticated. Please log in again.' };
+
+    // Re-authenticate to verify the current password is correct
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      return { error: 'Current password is incorrect.' };
+    }
+
+    // Update to the new password
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('changePassword error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * Sends a password reset email after verifying the email exists in this class's database.
+ * This ensures users from other classes cannot use reset emails via this class's endpoint.
+ */
+export async function requestPasswordReset(email: string) {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return { error: 'Email is required.' };
+
+    const supabase = await getSupabaseServerClient();
+
+    // Verify the email belongs to a profile in this tenant's class
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+
+    if (!profileRow) {
+      // Return success to prevent email enumeration (don't reveal if email exists)
+      return { success: true };
+    }
+
+    // Send the Supabase password reset email
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://classapp.vercel.app';
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: `${siteUrl}/reset-password?type=recovery`,
+    });
+
+    if (resetError) {
+      console.error('requestPasswordReset error:', resetError);
+      return { error: 'Failed to send reset email. Please try again later.' };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('requestPasswordReset error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}

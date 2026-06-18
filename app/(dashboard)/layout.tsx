@@ -19,12 +19,12 @@ export default async function DashboardLayout({
   const supabase = await getSupabaseServerClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  // No session — send to login.
-  if (!user) {
+  // No valid session — send to login.
+  if (authError || !user) {
     redirect('/login');
   }
 

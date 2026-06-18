@@ -98,15 +98,15 @@ export default async function RootPage() {
     profile = data;
 
     if (profile) {
-      if (profile.role === 'cr' || profile.role === 'admin') {
-        dashboardUrl = '/cr/timeline';
-        dashboardText = 'Go to Dashboard';
-      } else {
-        dashboardUrl = '/student/timeline';
-        dashboardText = 'Go to Dashboard';
-      }
+      const role = profile.role as string;
+      dashboardUrl = role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
+      dashboardText = 'Go to Dashboard';
     } else {
-      dashboardUrl = '/login?error=profile_missing';
+      // User is authenticated (valid JWT) but profile row not found.
+      // Could be a tenant cookie mismatch. Show a generic fallback.
+      // The middleware will validate the real session when they navigate.
+      dashboardUrl = '/student/timeline';
+      dashboardText = 'Go to Dashboard';
     }
   }
 
@@ -149,8 +149,8 @@ export default async function RootPage() {
         </div>
       </header>
 
-      {/* ── Hero ───────────────────────────────────────── */}
-      <section className="flex flex-col items-center justify-center text-center py-24 px-6 max-w-4xl mx-auto w-full">
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className="flex flex-col items-center justify-center text-center py-14 sm:py-20 md:py-24 px-5 max-w-4xl mx-auto w-full">
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-6 border"
           style={{
@@ -162,7 +162,7 @@ export default async function RootPage() {
           <Smartphone className="w-3 h-3" />
           Academic Management Platform
         </div>
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-white">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-white">
           Everything your class needs.{' '}
           <span
             style={{
@@ -174,15 +174,15 @@ export default async function RootPage() {
             In one place.
           </span>
         </h1>
-        <p className="mt-5 text-base md:text-lg text-slate-400 max-w-2xl leading-relaxed">
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl leading-relaxed px-2">
           ClassApp is a private academic management system built for university classes — giving
           students real-time access to their schedule, deadlines, results, and announcements,
           all through a native Android app.
         </p>
-        <div className="mt-10 flex flex-col items-center gap-4">
+        <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:gap-4 w-full max-w-xs mx-auto">
           <Link
             href={dashboardUrl}
-            className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl text-sm font-bold text-[#0a0c0e] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl text-sm font-bold text-[#0a0c0e] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             style={{
               background: 'linear-gradient(135deg, #34D399 0%, #059669 100%)',
               boxShadow: '0 0 0 1px rgba(52,211,153,0.3), 0 8px 24px rgba(52,211,153,0.25)',
@@ -200,18 +200,18 @@ export default async function RootPage() {
         </div>
       </section>
 
-      {/* ── Feature Grid ───────────────────────────────── */}
-      <section className="max-w-6xl mx-auto w-full px-6 lg:px-14 pb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-white">
+      {/* ── Feature Grid ────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-14 pb-16 sm:pb-24">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
             Built for the way your class actually works
           </h2>
-          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto px-4">
             Every feature is purpose-built for academic class management — nothing generic, nothing bloated.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
             return (

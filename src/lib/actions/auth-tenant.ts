@@ -17,13 +17,15 @@ export async function verifyAndConnectClass(joinCode: string) {
       httpOnly: false, // Read by getSupabaseBrowserClient
       secure: true,
       sameSite: 'lax',
-      path: '/'
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days — persist across browser restarts
     });
     cookieStore.set('tenant_supabase_anon_key', cached.supabaseAnonKey, {
       httpOnly: false,
       secure: true,
       sameSite: 'lax',
-      path: '/'
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
     });
     return { success: true, className: cached.className };
   }
@@ -58,13 +60,15 @@ export async function verifyAndConnectClass(joinCode: string) {
     httpOnly: false,
     secure: true,
     sameSite: 'lax',
-    path: '/'
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days — persist across browser restarts
   });
   cookieStore.set('tenant_supabase_anon_key', tenantData.supabase_anon_key, {
     httpOnly: false,
     secure: true,
     sameSite: 'lax',
-    path: '/'
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 
   return { success: true, className: data.class_name };
