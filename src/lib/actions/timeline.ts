@@ -57,7 +57,7 @@ export async function getTimelineData(weekNumber: number, semesterStartDate: str
   // Fetch deadlines in the week
   const { data: deadlines, error: deadError } = await supabase
     .from('deadlines')
-    .select('id, title, subject, due_date, color')
+    .select('id, title, subject, due_date')
     .gte('due_date', startDate.toISOString())
     .lte('due_date', endDate.toISOString())
     .order('due_date', { ascending: true });

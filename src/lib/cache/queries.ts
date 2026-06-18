@@ -98,7 +98,7 @@ export async function getCachedDeadlines(): Promise<Deadline[]> {
 
       const { data, error } = await supabase
         .from('deadlines')
-        .select('id, title, subject, description, due_date, color, created_by, created_at')
+        .select('id, title, subject, description, due_date, created_by, created_at')
         .order('due_date', { ascending: true });
 
       if (error) console.error('[cache] getCachedDeadlines error:', error);

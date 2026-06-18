@@ -20,7 +20,7 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
   // Fetch deadline details
   const { data: deadline, error: deadlineError } = await supabase
     .from('deadlines')
-    .select('id, title, subject, description, due_date, color, created_by, created_at')
+    .select('id, title, subject, description, due_date, created_by, created_at')
     .eq('id', id)
     .single();
 
