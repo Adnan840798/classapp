@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { resolveSupabaseUrl } from '@/lib/utils/resolveUrl';
+import { resolveSupabaseUrl } from '@/lib/utils/resolveUrlServer';
 
 export async function GET() {
   const supabase = await getSupabaseServerClient();

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { getWeekDates, toISODateString } from '@/lib/utils/timelineDates';
-import { resolveSupabaseUrl } from '@/lib/utils/resolveUrl';
+import { resolveSupabaseUrl } from '@/lib/utils/resolveUrlServer';
 
 /**
  * Fetch the current class routine
