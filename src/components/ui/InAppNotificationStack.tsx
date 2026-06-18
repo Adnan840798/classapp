@@ -132,9 +132,14 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
   // Progress 0 → 1 over 30 seconds (drives the countdown bar)
   const [progress, setProgress] = useState(0);
 
-  const dragStart = useRef({ x: 0, y: 0 });
-  const dragTime  = useRef(0);
-  const isPaused  = useRef(false);
+  const dragStart      = useRef({ x: 0, y: 0 });
+  const dragTime       = useRef(0);
+  const isPaused       = useRef(false);
+  // ⬇ Synchronous ref — updated instantly so handleMove never misses a frame
+  const isDraggingRef  = useRef(false);
+  // Track live offset in refs too so handleEnd always reads the latest value
+  const offsetXRef     = useRef(0);
+  const offsetYRef     = useRef(0);
 
   // Derive opacity and rotation from drag position (live during drag)
   const dragDist    = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
@@ -190,33 +195,46 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
 
   // ── Drag helpers ─────────────────────────────────────────────────────────
   const handleStart = (clientX: number, clientY: number) => {
-    isPaused.current = true;
-    setIsDragging(true);
-    dragStart.current = { x: clientX, y: clientY };
-    dragTime.current  = Date.now();
+    isPaused.current       = true;
+    isDraggingRef.current  = true;   // sync — immediately visible to handleMove
+    offsetXRef.current     = 0;
+    offsetYRef.current     = 0;
+    dragStart.current      = { x: clientX, y: clientY };
+    dragTime.current       = Date.now();
+    setIsDragging(true);             // triggers re-render for CSS transition change
+    setOffsetX(0);
+    setOffsetY(0);
   };
 
   const handleMove = (clientX: number, clientY: number) => {
-    if (!isDragging) return;
+    // Use the ref — this is synchronous and never stale, unlike the state value.
+    if (!isDraggingRef.current) return;
     const dx = clientX - dragStart.current.x;
     const dy = clientY - dragStart.current.y;
-    setOffsetX(dx);
     // Swipe-up freely; rubber-band if pulled down
-    setOffsetY(dy < 0 ? dy : dy * 0.18);
+    const clampedDy = dy < 0 ? dy : dy * 0.18;
+    offsetXRef.current = dx;
+    offsetYRef.current = clampedDy;
+    setOffsetX(dx);
+    setOffsetY(clampedDy);
   };
 
   const handleEnd = () => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
     setIsDragging(false);
     isPaused.current = false;
 
-    const duration  = Math.max(Date.now() - dragTime.current, 1);
-    const absX      = Math.abs(offsetX);
-    const velX      = absX / duration;
-    const velY      = Math.abs(offsetY) / duration;
+    // Read latest values from refs so we never depend on stale state
+    const ox       = offsetXRef.current;
+    const oy       = offsetYRef.current;
+    const duration = Math.max(Date.now() - dragTime.current, 1);
+    const absX     = Math.abs(ox);
+    const velX     = absX / duration;
+    const velY     = Math.abs(oy) / duration;
 
     // Tap: very small movement and short time
-    const isClick = absX < 8 && Math.abs(offsetY) < 8 && duration < 220;
+    const isClick = absX < 8 && Math.abs(oy) < 8 && duration < 220;
     if (isClick) {
       setExitDir('x');
       setTimeout(() => { window.location.href = href; onDismiss(); }, 120);
@@ -224,20 +242,23 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
     }
 
     // Swipe right
-    if (offsetX > DISMISS_DIST || (offsetX > 30 && velX > DISMISS_VEL)) {
-      setOffsetX(460);
+    if (ox > DISMISS_DIST || (ox > 30 && velX > DISMISS_VEL)) {
+      setOffsetX(520);
+      offsetXRef.current = 520;
       triggerExit('right');
       return;
     }
     // Swipe left
-    if (offsetX < -DISMISS_DIST || (offsetX < -30 && velX > DISMISS_VEL)) {
-      setOffsetX(-460);
+    if (ox < -DISMISS_DIST || (ox < -30 && velX > DISMISS_VEL)) {
+      setOffsetX(-520);
+      offsetXRef.current = -520;
       triggerExit('left');
       return;
     }
     // Swipe up
-    if (offsetY < -DISMISS_DIST || (offsetY < -30 && velY > DISMISS_VEL)) {
+    if (oy < -DISMISS_DIST || (oy < -30 && velY > DISMISS_VEL)) {
       setOffsetY(-220);
+      offsetYRef.current = -220;
       triggerExit('up');
       return;
     }
@@ -245,6 +266,8 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
     // Not enough — snap back with spring feel
     setOffsetX(0);
     setOffsetY(0);
+    offsetXRef.current = 0;
+    offsetYRef.current = 0;
   };
 
   // Touch events
@@ -253,16 +276,20 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
   const onTouchMove  = (e: React.TouchEvent) =>
     handleMove(e.touches[0].clientX, e.touches[0].clientY);
 
-  // Mouse events (desktop)
+  // Mouse events — mousemove on the window so fast drags don't lose tracking
   const onMouseDown = (e: React.MouseEvent) => handleStart(e.clientX, e.clientY);
-  const onMouseMove = (e: React.MouseEvent) => handleMove(e.clientX, e.clientY);
 
   useEffect(() => {
-    const up = () => { if (isDragging) handleEnd(); };
-    window.addEventListener('mouseup', up);
-    return () => window.removeEventListener('mouseup', up);
+    const onMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
+    const onUp   = ()              => { if (isDraggingRef.current) handleEnd(); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup',   onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup',   onUp);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging, offsetX, offsetY]);
+  }, []);
 
   // ── Exit transform (overrides live drag once we commit to an exit) ────────
   const isExiting = exitDir !== 'idle';
@@ -286,7 +313,6 @@ function InAppPopupCard({ popup, onDismiss }: { popup: any; onDismiss: () => voi
       onTouchMove={onTouchMove}
       onTouchEnd={handleEnd}
       onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
       className={cn(
         'w-full rounded-2xl select-none relative pointer-events-auto border overflow-hidden cursor-grab active:cursor-grabbing',
         typeConfig.borderColor,
