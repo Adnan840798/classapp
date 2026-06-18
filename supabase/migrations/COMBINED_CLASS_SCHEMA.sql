@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- COMBINED_CLASS_SCHEMA.sql — ClassApp Complete New Class Setup
 -- ============================================================
 -- Run this SINGLE FILE in your new class Supabase project's
@@ -924,6 +924,7 @@ CREATE POLICY "hd_cr_admin_delete"
 CREATE TABLE IF NOT EXISTS public.semester_config (
   id           int PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- singleton row
   total_weeks  int NOT NULL DEFAULT 14 CHECK (total_weeks BETWEEN 1 AND 52),
+  start_date   date NOT NULL DEFAULT '2026-05-20',
   updated_at   timestamptz DEFAULT now(),
   updated_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL
 );

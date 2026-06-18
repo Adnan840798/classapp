@@ -125,15 +125,16 @@ function getHolidayGroups(weekRanges: { isFullHoliday: boolean }[], totalWeeks: 
 export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelineProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const currentWeek = getCurrentWeekNumber();
-  const [selectedWeek, setSelectedWeek] = useState<number>(currentWeek);
+  const [totalWeeks, setTotalWeeksState] = useState<number>(14);
+  const [startDate, setStartDate] = useState<string>('2026-05-20');
+  const currentWeek = getCurrentWeekNumber(startDate, totalWeeks);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
   const [weekData, setWeekData] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [hasScrolledInit, setHasScrolledInit] = useState(false);
   const [holidays, setHolidays] = useState<HolidaySlot[]>([]);
   const [isTogglingHoliday, setIsTogglingHoliday] = useState(false);
-  const [totalWeeks, setTotalWeeksState] = useState<number>(14);
   const [isChangingWeeks, setIsChangingWeeks] = useState(false);
 
   const weekListRef = useRef<HTMLDivElement>(null);
@@ -149,7 +150,18 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   // Fetch holiday data and total weeks once on mount
   useEffect(() => {
     getHolidayDays().then(setHolidays);
-    getTotalWeeks().then(setTotalWeeksState);
+    supabase
+      .from('semester_config')
+      .select('total_weeks, start_date')
+      .eq('id', 1)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setTotalWeeksState(data.total_weeks);
+          setStartDate(data.start_date);
+          setSelectedWeek(getCurrentWeekNumber(data.start_date, data.total_weeks));
+        }
+      });
   }, []);
 
   // Realtime subscription for semester timeline changes.
@@ -186,8 +198,15 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         'postgres_changes',
         { event: '*', schema: 'public', table: 'semester_config' },
         async () => {
-          const updatedWeeks = await getTotalWeeks();
-          setTotalWeeksState(updatedWeeks);
+          const { data } = await supabase
+            .from('semester_config')
+            .select('total_weeks, start_date')
+            .eq('id', 1)
+            .maybeSingle();
+          if (data) {
+            setTotalWeeksState(data.total_weeks);
+            setStartDate(data.start_date);
+          }
         }
       )
       .on(

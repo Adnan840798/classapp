@@ -429,3 +429,60 @@ export async function requestPasswordReset(email: string) {
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+/**
+ * Update the global semester config (total weeks and start date). CR/Admin only.
+ */
+export async function updateSemesterConfig(formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can update semester config.' };
+    }
+
+    const totalWeeksStr = formData.get('total_weeks') as string;
+    const startDate = formData.get('start_date') as string;
+
+    const totalWeeks = parseInt(totalWeeksStr, 10);
+    if (isNaN(totalWeeks) || totalWeeks < 1 || totalWeeks > 52) {
+      return { error: 'Total weeks must be a number between 1 and 52.' };
+    }
+
+    if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      return { error: 'Start date must be in YYYY-MM-DD format.' };
+    }
+
+    const { error } = await supabase
+      .from('semester_config')
+      .update({
+        total_weeks: totalWeeks,
+        start_date: startDate,
+        updated_at: new Date().toISOString(),
+        updated_by: user.id
+      })
+      .eq('id', 1);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+    revalidatePath('/cr/profile');
+    revalidatePath('/student/profile');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateSemesterConfig error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}

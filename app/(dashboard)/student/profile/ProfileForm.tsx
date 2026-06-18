@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -11,9 +11,10 @@ import { playNotificationChime } from '@/lib/utils/audio';
 interface ProfileFormProps {
   profile: Profile;
   allProfiles?: Pick<Profile, 'id' | 'full_name' | 'university_id' | 'email' | 'phone' | 'role' | 'password_reset_required'>[];
+  semesterConfig?: { total_weeks: number; start_date: string };
 }
 
-export function ProfileForm({ profile: initialProfile, allProfiles = [] }: ProfileFormProps) {
+export function ProfileForm({ profile: initialProfile, allProfiles = [], semesterConfig }: ProfileFormProps) {
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,35 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
   const [cpPending, setCpPending] = useState(false);
   const [cpError, setCpError] = useState<string | null>(null);
   const [cpSuccess, setCpSuccess] = useState(false);
+
+  // Semester settings states
+  const [semesterWeeks, setSemesterWeeks] = useState(semesterConfig?.total_weeks || 14);
+  const [semesterStart, setSemesterStart] = useState(semesterConfig?.start_date || '2026-05-20');
+  const [isConfigPending, setIsConfigPending] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [configSuccess, setConfigSuccess] = useState(false);
+
+  async function handleSaveSemesterConfig() {
+    setIsConfigPending(true);
+    setConfigError(null);
+    setConfigSuccess(false);
+    try {
+      const fd = new FormData();
+      fd.set('total_weeks', String(semesterWeeks));
+      fd.set('start_date', semesterStart);
+      
+      const res = await updateSemesterConfig(fd);
+      if (res.error) {
+        setConfigError(res.error);
+      } else {
+        setConfigSuccess(true);
+      }
+    } catch (err: any) {
+      setConfigError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setIsConfigPending(false);
+    }
+  }
 
 
 
@@ -352,6 +382,83 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [] }: Profi
               >
                 <Users className="w-4 h-4 text-[#34D399]" />
                 Manage Accounts ({accountsList.length})
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Semester Settings Card (CR/Admin only) */}
+        {(profile.role === 'cr' || profile.role === 'admin') && semesterConfig && (
+          <div className="glass-card p-6 flex flex-col gap-4">
+            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-emerald-400" />
+              Semester Settings
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Configure the total weeks and starting date for this semester's timeline.
+            </p>
+            
+            <div className="flex flex-col gap-3 mt-2">
+              {configError && (
+                <div className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
+                  {configError}
+                </div>
+              )}
+              {configSuccess && (
+                <div className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                  Semester settings saved successfully!
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="total_weeks" className="text-xs font-semibold text-foreground">
+                  Total Weeks
+                </label>
+                <input
+                  id="total_weeks"
+                  type="number"
+                  min="1"
+                  max="52"
+                  required
+                  value={semesterWeeks}
+                  onChange={(e) => setSemesterWeeks(parseInt(e.target.value, 10))}
+                  className="form-input text-xs"
+                  disabled={isConfigPending}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="start_date" className="text-xs font-semibold text-foreground">
+                  Semester Start Date (Wednesday of Week 1)
+                </label>
+                <input
+                  id="start_date"
+                  type="date"
+                  required
+                  value={semesterStart}
+                  onChange={(e) => setSemesterStart(e.target.value)}
+                  className="form-input text-xs"
+                  disabled={isConfigPending}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveSemesterConfig}
+                disabled={isConfigPending}
+                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-emerald-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isConfigPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Settings
+                  </>
+                )}
               </button>
             </div>
           </div>

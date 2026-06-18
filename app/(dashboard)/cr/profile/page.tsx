@@ -21,12 +21,21 @@ export default async function CRProfilePage() {
 
   // Fetch all profiles if the user is CR or Admin
   let allProfiles: any[] = [];
+  let semesterConfig = null;
   if (profile.role === 'cr' || profile.role === 'admin') {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, full_name, university_id, email, phone, role, password_reset_required')
-      .order('university_id', { ascending: true });
-    allProfiles = data || [];
+    const [profilesRes, configRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, full_name, university_id, email, phone, role, password_reset_required')
+        .order('university_id', { ascending: true }),
+      supabase
+        .from('semester_config')
+        .select('id, total_weeks, start_date')
+        .eq('id', 1)
+        .maybeSingle()
+    ]);
+    allProfiles = profilesRes.data || [];
+    semesterConfig = configRes.data;
   }
 
   return (
@@ -36,7 +45,7 @@ export default async function CRProfilePage() {
         <p className="page-subtitle">Manage your personal details, contact links, and notification settings</p>
       </div>
 
-      <ProfileForm profile={profile} allProfiles={allProfiles} />
+      <ProfileForm profile={profile} allProfiles={allProfiles} semesterConfig={semesterConfig ?? undefined} />
     </div>
   );
 }

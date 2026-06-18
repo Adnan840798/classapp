@@ -4,17 +4,17 @@
  * Thursday and Friday are weekend holidays and are not included.
  */
 
-export const SEMESTER_START_DATE = '2026-05-20'; // Wednesday of Week 1
+export const SEMESTER_START_DATE = '2026-05-20'; // Default Wednesday of Week 1
 
 /**
  * Calculates the Saturday, Wednesday, and individual academic days (Sat-Wed) for a given week number.
- * @param weekNumber 1-indexed week number (1-14)
+ * @param weekNumber 1-indexed week number
+ * @param semesterStartDate The YYYY-MM-DD start date of the semester (Wednesday of Week 1)
  */
-export function getWeekDates(weekNumber: number) {
-  // Semester starts May 20, 2026 (Wednesday) - parse in Asia/Dhaka (GMT+6) timezone
-  const semesterStart = new Date(`${SEMESTER_START_DATE}T00:00:00+06:00`);
+export function getWeekDates(weekNumber: number, semesterStartDate: string = SEMESTER_START_DATE) {
+  const semesterStart = new Date(`${semesterStartDate}T00:00:00+06:00`);
   
-  // Wednesday of week N is (N-1) weeks after May 20
+  // Wednesday of week N is (N-1) weeks after start date
   const wednesday = new Date(semesterStart);
   wednesday.setDate(semesterStart.getDate() + 7 * (weekNumber - 1));
   
@@ -38,10 +38,13 @@ export function getWeekDates(weekNumber: number) {
 }
 
 /**
- * Determines the current week number (1-14) based on the current date in GMT+6.
+ * Determines the current week number based on the current date in GMT+6 and the semester start configuration.
  * Each week starts on Saturday and ends on Friday (with Thu-Fri as the weekend of that week).
  */
-export function getCurrentWeekNumber(): number {
+export function getCurrentWeekNumber(
+  semesterStartDate: string = SEMESTER_START_DATE,
+  totalWeeks: number = 14
+): number {
   let now = new Date();
   try {
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -58,7 +61,13 @@ export function getCurrentWeekNumber(): number {
   }
   
   // Create local midnight dates for accurate difference calculation
-  const start = new Date(2026, 4, 16); // May 16, 2026 (Month is 0-indexed, so 4 is May)
+  // Saturday of Week 1 is 4 days before the Wednesday start date
+  const semesterStart = new Date(`${semesterStartDate}T00:00:00+06:00`);
+  const start = new Date(
+    semesterStart.getFullYear(),
+    semesterStart.getMonth(),
+    semesterStart.getDate() - 4
+  );
   const current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
   const diffTime = current.getTime() - start.getTime();
@@ -67,7 +76,7 @@ export function getCurrentWeekNumber(): number {
   if (diffDays < 0) return 1; // Before the semester starts, show Week 1
   
   const weekNum = Math.floor(diffDays / 7) + 1;
-  return Math.min(Math.max(weekNum, 1), 14); // Clamp between Week 1 and 14
+  return Math.min(Math.max(weekNum, 1), totalWeeks); // Clamp between Week 1 and totalWeeks
 }
 
 /**
