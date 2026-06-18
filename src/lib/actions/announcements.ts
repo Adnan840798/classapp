@@ -212,3 +212,43 @@ export async function deleteAnnouncement(id: string) {
     return { error: err.message || 'An unexpected error occurred during deletion.' };
   }
 }
+
+export async function updateAnnouncement(id: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const title = formData.get('title') as string;
+    const body = formData.get('body') as string;
+
+    const parsed = AnnouncementSchema.safeParse({ title, body });
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0].message };
+    }
+
+    const { error } = await supabase
+      .from('announcements')
+      .update({
+        title: parsed.data.title,
+        body: parsed.data.body,
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidateTag('announcements', { expire: 0 });
+    revalidatePath(`/cr/announcements/${id}`);
+    revalidatePath(`/student/announcements/${id}`);
+    revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateAnnouncement error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+

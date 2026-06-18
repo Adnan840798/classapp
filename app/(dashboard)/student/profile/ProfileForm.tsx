@@ -42,7 +42,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [newStudent, setNewStudent] = useState({
     full_name: '', email: '', university_id: '',
-    password: '', batch: '', department: '',
+    password: '',
   });
 
   // Change Password states
@@ -153,7 +153,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
         };
         setAccountsList(prev => [...prev, createdUser]);
         
-        setNewStudent({ full_name: '', email: '', university_id: '', password: '', batch: '', department: '' });
+        setNewStudent({ full_name: '', email: '', university_id: '', password: '' });
       }
     } catch (err: any) {
       setCreateError(err.message || 'Unexpected error.');
@@ -254,9 +254,9 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       {/* Left Column: Avatar & Notifications */}
       <div className="flex flex-col gap-6">
         {/* Avatar Card */}
-        <div className="glass-card p-6 flex flex-col items-center justify-center gap-4 text-center">
+        <div className="glass-card p-6 flex flex-col items-center justify-center gap-4 text-center hover:scale-[1.01]">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-primary/50 relative bg-accent">
+            <div className="w-24 h-24 rounded-full overflow-hidden border border-primary/20 group-hover:border-primary/50 relative bg-accent transition-colors shadow-inner">
               {avatarPreview ? (
                 <img
                   src={avatarPreview}
@@ -273,7 +273,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isPending}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center hover:scale-105 transition-all shadow-md"
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
               aria-label="Upload photo"
             >
               <Camera className="w-4 h-4" />
@@ -288,15 +288,24 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
             />
           </div>
 
-          <div>
-            <h3 className="font-bold text-base text-foreground">{profile.full_name}</h3>
-            <p className="text-xs text-muted-foreground font-mono mt-0.5">{profile.university_id}</p>
+          <div className="flex flex-col items-center gap-1.5">
+            <h3 className="font-bold text-base text-foreground tracking-tight">{profile.full_name}</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-mono">{profile.university_id}</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                profile.role === 'cr' || profile.role === 'admin'
+                  ? 'bg-primary/10 border-primary/30 text-primary'
+                  : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+              }`}>
+                {profile.role.toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Notifications Card */}
         <div className="glass-card p-6 flex flex-col gap-4">
-          <h3 className="font-bold text-sm text-foreground border-b border-border pb-2">
+          <h3 className="font-bold text-sm text-foreground border-b border-border/60 pb-2">
             Notification Preferences
           </h3>
 
@@ -316,13 +325,15 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 }
               }}
               disabled={isPending}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
-                notifEnabled
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                notifEnabled ? 'bg-primary' : 'bg-muted'
               }`}
             >
-              {notifEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  notifEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
             </button>
           </div>
         </div>
@@ -330,18 +341,18 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
         {/* Manage Accounts Card (CR/Admin only) */}
         {(profile.role === 'cr' || profile.role === 'admin') && allProfiles.length > 0 && (
           <div className="glass-card p-6 flex flex-col gap-4">
-            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2 flex items-center gap-2">
+            <h3 className="font-bold text-sm text-foreground border-b border-border/60 pb-2 flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
               Class Administration
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               As a Class Representative, you can view, edit roles, and delete authorized student accounts for this batch.
             </p>
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2.5 mt-2">
               <button
                 type="button"
                 onClick={() => { setIsCreateModalOpen(true); setCreateError(null); setCreateSuccess(null); }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border border-emerald-500/30 bg-emerald-500/15 hover:bg-emerald-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/5 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-emerald-500/10 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 Create Student Account
@@ -349,9 +360,9 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               <button
                 type="button"
                 onClick={() => setIsManageModalOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#34D399] border border-[#34D399]/20 hover:border-[#34D399]/40 bg-[#34D399]/10 hover:bg-[#34D399]/20 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#34D399]/5 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               >
-                <Users className="w-4 h-4 text-[#34D399]" />
+                <Users className="w-4 h-4 text-primary" />
                 Manage Accounts ({accountsList.length})
               </button>
             </div>
@@ -390,7 +401,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 
                 <div className="flex flex-col gap-3 mt-2">
               {configError && (
-                <div className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
+                <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                   {configError}
                 </div>
               )}
@@ -436,7 +447,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 type="button"
                 onClick={handleSaveSemesterConfig}
                 disabled={isConfigPending}
-                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-emerald-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isConfigPending ? (
                   <>
@@ -461,9 +472,8 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       <div className="lg:col-span-2 flex flex-col gap-6">
         <div className="glass-card p-6 md:p-8 flex flex-col gap-6">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg flex items-start gap-3 text-sm">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <span>{error}</span>
+            <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+              {error}
             </div>
           )}
 
@@ -590,8 +600,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
           </p>
 
           {cpError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg flex items-start gap-2 text-xs">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
               {cpError}
             </div>
           )}
@@ -694,7 +703,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                     setCpPending(false);
                   }
                 }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {cpPending ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Updating…</>
@@ -710,46 +719,46 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
       {/* Manage Student Accounts Modal */}
       {isManageModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-fade-in">
-          <div className="bg-[#121214] border border-[#23262D] rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-lg flex items-center justify-center p-4 md:p-6 animate-fade-in">
+          <div className="bg-card border border-border/60 rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl backdrop-blur-xl">
             {/* Header */}
-            <div className="p-4 md:p-6 border-b border-[#23262D] flex items-center justify-between flex-shrink-0 bg-[#1A1D24]/50">
+            <div className="p-4 md:p-6 border-b border-border/60 flex items-center justify-between flex-shrink-0 bg-muted/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}>
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                     Manage Accounts
                   </h2>
-                  <p className="text-xs text-slate-400">Total authorized students: {accountsList.length}</p>
+                  <p className="text-xs text-muted-foreground">Total authorized students: {accountsList.length}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsManageModalOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Search and Filters */}
-            <div className="p-4 md:p-6 border-b border-[#23262D] flex-shrink-0 bg-[#1A1D24]/20 flex flex-col gap-4">
+            <div className="p-4 md:p-6 border-b border-border/60 flex-shrink-0 bg-muted/10 flex flex-col gap-4">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search students by name, ID, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="form-input w-full pl-10 bg-[#0E0F11] border-[#23262D] focus:border-primary/50"
+                  className="form-input w-full pl-10"
                 />
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -757,14 +766,14 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               </div>
 
               {/* Tabs */}
-              <div className="flex border-b border-[#23262D]/60 -mx-4 md:-mx-6 px-4 md:px-6">
+              <div className="flex border-b border-border/40 -mx-4 md:-mx-6 px-4 md:px-6">
                 <button
                   type="button"
                   onClick={() => setActiveAccountTab('verified')}
                   className={`py-2 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer ${
                     activeAccountTab === 'verified'
                       ? 'border-primary text-primary'
-                      : 'border-transparent text-slate-400 hover:text-white'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Verified ({accountsList.filter(a => a.password_reset_required !== true).length})
@@ -775,7 +784,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                   className={`py-2 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
                     activeAccountTab === 'pending'
                       ? 'border-primary text-primary'
-                      : 'border-transparent text-slate-400 hover:text-white'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Pending Verification ({accountsList.filter(a => a.password_reset_required === true).length})
@@ -787,12 +796,12 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
             </div>
 
             {/* List Body */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-background/30">
               {filteredAccounts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Users className="w-12 h-12 text-slate-600 mb-3" />
-                  <p className="text-sm font-semibold text-slate-400">No student accounts found</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <Users className="w-12 h-12 text-muted-foreground/40 mb-3" />
+                  <p className="text-sm font-semibold text-muted-foreground">No student accounts found</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">
                     {activeAccountTab === 'pending'
                       ? 'No accounts are currently pending first-login activation'
                       : 'No verified accounts match your search'}
@@ -801,7 +810,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               ) : (
                 <div className="space-y-3">
                   {/* Table Header (Desktop only) */}
-                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 border-b border-[#23262D]/30">
+                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/40">
                     <div className="col-span-4">Student</div>
                     <div className="col-span-3">Contact Details</div>
                     <div className="col-span-1 text-center">Role</div>
@@ -816,37 +825,37 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                     return (
                       <div
                         key={student.id}
-                        className="bg-[#1A1D24]/40 border border-[#23262D]/60 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-[#1A1D24]/70"
+                        className="bg-muted/10 border border-border/40 rounded-xl p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center transition-all hover:bg-muted/20"
                       >
                         {/* Student Meta Info */}
                         <div className="col-span-1 md:col-span-4 flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 uppercase flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-muted/40 border border-border/60 flex items-center justify-center font-bold text-xs text-muted-foreground uppercase flex-shrink-0">
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="text-sm font-bold text-white truncate flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-foreground truncate flex items-center gap-2">
                               {student.full_name}
                               {isSelf && (
-                                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] bg-muted border border-border px-1.5 py-0.5 rounded text-muted-foreground">
                                   You
                                 </span>
                               )}
                             </h4>
-                            <p className="text-xs text-slate-400 font-mono mt-0.5">{student.university_id}</p>
+                            <p className="text-xs text-muted-foreground font-mono mt-0.5">{student.university_id}</p>
                           </div>
                         </div>
 
                         {/* Contact Info */}
-                        <div className="col-span-1 md:col-span-3 flex flex-col gap-1.5 text-xs text-slate-400 min-w-0">
+                        <div className="col-span-1 md:col-span-3 flex flex-col gap-1.5 text-xs text-muted-foreground min-w-0">
                           <a
                             href={`mailto:${student.email}`}
-                            className="flex items-center gap-2 hover:text-white transition-colors truncate"
+                            className="flex items-center gap-2 hover:text-foreground transition-colors truncate"
                           >
-                            <Mail className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <Mail className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />
                             <span className="truncate">{student.email}</span>
                           </a>
                           <div className="flex items-center gap-2">
-                            <Phone className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <Phone className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />
                             <span className="truncate">{student.phone || 'No phone number'}</span>
                           </div>
                         </div>
@@ -856,8 +865,8 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                               student.role === 'cr' || student.role === 'admin'
-                                ? 'bg-[#34D399]/10 border-[#34D399]/30 text-[#6EE7B7]'
-                                : 'bg-[#10b981]/10 border-[#10b981]/20 text-[#34d399]'
+                                ? 'bg-primary/10 border-primary/30 text-primary'
+                                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             }`}
                           >
                             {student.role.toUpperCase()}
@@ -879,7 +888,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                         </div>
 
                         {/* Actions */}
-                        <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-[#23262D]/40 pt-3 md:pt-0 md:border-0">
+                        <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 border-t border-border/40 pt-3 md:pt-0 md:border-0">
                           <div className="flex items-center gap-2 ml-auto md:ml-0">
 
                             {/* Role Toggle Button — only for non-self rows */}
@@ -935,23 +944,23 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
       {/* ── Create Student Account Modal ── */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#121214] border border-[#23262D] rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-lg flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-card border border-border/60 rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl backdrop-blur-xl">
             {/* Header */}
-            <div className="p-5 border-b border-[#23262D] flex items-center justify-between bg-[#1A1D24]/50">
+            <div className="p-5 border-b border-border/60 flex items-center justify-between bg-muted/20">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%))' }}>
                   <UserPlus className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">Create Student Account</h2>
-                  <p className="text-[10px] text-slate-400">Student must reset password on first login</p>
+                  <h2 className="text-base font-bold text-foreground">Create Student Account</h2>
+                  <p className="text-[10px] text-muted-foreground">Student must reset password on first login</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -960,8 +969,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
             {/* Form Body */}
             <form onSubmit={handleCreateStudent} className="p-5 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
               {createError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg flex items-start gap-2 text-xs">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                   {createError}
                 </div>
               )}
@@ -974,7 +982,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Full Name *</label>
+                  <label className="text-xs font-semibold text-muted-foreground">Full Name *</label>
                   <input
                     type="text" required
                     value={newStudent.full_name}
@@ -985,7 +993,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">University ID *</label>
+                  <label className="text-xs font-semibold text-muted-foreground">University ID *</label>
                   <input
                     type="text" required
                     value={newStudent.university_id}
@@ -998,7 +1006,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">University Email *</label>
+                <label className="text-xs font-semibold text-muted-foreground">University Email *</label>
                 <input
                   type="email" required
                   value={newStudent.email}
@@ -1010,7 +1018,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                   <KeyRound className="w-3 h-3 text-amber-400" />
                   Temporary Password *
                 </label>
@@ -1025,43 +1033,20 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 <p className="text-[10px] text-amber-400/80">⚠ Share this password securely with the student. They will be forced to set a new one.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Batch (optional)</label>
-                  <input
-                    type="text"
-                    value={newStudent.batch}
-                    onChange={e => setNewStudent(s => ({ ...s, batch: e.target.value }))}
-                    placeholder="e.g. 2024"
-                    className="form-input text-sm"
-                    disabled={isCreating}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Department (optional)</label>
-                  <input
-                    type="text"
-                    value={newStudent.department}
-                    onChange={e => setNewStudent(s => ({ ...s, department: e.target.value }))}
-                    placeholder="e.g. Computer Science"
-                    className="form-input text-sm"
-                    disabled={isCreating}
-                  />
-                </div>
-              </div>
 
-              <div className="flex gap-3 pt-2 border-t border-[#23262D]">
+
+              <div className="flex gap-3 pt-2 border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 border border-[#23262D] hover:bg-slate-800/40 transition-all cursor-pointer"
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground border border-border hover:bg-muted/40 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {isCreating ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>

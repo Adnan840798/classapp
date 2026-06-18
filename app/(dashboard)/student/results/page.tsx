@@ -70,7 +70,7 @@ export default async function StudentResultsPage() {
                     <span className="hidden sm:inline">Published: </span>
                     {formatDateTime(res.published_at)}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:min-w-[140px] sm:justify-end">
                     {res.result_sheet_url ? (
                       <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
                         <button

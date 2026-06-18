@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { verifyAndConnectClass } from '@/lib/actions/auth-tenant';
 import { requestPasswordReset } from '@/lib/actions/profile';
@@ -189,7 +189,7 @@ export default function LoginPage() {
       if (result?.unrecognized) {
         setForgotError(
           result.error ??
-          'This email address is not associated with any verified account in this class. Please contact your Class Representative.'
+          'This email address is not registered in this class portal. Please contact your Class Representative.'
         );
         return;
       }
@@ -259,7 +259,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                 {error}
               </div>
             )}
@@ -295,7 +295,7 @@ export default function LoginPage() {
               </div>
               <h2 className="text-base font-bold text-white">Reset Password</h2>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Enter the email linked to your <strong className="text-slate-300">{className}</strong> account. We'll send a reset link if it exists.
+                Enter the email linked to your <strong className="text-slate-300">{className}</strong> Class portal
               </p>
             </div>
 
@@ -307,7 +307,7 @@ export default function LoginPage() {
                 <div>
                   <p className="text-sm font-bold text-white">Reset Link Dispatched</p>
                   <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    A secure password reset link has been dispatched to <span className="text-slate-300 font-semibold">{forgotEmail}</span>. 
+                    A secure password reset link has been dispatched to <span className="text-slate-300 font-semibold">{forgotEmail}</span>.
                     Please check your university inbox (including the spam or promotions tab) and follow the instructions to restore your account access.
                   </p>
                 </div>
@@ -337,7 +337,7 @@ export default function LoginPage() {
                 </div>
 
                 {forgotError && (
-                  <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 leading-relaxed text-center">
+                  <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                     {forgotError}
                   </div>
                 )}
@@ -355,19 +355,11 @@ export default function LoginPage() {
         ) : (
           // ── Step 2: Sign In ────────────────────────────────
           <form onSubmit={handleSignIn} className="flex flex-col gap-5">
-            {/* Connected Class Status Badge */}
-            <div className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 text-xs">
-              <div className="flex items-center gap-2 truncate pr-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-                <span className="font-bold truncate">Connected: {className}</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleSwitchClass}
-                className="font-black hover:text-white underline cursor-pointer flex-shrink-0"
-              >
-                Switch Class
-              </button>
+            <div className="text-center mb-1">
+              <h2 className="text-2xl font-bold text-white tracking-tight">Sign In</h2>
+              <p className="text-sm text-emerald-400 font-medium mt-1">
+                {className}
+              </p>
             </div>
 
             {/* Email */}
@@ -456,17 +448,8 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 leading-relaxed">
+              <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                 {error}
-                {showForgotLink && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
-                    className="mt-2 block text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2 font-medium"
-                  >
-                    Reset your password →
-                  </button>
-                )}
               </div>
             )}
 

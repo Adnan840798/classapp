@@ -3,8 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Send, Loader2, AlertTriangle, Link as LinkIcon } from 'lucide-react';
+import { Send, Loader2, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import { updateNote } from '@/lib/actions/notes';
+
+function isRedirectError(err: any): boolean {
+  return (
+    err &&
+    (err.message === 'NEXT_REDIRECT' ||
+      err.message?.includes('NEXT_REDIRECT') ||
+      err.digest?.startsWith('NEXT_REDIRECT'))
+  );
+}
 import { Note } from '@/types';
 
 interface EditNoteFormProps {
@@ -32,7 +41,13 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
         setError(res.error);
         setIsPending(false);
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      if (
+        isRedirectError(err) ||
+        (err && typeof err === 'object' && ('digest' in err && String((err as any).digest).startsWith('NEXT_REDIRECT')))
+      ) {
+        return;
+      }
       console.error(err);
       setError('An unexpected error occurred. Please try again.');
       setIsPending(false);
@@ -42,9 +57,8 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg flex items-start gap-3 text-sm">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
+        <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+          {error}
         </div>
       )}
 

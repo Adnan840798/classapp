@@ -127,3 +127,54 @@ export async function deleteDeadline(id: string) {
     return { error: err.message || 'An unexpected error occurred during deletion.' };
   }
 }
+
+export async function updateDeadline(id: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const raw = {
+      title: formData.get('title') as string,
+      subject: formData.get('subject') as string,
+      due_date: formData.get('due_date') as string,
+      description: (formData.get('description') as string) || undefined,
+    };
+
+    const parsed = DeadlineSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0].message };
+    }
+
+    let due_date = parsed.data.due_date;
+    if (due_date && !due_date.includes('+') && !due_date.endsWith('Z')) {
+      due_date = due_date + '+06:00';
+    }
+
+    const { error } = await supabase
+      .from('deadlines')
+      .update({
+        title: parsed.data.title,
+        subject: parsed.data.subject,
+        due_date: due_date,
+        description: parsed.data.description ?? null,
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidateTag('deadlines', { expire: 0 });
+    revalidatePath(`/cr/deadlines/${id}`);
+    revalidatePath(`/student/deadlines/${id}`);
+    revalidatePath('/cr/deadlines');
+    revalidatePath('/student/deadlines');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateDeadline error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+

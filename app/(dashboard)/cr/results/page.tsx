@@ -7,6 +7,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 import { getCachedResults } from '@/lib/cache/queries';
 import { redirect } from 'next/navigation';
+import { EditResultModal } from '@/components/features/EditResultModal';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -74,13 +75,13 @@ export default async function CRResultsPage() {
                 </div>
 
                 {/* Right section: Published Date + Actions */}
-                <div className="flex flex-row items-center justify-between sm:justify-end gap-4 sm:gap-6 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
                   <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-slate-600" />
                     <span className="hidden sm:inline">Published: </span>
                     {formatDateTime(res.published_at)}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {res.result_sheet_url ? (
                       <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
                         <button
@@ -94,6 +95,7 @@ export default async function CRResultsPage() {
                     ) : (
                       <span className="text-[10px] text-slate-600 italic">No attachment</span>
                     )}
+                    <EditResultModal result={res} />
                     <DeleteButton
                       id={res.id}
                       onDelete={deleteResult}

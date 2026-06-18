@@ -198,3 +198,38 @@ export async function deleteResult(id: string) {
     return { error: err.message || 'An unexpected error occurred during deletion.' };
   }
 }
+
+export async function updateResult(id: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const exam_name = formData.get('exam_name') as string;
+    const parsed = ResultSchema.safeParse({ exam_name });
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0].message };
+    }
+
+    const { error } = await supabase
+      .from('exam_results')
+      .update({
+        exam_name: parsed.data.exam_name,
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidateTag('results', { expire: 0 });
+    revalidatePath('/cr/results');
+    revalidatePath('/student/results');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateResult error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+

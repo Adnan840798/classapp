@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff, ShieldAlert, Loader2, KeyRound, CheckCircle2, Mail } from 'lucide-react';
+import { Eye, EyeOff, ShieldAlert, Loader2, KeyRound, CheckCircle2, Mail, AlertCircle } from 'lucide-react';
 import { resetFirstTimePassword } from '@/lib/actions/profile';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -187,7 +187,7 @@ export default function ResetPasswordPage() {
             </div>
 
             {error && (
-              <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
                 {error}
               </div>
             )}

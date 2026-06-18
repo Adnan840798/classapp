@@ -2,7 +2,6 @@ import Link from 'next/link';
 import {
   Megaphone,
   FileText,
-  Image as ImageIcon,
   ArrowRight,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
@@ -44,7 +43,7 @@ export default async function StudentAnnouncementsPage() {
             return (
               <div
                 key={announcement.id}
-                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5 animate-fade-in"
                 style={{
                   background: isImportant
                     ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
@@ -62,65 +61,58 @@ export default async function StudentAnnouncementsPage() {
                   }}
                 />
 
-                <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* Left section: File Icon + Title & Description */}
+                <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left section: Icon + Info */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{
                         background: isImportant ? 'rgba(139, 92, 246, 0.12)' : 'rgba(148,163,184,0.08)',
                         border: isImportant ? '1px solid rgba(139, 92, 246, 0.25)' : '1px solid rgba(148,163,184,0.15)',
                       }}
                     >
-                      <Megaphone className={`w-4 h-4 ${isImportant ? 'text-brand-purple' : 'text-slate-400'}`} />
+                      <Megaphone className={`w-5 h-5 ${isImportant ? 'text-brand-purple' : 'text-slate-400'}`} />
                     </div>
-                    <div className="min-w-0 flex-1 pr-[100px] sm:pr-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <h3 className="text-sm font-extrabold text-white break-words leading-snug">
                           {announcement.title}
                         </h3>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2 whitespace-pre-line leading-relaxed break-words">
+                      <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
                         {announcement.body}
                       </p>
-                      {announcement.attachment_url && (
-                        <div className="absolute top-3.5 right-3.5 sm:static sm:mt-3 sm:block">
-                          <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
-                            <button
-                              title="View Attachment"
-                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer"
-                            >
-                              {announcement.attachment_type === 'image' ? (
-                                <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                              ) : (
-                                <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                              )}
-                              <span>Attachment</span>
-                            </button>
-                          </AttachmentViewer>
-                        </div>
-                      )}
                     </div>
                   </div>
 
-                  {/* Right section: Author + Date + Action Button */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 flex-shrink-0">
-                    <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-400 font-bold">
-                          {announcement.creator?.full_name || 'CR'}
-                        </span>
-                      </div>
-                      <p className="text-[9px] text-slate-500 font-medium">
+                  {/* Right section: Author/Date + Actions */}
+                  <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
+                    <div className="flex flex-col items-start sm:items-end">
+                      <span className="text-[10px] text-slate-400 font-bold leading-none">
+                        {announcement.creator?.full_name || 'CR'}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-medium mt-1">
                         {formatDateTime(announcement.created_at)}
-                      </p>
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {announcement.attachment_url && (
+                        <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                          <button
+                            title="View Attachment"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            <FileText className="w-3 h-3 flex-shrink-0" />
+                            <span>Attachment</span>
+                          </button>
+                        </AttachmentViewer>
+                      )}
                       <Link
                         href={`/student/announcements/${announcement.id}`}
-                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all"
+                        className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
                       >
-                        Question & Answer
+                        Question &amp; Answer
                         <ArrowRight className="w-3 h-3 flex-shrink-0" />
                       </Link>
                     </div>

@@ -5,6 +5,7 @@ import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriori
 import { deleteDeadline } from '@/lib/actions/deadlines';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { getCachedDeadlines } from '@/lib/cache/queries';
+import { EditDeadlineModal } from '@/components/features/EditDeadlineModal';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -96,7 +97,7 @@ export default async function CRDeadlinesPage() {
             return (
               <div
                 key={deadline.id}
-                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5 animate-fade-in"
                 style={{
                   background: theme.bg,
                   border: theme.border,
@@ -108,20 +109,20 @@ export default async function CRDeadlinesPage() {
                   style={{ background: theme.accent }}
                 />
 
-                <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   {/* Left section: Icon + Subject + Title & Desc */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{
                         background: theme.iconBg,
                         border: theme.iconBorder,
                       }}
                     >
-                      <Clock className={`w-4 h-4 ${theme.iconColor}`} />
+                      <Clock className={`w-5 h-5 ${theme.iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-slate-800/40 border border-slate-700/50 text-[#94a3b8] flex items-center gap-1">
                           <BookOpen className="w-2.5 h-2.5 text-emerald-400" />
                           {deadline.subject}
@@ -131,22 +132,23 @@ export default async function CRDeadlinesPage() {
                         </h3>
                       </div>
                       {deadline.description && (
-                        <p className="text-xs text-slate-400 mt-2 whitespace-pre-line leading-relaxed break-words">
+                        <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
                           {deadline.description}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {/* Right section: Due Date + Action Button + Delete Button */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-3.5 sm:gap-6 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-[#23262D]/40 sm:border-t-0">
-                    <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 whitespace-nowrap">
+                  {/* Right section: Due Date/Badge + Actions */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                    {/* Due date + badge */}
+                    <div className="flex flex-col items-start sm:items-end gap-1.5">
+                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5 whitespace-nowrap">
                         <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                        Due: {formatDateTime(deadline.due_date)}
+                        <span>Due: {formatDateTime(deadline.due_date)}</span>
                       </p>
                       <span
-                        className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded leading-none w-fit"
                         style={{
                           background: theme.badgeBg,
                           border: theme.badgeBorder,
@@ -156,14 +158,17 @@ export default async function CRDeadlinesPage() {
                         {formatDaysRemaining(deadline.daysRemaining)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Link
                         href={`/cr/deadlines/${deadline.id}`}
-                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
+                        className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
                       >
-                        Q&amp;A Panel
-                        <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
+                        Question &amp; Answer
+                        <ArrowRight className="w-3 h-3 flex-shrink-0" />
                       </Link>
+                      <EditDeadlineModal deadline={deadline} />
                       <DeleteButton
                         id={deadline.id}
                         onDelete={deleteDeadline}

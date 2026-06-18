@@ -396,7 +396,7 @@ export async function requestPasswordReset(email: string) {
       return {
         success: false,
         unrecognized: true,
-        error: 'Access Denied: The email address you provided is not recognized in our verified student registry. If you are a registered student of this class, please reach out to your Class Representative to activate your credentials.',
+        error: 'This email address is not registered in this class portal. Please contact your Class Representative.',
       };
     }
 

@@ -837,50 +837,48 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                   if (isHoliday) {
                     // ── Holiday Day Row ──
                     return (
-                      <div
-                        key={day.dateStr}
-                        className="w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border"
-                        style={{
-                          background: '#121214',
-                          borderColor: '#23262D',
-                          borderWidth: '1px',
-                          borderStyle: 'dashed',
-                          opacity: 0.6,
-                        }}
-                      >
-                        {/* Left side: Day name + Date */}
-                        <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase" style={{ color: '#4b5563', letterSpacing: '0.05em' }}>
-                            {day.dayName}
-                          </span>
-                          <span
-                            className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5"
-                            style={{ color: '#374151' }}
-                          >
-                            {day.dateLabel}
-                          </span>
+                      <div key={day.dateStr} className="flex items-center gap-2">
+                        <div
+                          className="flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border"
+                          style={{
+                            background: '#121214',
+                            borderColor: '#23262D',
+                            borderWidth: '1px',
+                            borderStyle: 'dashed',
+                            opacity: 0.7,
+                          }}
+                        >
+                          {/* Left side: Day name + Date */}
+                          <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
+                            <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase text-muted-foreground/60 tracking-wider">
+                              {day.dayName}
+                            </span>
+                            <span className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5 text-muted-foreground/40">
+                              {day.dateLabel}
+                            </span>
+                          </div>
+
+                          {/* Vertical Divider */}
+                          <div className="w-px h-8 bg-border/40 flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+
+                          {/* Holiday center content */}
+                          <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-amber-500/80">
+                            <Umbrella className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.15em]">
+                              Holiday Break
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Vertical Divider */}
-                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
-
-                        {/* Holiday center content */}
-                        <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-slate-400">
-                          <Umbrella className="w-4 h-4 flex-shrink-0" />
-                          <span className="text-[12px] sm:text-[13px] font-bold uppercase tracking-wider">
-                            Holiday Break
-                          </span>
-                        </div>
-
-                        {/* CR Holiday toggle button */}
+                        {/* CR: Remove Holiday button (inline, right of row) */}
                         {isCR && (
                           <button
                             onClick={() => handleToggleHoliday(selectedWeek, index)}
                             disabled={isTogglingHoliday}
                             title="Remove Holiday"
-                            className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-[#23262D] bg-[#1A1D24] text-slate-300 hover:text-white hover:bg-[#23262D] transition-all cursor-pointer disabled:opacity-50"
+                            className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-amber-500/35 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                           >
-                            {isTogglingHoliday ? '…' : '✕ Holiday'}
+                            <Umbrella className="w-4 h-4" />
                           </button>
                         )}
                       </div>

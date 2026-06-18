@@ -76,33 +76,45 @@ export default async function StudentDeadlineDetailPage({ params }: StudentDeadl
       </div>
 
       {/* Deadline Details Card */}
-      <div className="glass-card p-6 flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-accent px-2.5 py-1 rounded-md border border-border">
-                <BookOpen className="w-3.5 h-3.5 text-primary" />
-                {enriched.subject}
-              </span>
-              <span className={`badge px-2 py-0.5 text-xs font-semibold border ${colorClass}`}>
-                {formatDaysRemaining(enriched.daysRemaining)}
-              </span>
-            </div>
-            <h2 className="text-xl font-bold text-foreground mt-1">
-              {enriched.title}
-            </h2>
+      <div className="glass-card p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden">
+        {/* Card Accent Line */}
+        <div className="absolute top-0 left-0 w-full h-[3px]" style={{
+          background: enriched.color === 'red' ? 'linear-gradient(90deg, #ef4444, #f87171)' : 
+                      enriched.color === 'orange' ? 'linear-gradient(90deg, #f97316, #fb923c)' : 
+                      'linear-gradient(90deg, #6b7280, #9ca3af)'
+        }} />
+
+        {/* Header section with course badge and remaining badge */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-slate-300 bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-md">
+              <BookOpen className="w-3.5 h-3.5 text-brand-cyan" />
+              {enriched.subject}
+            </span>
+            <span className={`badge px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${colorClass}`}>
+              {formatDaysRemaining(enriched.daysRemaining)}
+            </span>
           </div>
         </div>
 
-        {enriched.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3">
-            {enriched.description}
-          </p>
-        )}
+        {/* Content section */}
+        <div className="flex flex-col gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            {enriched.title}
+          </h2>
+          {enriched.description ? (
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed whitespace-pre-line">
+              {enriched.description}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">No additional description provided.</p>
+          )}
+        </div>
 
-        <div className="mt-2 pt-3 border-t border-border/50 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span>Due: {formatDateTime(enriched.due_date)}</span>
+        {/* Footer info: Due Date */}
+        <div className="flex items-center gap-2 text-xs text-slate-400 mt-2 pt-4 border-t border-border/40 font-medium">
+          <Clock className="w-4 h-4 text-rose-400" />
+          <span>Deadline: <strong className="text-slate-200">{formatDateTime(enriched.due_date)}</strong></span>
         </div>
       </div>
 

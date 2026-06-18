@@ -7,6 +7,7 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import { QuestionCard } from '@/components/features/QuestionCard';
 import { TimelineQuestion } from '@/types';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { EditAnnouncementModal } from '@/components/features/EditAnnouncementModal';
 
 interface CRAnnouncementDetailPageProps {
   params: Promise<{ id: string }>;
@@ -69,56 +70,61 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
       </div>
 
       {/* Announcement Details Card */}
-      <div className="glass-card p-6 flex flex-col gap-4 relative">
-        <div className="flex items-start justify-between gap-4">
+      <div className="glass-card p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden">
+        {/* Card Glow Effect */}
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-teal-500" />
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
           <div className="flex items-center gap-3">
             <UserAvatar
               profile={{
                 full_name: announcement.creator?.full_name || 'CR',
                 profile_pic_url: announcement.creator?.profile_pic_url || null,
               }}
-              size="sm"
+              size="md"
             />
             <div>
-              <p className="text-xs font-semibold text-foreground">
+              <p className="text-sm font-bold text-white leading-none">
                 {announcement.creator?.full_name || 'Class Representative'}
               </p>
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 font-medium">
                 <Calendar className="w-3.5 h-3.5" />
                 {formatDateTime(announcement.created_at)}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 pr-[110px] sm:pr-0">
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            {announcement.attachment_url && (
+              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                <button
+                  title="View Attachment"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all cursor-pointer"
+                >
+                  {announcement.attachment_type === 'image' ? (
+                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                  )}
+                  <span>Attachment</span>
+                </button>
+              </AttachmentViewer>
+            )}
+            
+            <EditAnnouncementModal announcement={announcement} />
           </div>
         </div>
 
-        <div className="border-t border-border/50 pt-3 flex flex-col gap-2 pr-[110px] sm:pr-0">
-          <h2 className="text-lg font-bold text-foreground">
+        {/* Content Section */}
+        <div className="flex flex-col gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             {announcement.title}
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed whitespace-pre-line">
             {announcement.body}
           </p>
         </div>
-
-        {announcement.attachment_url && (
-          <div className="absolute top-6 right-6 sm:static sm:mt-2 sm:pt-3 sm:border-t sm:border-border/50">
-            <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
-              <button
-                title="View Attachment"
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer"
-              >
-                {announcement.attachment_type === 'image' ? (
-                  <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                ) : (
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                )}
-                <span>Attachment</span>
-              </button>
-            </AttachmentViewer>
-          </div>
-        )}
       </div>
 
       {/* Q&A Section Title */}

@@ -12,6 +12,8 @@ import {
   Smartphone,
   CheckCircle2,
   Mail,
+  BookOpen,
+  ShieldCheck,
 } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
@@ -222,6 +224,77 @@ export default async function RootPage() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── User Manuals ──────────────────────────────────── */}
+      <section className="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-14 pb-16 sm:pb-24">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+            Learn how to use ClassApp
+          </h2>
+          <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto">
+            Comprehensive guides for both students and class representatives.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Student Guide */}
+          <Link
+            href="/manual/student"
+            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(139,92,246,0.15)]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(26,29,36,0.7) 100%)',
+              border: '1px solid rgba(139,92,246,0.22)',
+            }}
+          >
+            <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
+              style={{ background: 'rgba(139,92,246,0.15)' }} />
+            <div className="flex items-center gap-3 relative">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
+                <BookOpen className="w-5 h-5 text-violet-400" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Student Guide</p>
+                <p className="text-xs text-slate-400 mt-0.5">Everything you can do as a student</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed relative">
+              Timelines, deadlines, announcements, Q&amp;A threads, results, and resource downloads — all explained.
+            </p>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-violet-400 group-hover:text-violet-300 transition-colors relative">
+              View Student Manual <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </Link>
+
+          {/* CR Guide */}
+          <Link
+            href="/manual/cr"
+            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.12)]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.7) 100%)',
+              border: '1px solid rgba(52,211,153,0.22)',
+            }}
+          >
+            <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
+              style={{ background: 'rgba(52,211,153,0.12)' }} />
+            <div className="flex items-center gap-3 relative">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.28)' }}>
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">CR Guide</p>
+                <p className="text-xs text-slate-400 mt-0.5">Full control as a Class Representative</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed relative">
+              Managing timelines, posting announcements, publishing results, and administering student accounts — fully documented.
+            </p>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors relative">
+              View CR Manual <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </Link>
         </div>
       </section>
 
