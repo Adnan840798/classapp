@@ -142,10 +142,10 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   // Fetch week data when selected week changes
   useEffect(() => {
     startTransition(async () => {
-      const data = await getTimelineData(selectedWeek);
+      const data = await getTimelineData(selectedWeek, startDate);
       setWeekData(data);
     });
-  }, [selectedWeek]);
+  }, [selectedWeek, startDate]);
 
   // Fetch holiday data and total weeks once on mount
   useEffect(() => {
@@ -187,7 +187,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
           holidayDebounceRef.current = setTimeout(async () => {
             const [updatedHolidays, updatedWeekData] = await Promise.all([
               getHolidayDays(),
-              getTimelineData(selectedWeek),
+              getTimelineData(selectedWeek, startDate),
             ]);
             setHolidays(updatedHolidays);
             setWeekData(updatedWeekData);

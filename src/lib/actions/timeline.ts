@@ -33,20 +33,12 @@ export async function getClassRoutine() {
 /**
  * Fetch counts and items for Saturday-to-Wednesday of a specific week
  */
-export async function getTimelineData(weekNumber: number) {
+export async function getTimelineData(weekNumber: number, semesterStartDate: string = '2026-05-20') {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Fetch semester start date from configuration
-  const { data: config } = await supabase
-    .from('semester_config')
-    .select('start_date')
-    .eq('id', 1)
-    .maybeSingle();
-
-  const startDateStr = config?.start_date || '2026-05-20';
-  const { days } = getWeekDates(weekNumber, startDateStr);
+  const { days } = getWeekDates(weekNumber, semesterStartDate);
   
   // Set start of Saturday (first day) and end of Wednesday (last day) in GMT+6 timezone
   const startDate = new Date(days[0].getTime());
