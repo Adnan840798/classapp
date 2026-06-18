@@ -5,6 +5,7 @@ import { CalendarDays, Upload, X, Trash2, Download, AlertCircle, RefreshCw } fro
 import { FileUpload } from '@/components/ui/FileUpload';
 import { uploadRoutine, deleteRoutine } from '@/lib/actions/routine';
 import { useRouter } from 'next/navigation';
+import { resolveSupabaseUrlSync } from '@/lib/utils/resolveUrl';
 
 interface RoutineButtonProps {
   initialImageUrl: string | null;
@@ -13,6 +14,7 @@ interface RoutineButtonProps {
 
 export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl);
+  const resolvedImageUrl = resolveSupabaseUrlSync(imageUrl);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,9 +73,9 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
 
   // Handle download of the routine image
   async function handleDownload() {
-    if (!imageUrl) return;
+    if (!resolvedImageUrl) return;
     try {
-      const response = await fetch(imageUrl);
+      const response = await fetch(resolvedImageUrl);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -85,12 +87,12 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       // Fallback open in new tab
-      window.open(imageUrl, '_blank');
+      window.open(resolvedImageUrl, '_blank');
     }
   }
 
   // Render buttons based on state
-  if (!imageUrl) {
+  if (!resolvedImageUrl) {
     if (isCR) {
       return (
         <>
@@ -197,7 +199,7 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
         <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-brand-cyan/20 bg-[#121214] flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageUrl}
+            src={resolvedImageUrl || undefined}
             alt="Routine preview"
             className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200"
           />
@@ -255,10 +257,10 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
 
             {/* Content Body */}
             <div className="flex-1 overflow-auto p-6 bg-accent/5 flex items-center justify-center min-h-[300px]">
-              {imageUrl ? (
+              {resolvedImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={imageUrl}
+                  src={resolvedImageUrl}
                   alt="Class Routine"
                   className="max-w-full max-h-[60vh] object-contain rounded-lg border border-border/40 shadow-md"
                 />

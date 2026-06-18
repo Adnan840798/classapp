@@ -1,5 +1,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { resolveSupabaseUrl } from '@/lib/utils/resolveUrl';
 
 export async function GET() {
   const supabase = await getSupabaseServerClient();
@@ -14,6 +15,10 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ image_url: data?.image_url ?? null });
+  const resolvedUrl = data?.image_url 
+    ? await resolveSupabaseUrl(data.image_url) 
+    : null;
+
+  return NextResponse.json({ image_url: resolvedUrl });
 }
 export const dynamic = 'force-dynamic';

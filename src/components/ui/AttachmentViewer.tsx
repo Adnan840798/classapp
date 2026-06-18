@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
+import { resolveSupabaseUrlSync } from '@/lib/utils/resolveUrl';
 import {
   X,
   Download,
@@ -49,6 +50,7 @@ function detectKind(url: string): FileKind {
 }
 
 export function AttachmentViewer({ url, fileName, children }: AttachmentViewerProps) {
+  const resolvedUrl = resolveSupabaseUrlSync(url) || url;
   const [open, setOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -62,8 +64,8 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   // ── Video buffering loader ──
   const [videoLoading, setVideoLoading] = useState(true);
 
-  const kind = detectKind(url);
-  const name = fileName || url.split('/').pop()?.split('?')[0] || 'Attachment';
+  const kind = detectKind(resolvedUrl);
+  const name = fileName || resolvedUrl.split('/').pop()?.split('?')[0] || 'Attachment';
 
   // Portal mount
   useEffect(() => { setMounted(true); }, []);
@@ -77,7 +79,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
     setPdfError(false);
     setPdfBlobUrl(null);
 
-    fetch(url)
+    fetch(resolvedUrl)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.blob();
@@ -99,7 +101,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
       });
 
     return () => { cancelled = true; };
-  }, [open, kind, url]);
+  }, [open, kind, resolvedUrl]);
 
   // Revoke blob URL on close to free memory
   useEffect(() => {
@@ -141,7 +143,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
         document.body.removeChild(a);
         return;
       }
-      const res = await fetch(url);
+      const res = await fetch(resolvedUrl);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -152,7 +154,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
     } catch {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -226,7 +228,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               <span className="hidden sm:inline ml-1.5">Download</span>
             </button>
             <a
-              href={url}
+              href={resolvedUrl}
               target="_blank"
               rel="noopener noreferrer"
               title="Open in browser"
@@ -257,7 +259,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={url}
+                src={resolvedUrl}
                 alt={name}
                 onLoad={() => setImgLoaded(true)}
                 onClick={() => setZoom(v => !v)}
@@ -306,7 +308,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
                       Download
                     </button>
                     <a
-                      href={url}
+                      href={resolvedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-colors active:scale-95"
@@ -337,7 +339,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
                 </div>
               )}
               <video
-                src={url}
+                src={resolvedUrl}
                 controls
                 autoPlay
                 playsInline

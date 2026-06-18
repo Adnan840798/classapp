@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { getWeekDates, toISODateString } from '@/lib/utils/timelineDates';
+import { resolveSupabaseUrl } from '@/lib/utils/resolveUrl';
 
 /**
  * Fetch the current class routine
@@ -22,6 +23,11 @@ export async function getClassRoutine() {
     console.error('Error fetching class routine:', error);
     return null;
   }
+
+  if (data?.image_url) {
+    data.image_url = (await resolveSupabaseUrl(data.image_url)) ?? data.image_url;
+  }
+
   return data;
 }
 
