@@ -213,6 +213,24 @@ export async function deleteAnnouncement(id: string) {
   }
 }
 
+export async function bulkDeleteAnnouncements(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return { error: 'No items selected.' };
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    const { error } = await supabase.from('announcements').delete().in('id', ids);
+    if (error) return { error: error.message };
+    revalidateTag('announcements', { expire: 0 });
+    revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
+    return { success: true };
+  } catch (err: any) {
+    console.error('bulkDeleteAnnouncements error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
 export async function updateAnnouncement(id: string, formData: FormData) {
   try {
     const supabase = await getSupabaseServerClient();

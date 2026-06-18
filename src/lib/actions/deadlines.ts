@@ -128,6 +128,24 @@ export async function deleteDeadline(id: string) {
   }
 }
 
+export async function bulkDeleteDeadlines(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return { error: 'No items selected.' };
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    const { error } = await supabase.from('deadlines').delete().in('id', ids);
+    if (error) return { error: error.message };
+    revalidateTag('deadlines', { expire: 0 });
+    revalidatePath('/cr/deadlines');
+    revalidatePath('/student/deadlines');
+    return { success: true };
+  } catch (err: any) {
+    console.error('bulkDeleteDeadlines error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
 export async function updateDeadline(id: string, formData: FormData) {
   try {
     const supabase = await getSupabaseServerClient();

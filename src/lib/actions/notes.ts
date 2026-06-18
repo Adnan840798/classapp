@@ -175,6 +175,24 @@ export async function deleteNote(id: string) {
   }
 }
 
+export async function bulkDeleteNotes(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return { error: 'No items selected.' };
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    // CR-only: delete any note by id
+    const { error } = await supabase.from('notes').delete().in('id', ids);
+    if (error) return { error: error.message };
+    revalidatePath('/cr/notes');
+    revalidatePath('/student/notes');
+    return { success: true };
+  } catch (err: any) {
+    console.error('bulkDeleteNotes error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
 export async function approveNote(id: string) {
   try {
     const supabase = await getSupabaseServerClient();

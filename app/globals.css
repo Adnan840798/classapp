@@ -409,6 +409,15 @@
   .animate-fade-in {
     animation: animate-fade-in 0.25s ease-out;
   }
+
+  /* ── Slide up animation (BulkDeleteBar) ──────────────── */
+  @keyframes animate-slide-up {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  .animate-slide-up {
+    animation: animate-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 @layer utilities {
