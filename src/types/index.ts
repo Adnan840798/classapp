@@ -16,16 +16,12 @@ export interface Profile {
   email: string;
   role: UserRole;
   phone: string | null;
-  facebook_id: string | null;
   whatsapp: string | null;
   telegram_handle: string | null;
-  blood_group: string | null;
-  address: string | null;
   profile_pic_url: string | null;
   batch: string | null;
   department: string | null;
   notif_enabled: boolean;
-  notif_sound_on: boolean;
   cr_last_read_at: string | null;
   password_reset_required?: boolean;
   created_at: string;

@@ -25,7 +25,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
   // Notification toggles
   const [notifEnabled, setNotifEnabled] = useState(initialProfile.notif_enabled);
-  const [notifSoundOn, setNotifSoundOn] = useState(initialProfile.notif_sound_on);
 
   // Web push toggle handlers removed (FCM active in APK)
 
@@ -226,7 +225,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
     // Append notification settings manually since they are toggles
     formData.set('notif_enabled', String(notifEnabled));
-    formData.set('notif_sound_on', String(notifSoundOn));
 
     // Append compressed avatar if available
     if (compressedAvatar) {
@@ -313,7 +311,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               onClick={() => {
                 const nextVal = !notifEnabled;
                 setNotifEnabled(nextVal);
-                if (nextVal && notifSoundOn) {
+                if (nextVal) {
                   playNotificationChime();
                 }
               }}
@@ -327,33 +325,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               {notifEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
             </button>
           </div>
-
-          {/* Toggle 2: Notif Sound */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold text-foreground">Notification Sound</span>
-              <span className="text-[10px] text-muted-foreground">Play a tone on new updates</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const nextVal = !notifSoundOn;
-                setNotifSoundOn(nextVal);
-                if (nextVal && notifEnabled) {
-                  playNotificationChime();
-                }
-              }}
-              disabled={isPending || !notifEnabled}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
-                notifSoundOn && notifEnabled
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
-              }`}
-            >
-              {notifSoundOn && notifEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-          </div>
-
         </div>
 
         {/* Manage Accounts Card (CR/Admin only) */}
@@ -519,38 +490,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 />
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="blood_group" className="text-xs font-semibold text-foreground">
-                  Blood Group
-                </label>
-                <input
-                  id="blood_group"
-                  name="blood_group"
-                  type="text"
-                  defaultValue={profile.blood_group || ''}
-                  placeholder="e.g. O+, A-"
-                  className="form-input"
-                  disabled={isPending}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="address" className="text-xs font-semibold text-foreground">
-                  Address
-                </label>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  defaultValue={profile.address || ''}
-                  placeholder="e.g. Dhaka, Bangladesh"
-                  className="form-input"
-                  disabled={isPending}
-                />
-              </div>
-            </div>
           </div>
 
           {/* Social Links */}
@@ -594,21 +533,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                   </span>
                 </div>
               </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="facebook_id" className="text-xs font-semibold text-foreground">
-                Facebook Profile ID or URL
-              </label>
-              <input
-                id="facebook_id"
-                name="facebook_id"
-                type="text"
-                defaultValue={profile.facebook_id || ''}
-                placeholder="e.g. john.doe"
-                className="form-input"
-                disabled={isPending}
-              />
             </div>
           </div>
 

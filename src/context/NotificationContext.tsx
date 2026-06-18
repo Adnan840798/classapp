@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // Helper to play sound if enabled
   const playSound = () => {
-    if (profile?.notif_sound_on && profile?.notif_enabled) {
+    if (profile?.notif_enabled) {
       playNotificationChime();
     }
   };
@@ -237,7 +237,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (qnaChannel) supabase.removeChannel(qnaChannel);
       if (notesChannel) supabase.removeChannel(notesChannel);
     };
-  }, [profile?.id, profile?.role, profile?.notif_sound_on, profile?.notif_enabled]);
+  }, [profile?.id, profile?.role, profile?.notif_enabled]);
 
   // Listen for native foreground notification events to show them in-app
   useEffect(() => {

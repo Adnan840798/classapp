@@ -11,13 +11,9 @@ import { createClient } from '@supabase/supabase-js';
 const ProfileSchema = z.object({
   full_name: z.string().min(1, 'Full name is required').max(100),
   phone: z.string().max(20).optional().nullable(),
-  facebook_id: z.string().max(100).optional().nullable(),
   whatsapp: z.string().max(20).optional().nullable(),
   telegram_handle: z.string().max(100).optional().nullable(),
-  blood_group: z.string().max(10).optional().nullable(),
-  address: z.string().max(300).optional().nullable(),
   notif_enabled: z.boolean().default(true),
-  notif_sound_on: z.boolean().default(true),
 });
 
 export async function updateProfile(formData: FormData) {
@@ -29,13 +25,9 @@ export async function updateProfile(formData: FormData) {
     const raw = {
       full_name: formData.get('full_name') as string,
       phone: (formData.get('phone') as string) || null,
-      facebook_id: (formData.get('facebook_id') as string) || null,
       whatsapp: (formData.get('whatsapp') as string) || null,
       telegram_handle: (formData.get('telegram_handle') as string) || null,
-      blood_group: (formData.get('blood_group') as string) || null,
-      address: (formData.get('address') as string) || null,
       notif_enabled: formData.get('notif_enabled') === 'true',
-      notif_sound_on: formData.get('notif_sound_on') === 'true',
     };
 
     const parsed = ProfileSchema.safeParse(raw);
@@ -76,13 +68,9 @@ export async function updateProfile(formData: FormData) {
     const updateData: any = {
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
-      facebook_id: parsed.data.facebook_id,
       whatsapp: parsed.data.whatsapp,
       telegram_handle: parsed.data.telegram_handle,
-      blood_group: parsed.data.blood_group,
-      address: parsed.data.address,
       notif_enabled: parsed.data.notif_enabled,
-      notif_sound_on: parsed.data.notif_sound_on,
       updated_at: new Date().toISOString(),
     };
 
