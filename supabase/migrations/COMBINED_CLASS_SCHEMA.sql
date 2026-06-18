@@ -75,7 +75,6 @@ CREATE TABLE IF NOT EXISTS profiles (
   batch                   text,
   department              text,
   notif_enabled           boolean DEFAULT true,
-  notif_sound_on          boolean DEFAULT true,
   -- TRUE until the student completes their first-login password reset
   password_reset_required boolean NOT NULL DEFAULT true,
   created_at              timestamptz DEFAULT now(),

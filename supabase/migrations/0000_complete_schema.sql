@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS profiles (
   batch                   text,
   department              text,
   notif_enabled           boolean DEFAULT true,
-  notif_sound_on          boolean DEFAULT true,
   -- TRUE until the student completes their first-login password reset
   password_reset_required boolean NOT NULL DEFAULT true,
   created_at              timestamptz DEFAULT now(),
@@ -185,6 +184,20 @@ CREATE TABLE IF NOT EXISTS public.class_routine (
   uploaded_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   uploaded_at timestamptz DEFAULT now()
 );
+
+-- ── semester_config ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.semester_config (
+  id           int PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- singleton row
+  total_weeks  int NOT NULL DEFAULT 14 CHECK (total_weeks BETWEEN 1 AND 52),
+  start_date   date NOT NULL DEFAULT '2026-05-20',
+  updated_at   timestamptz DEFAULT now(),
+  updated_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+-- Seed default row if not exists
+INSERT INTO public.semester_config (id, total_weeks, start_date)
+VALUES (1, 14, '2026-05-20')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- ============================================================
@@ -338,6 +351,7 @@ ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_push_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.semester_config ENABLE ROW LEVEL SECURITY;
 
 -- Clean up existing policies if they already exist (idempotency safety)
 DO $$
@@ -403,6 +417,10 @@ BEGIN
   DROP POLICY IF EXISTS "upd_select_own" ON public.user_push_devices;
   DROP POLICY IF EXISTS "upd_insert_own" ON public.user_push_devices;
   DROP POLICY IF EXISTS "upd_delete_own" ON public.user_push_devices;
+
+  -- semester_config
+  DROP POLICY IF EXISTS "sc_read_authenticated" ON public.semester_config;
+  DROP POLICY IF EXISTS "sc_cr_admin_update" ON public.semester_config;
 
   -- storage policies (on storage.objects)
   DROP POLICY IF EXISTS "avatars_public_read" ON storage.objects;
@@ -657,6 +675,18 @@ CREATE POLICY "class_routine_select"
 
 CREATE POLICY "class_routine_cr_admin_all"
   ON public.class_routine FOR ALL
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'))
+  WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
+
+-- ── semester_config ─────────────────────────────────────────
+CREATE POLICY "sc_read_authenticated"
+  ON public.semester_config FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "sc_cr_admin_update"
+  ON public.semester_config FOR UPDATE
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'))
   WITH CHECK (public.get_my_role() IN ('cr', 'admin'));

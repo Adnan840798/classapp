@@ -359,17 +359,36 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
         )}
 
         {/* Semester Settings Card (CR/Admin only) */}
-        {(profile.role === 'cr' || profile.role === 'admin') && semesterConfig && (
+        {(profile.role === 'cr' || profile.role === 'admin') && (
           <div className="glass-card p-6 flex flex-col gap-4">
             <h3 className="font-bold text-sm text-foreground border-b border-border pb-2 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-emerald-400" />
               Semester Settings
             </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Configure the total weeks and starting date for this semester's timeline.
-            </p>
             
-            <div className="flex flex-col gap-3 mt-2">
+            {!semesterConfig ? (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex flex-col gap-2 text-xs leading-relaxed text-left">
+                <div className="flex items-center gap-2 font-bold">
+                  <AlertTriangle className="w-4 h-4" />
+                  Database Migration Required
+                </div>
+                <p>
+                  The semester settings option is unavailable because the required database columns do not exist in your database yet.
+                </p>
+                <p className="font-mono text-[10px] mt-1 bg-black/30 p-2 rounded">
+                  Please run the SQL statements in the files:
+                  <br />• supabase/migrations/0008_semester_start_date.sql
+                  <br />• supabase/migrations/0009_remove_profile_fields.sql
+                  <br />inside your Supabase SQL Editor.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Configure the total weeks and starting date for this semester's timeline.
+                </p>
+                
+                <div className="flex flex-col gap-3 mt-2">
               {configError && (
                 <div className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
                   {configError}
@@ -432,8 +451,10 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 )}
               </button>
             </div>
-          </div>
+          </>
         )}
+      </div>
+    )}
       </div>
 
       {/* Right Column: Profile details form */}

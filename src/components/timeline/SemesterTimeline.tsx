@@ -159,7 +159,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         if (data) {
           setTotalWeeksState(data.total_weeks);
           setStartDate(data.start_date);
-          setSelectedWeek(getCurrentWeekNumber(data.start_date, data.total_weeks));
+          const cur = getCurrentWeekNumber(data.start_date, data.total_weeks);
+          setSelectedWeek(cur !== null ? cur : 1);
         }
       });
   }, []);
@@ -230,7 +231,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       if (!hasScrolledInit) {
         const isMobile = window.innerWidth < 640;
         const threshold = isMobile ? 2 : 4;
-        if (currentWeek > threshold) {
+        if (currentWeek && currentWeek > threshold) {
           const activeCard = weekListRef.current.querySelector(`[data-week="${currentWeek}"]`);
           if (activeCard) {
             setTimeout(() => {
@@ -253,7 +254,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
 
   function getWeekRangeLabel(weekNum: number): { line1: string; line2: string } {
-    const { saturday } = getWeekDates(weekNum);
+    const { saturday } = getWeekDates(weekNum, startDate);
     const friday = new Date(saturday);
     friday.setDate(saturday.getDate() + 6);
     const f = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -333,8 +334,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     const startWeek = weeks[0];
     const endWeek = weeks[weeks.length - 1];
     
-    const { saturday: startSat } = getWeekDates(startWeek);
-    const { saturday: endSat } = getWeekDates(endWeek);
+    const { saturday: startSat } = getWeekDates(startWeek, startDate);
+    const { saturday: endSat } = getWeekDates(endWeek, startDate);
     const endFri = new Date(endSat);
     endFri.setDate(endSat.getDate() + 6);
     
