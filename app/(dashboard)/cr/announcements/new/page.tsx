@@ -86,7 +86,7 @@ export default function NewAnnouncementPage() {
             <>
               <input type="hidden" name="custom_created_at" value={customDate} />
               <input type="hidden" name="redirect_to" value="timeline" />
-              <div className="bg-violet-500/10 border border-violet-500/20 text-violet-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
                 <span>Adding this announcement directly to the timeline day: <strong className="text-white">{customDate}</strong></span>
               </div>
             </>

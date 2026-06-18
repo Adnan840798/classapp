@@ -116,6 +116,8 @@ export async function createDeadline(formData: FormData) {
 export async function deleteDeadline(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    // Delete associated in-app notifications
+    await supabase.from('notifications').delete().eq('reference_id', id).eq('type', 'deadline');
     const { error } = await supabase.from('deadlines').delete().eq('id', id);
     if (error) return { error: error.message };
     revalidateTag('deadlines', { expire: 0 }); // bust unstable_cache immediately
@@ -134,6 +136,8 @@ export async function bulkDeleteDeadlines(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // Delete associated in-app notifications in bulk
+    await supabase.from('notifications').delete().in('reference_id', ids).eq('type', 'deadline');
     const { error } = await supabase.from('deadlines').delete().in('id', ids);
     if (error) return { error: error.message };
     revalidateTag('deadlines', { expire: 0 });

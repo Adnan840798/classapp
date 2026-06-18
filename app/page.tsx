@@ -131,7 +131,7 @@ export default async function RootPage() {
         }}
       />
       <div className="absolute top-1/4 -left-64 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-3xl pointer-events-none bg-primary" />
-      <div className="absolute bottom-1/3 -right-64 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-3xl pointer-events-none bg-purple-600" />
+      <div className="absolute bottom-1/3 -right-64 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-3xl pointer-events-none bg-emerald-600" />
 
       {/* ── Navbar ─────────────────────────────────────── */}
       <header className="h-16 border-b border-border/60 flex items-center justify-between px-6 lg:px-14 backdrop-blur-md sticky top-0 z-50 bg-background/70">
@@ -241,18 +241,18 @@ export default async function RootPage() {
           {/* Student Guide */}
           <Link
             href="/manual/student"
-            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(139,92,246,0.15)]"
+            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.12)]"
             style={{
-              background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(26,29,36,0.7) 100%)',
-              border: '1px solid rgba(139,92,246,0.22)',
+              background: 'linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.7) 100%)',
+              border: '1px solid rgba(52,211,153,0.22)',
             }}
           >
             <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
-              style={{ background: 'rgba(139,92,246,0.15)' }} />
+              style={{ background: 'rgba(52,211,153,0.12)' }} />
             <div className="flex items-center gap-3 relative">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
-                <BookOpen className="w-5 h-5 text-violet-400" />
+                style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.3)' }}>
+                <BookOpen className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Student Guide</p>
@@ -262,7 +262,7 @@ export default async function RootPage() {
             <p className="text-xs text-slate-500 leading-relaxed relative">
               Timelines, deadlines, announcements, Q&amp;A threads, results, and resource downloads — all explained.
             </p>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-violet-400 group-hover:text-violet-300 transition-colors relative">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors relative">
               View Student Manual <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>

@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { sendFCMPush } from '@/lib/actions/push';
 
 const CalendarEventSchema = z.object({
   title: z.string().min(1).max(200),
@@ -143,6 +144,51 @@ export async function answerQuestion(questionId: string, formData: FormData) {
     });
 
     if (error) return { error: error.message };
+
+    // Fetch the question details to find who asked it and what context it belongs to
+    const { data: questionData } = await supabase
+      .from('timeline_questions')
+      .select('asked_by, event_id, announcement_id, deadline_id')
+      .eq('id', questionId)
+      .single();
+
+    if (questionData && questionData.asked_by) {
+      // Check if the student profile exists (not deleted)
+      const { data: studentProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', questionData.asked_by)
+        .maybeSingle();
+
+      if (studentProfile && studentProfile.id !== user.id) {
+        const referenceId = questionData.announcement_id || questionData.deadline_id || questionData.event_id;
+
+        // 1. Send targeted in-app notification
+        const { error: notifError } = await supabase.rpc('notify_single_student', {
+          p_student_id: studentProfile.id,
+          p_title: 'CR Answered Your Question',
+          p_message: answer.length > 150 ? `${answer.slice(0, 147)}...` : answer,
+          p_type: 'qna',
+          p_reference_id: referenceId,
+        });
+
+        if (notifError) {
+          console.error('[answerQuestion] Failed to notify student in-app:', notifError);
+        }
+
+        // 2. Send targeted FCM push notification to the specific student
+        try {
+          await sendFCMPush({
+            title: '💬 CR Answered Your Question',
+            body: answer.length > 120 ? `${answer.slice(0, 117)}...` : answer,
+            url: '/student/timeline',
+            targetUserId: studentProfile.id,
+          });
+        } catch (fcmErr) {
+          console.error('[answerQuestion] FCM push notification failed (non-fatal):', fcmErr);
+        }
+      }
+    }
     
     await revalidateQuestionPaths(supabase, questionId);
     return { success: true };

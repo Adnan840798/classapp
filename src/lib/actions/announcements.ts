@@ -201,6 +201,8 @@ export async function createAnnouncement(formData: FormData) {
 export async function deleteAnnouncement(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    // Delete associated in-app notifications
+    await supabase.from('notifications').delete().eq('reference_id', id).eq('type', 'announcement');
     const { error } = await supabase.from('announcements').delete().eq('id', id);
     if (error) return { error: error.message };
     revalidateTag('announcements', { expire: 0 }); // bust unstable_cache immediately
@@ -219,6 +221,8 @@ export async function bulkDeleteAnnouncements(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // Delete associated in-app notifications in bulk
+    await supabase.from('notifications').delete().in('reference_id', ids).eq('type', 'announcement');
     const { error } = await supabase.from('announcements').delete().in('id', ids);
     if (error) return { error: error.message };
     revalidateTag('announcements', { expire: 0 });

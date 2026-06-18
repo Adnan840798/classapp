@@ -126,14 +126,14 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
       padding: 1.5rem;
     }
     .card {
-      background: linear-gradient(135deg, rgba(30,30,46,0.95), rgba(20,20,35,0.95));
-      border: 1px solid rgba(139,92,246,0.25);
+      background: linear-gradient(135deg, rgba(20,26,26,0.95), rgba(13,18,18,0.95));
+      border: 1px solid rgba(16,185,129,0.25);
       border-radius: 1.25rem;
       padding: 2.5rem 2rem;
       max-width: 420px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 0 0 1px rgba(139,92,246,0.1), 0 20px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 0 0 1px rgba(16,185,129,0.1), 0 20px 60px rgba(0,0,0,0.5);
     }
     .icon {
       font-size: 2.5rem;
@@ -142,7 +142,7 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
     h1 {
       font-size: 1.35rem;
       font-weight: 700;
-      color: #c4b5fd;
+      color: #a7f3d0;
       margin-bottom: 0.5rem;
     }
     p {
@@ -158,9 +158,9 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
       margin: 0 auto 1.5rem;
     }
     .countdown-ring svg { transform: rotate(-90deg); }
-    circle.track { stroke: rgba(139,92,246,0.15); fill: none; stroke-width: 6; }
+    circle.track { stroke: rgba(16,185,129,0.15); fill: none; stroke-width: 6; }
     circle.progress {
-      stroke: hsl(265,85%,70%);
+      stroke: hsl(160,84%,51%);
       fill: none;
       stroke-width: 6;
       stroke-linecap: round;
@@ -174,15 +174,15 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
       justify-content: center;
       font-size: 1.5rem;
       font-weight: 700;
-      color: #c4b5fd;
+      color: #a7f3d0;
     }
     .pill {
       display: inline-block;
       padding: 0.3rem 0.85rem;
       border-radius: 9999px;
-      background: rgba(139,92,246,0.12);
-      border: 1px solid rgba(139,92,246,0.25);
-      color: #a78bfa;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: #34d399;
       font-size: 0.75rem;
       font-weight: 600;
       letter-spacing: 0.04em;
@@ -194,7 +194,7 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
       margin-top: 1rem;
       padding: 0.65rem 1.5rem;
       border-radius: 0.625rem;
-      background: linear-gradient(135deg, hsl(265,85%,55%), hsl(275,80%,45%));
+      background: linear-gradient(135deg, hsl(160,84%,45%), hsl(170,80%,38%));
       color: #fff;
       font-size: 0.85rem;
       font-weight: 600;
@@ -215,7 +215,7 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
     <h1>Slow down a little!</h1>
     <p>Too many requests in a short time.<br/>
        Please wait before trying again — this keeps ClassApp fast and safe for everyone.</p>
-
+ 
     <div class="countdown-ring">
       <svg width="96" height="96" viewBox="0 0 96 96">
         <circle class="track" cx="48" cy="48" r="42" />
@@ -225,9 +225,9 @@ export function rateLimitResponse(result: RateLimitResult, pathname: string): Re
       </svg>
       <div class="countdown-num" id="num">${retryAfterSec}</div>
     </div>
-
+ 
     <p style="font-size:0.78rem;color:#64748b;">
-      Path: <code style="color:#a78bfa">${pathname}</code>
+      Path: <code style="color:#34d399">${pathname}</code>
     </p>
 
     <a class="btn" id="retryBtn" href="${pathname}">Try again</a>

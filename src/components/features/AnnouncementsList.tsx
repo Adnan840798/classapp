@@ -65,6 +65,21 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
     );
   }
 
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayOfWeek = now.getDay(); // Sunday=0, Monday=1, ..., Thursday=4, Friday=5, Saturday=6
+  const activeThreshold = dayOfWeek === 5
+    ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    : startOfToday;
+
+  const upcomingAnnouncements = (announcements || [])
+    .filter((a) => new Date(a.created_at) >= activeThreshold)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+  const pastAnnouncements = (announcements || [])
+    .filter((a) => new Date(a.created_at) < activeThreshold)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
   return (
     <>
       {/* Page header */}
@@ -76,11 +91,10 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={toggleSelectMode}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
-              selectMode
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-                : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
-            }`}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${selectMode
+              ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+              : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
           >
             {selectMode ? (
               <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</>
@@ -97,137 +111,277 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex flex-col gap-3">
-        {announcements.map((announcement) => {
-          const isImportant = announcement.is_important;
-          const isSelected = selectedIds.has(announcement.id);
+      <div className="flex flex-col gap-8">
+        {/* Announcements Section (Current & Upcoming) */}
+        <div className="flex flex-col gap-3.5">
 
-          return (
-            <div
-              key={announcement.id}
-              onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
-              className={`relative rounded-xl overflow-hidden transition-all duration-150 ${
-                selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-              } animate-fade-in`}
-              style={{
-                background: isSelected
-                  ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
-                  : isImportant
-                    ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
-                    : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
-                border: isSelected
-                  ? '1px solid rgba(244, 63, 94, 0.4)'
-                  : isImportant
-                    ? '1px solid rgba(52,211,153,0.28)'
-                    : '1px solid rgba(148,163,184,0.15)',
-                boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
-              }}
-            >
-              {/* Left accent bar */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-1"
-                style={{
-                  background: isSelected
-                    ? 'linear-gradient(180deg, #f43f5e, #be123c)'
-                    : isImportant
-                      ? 'linear-gradient(180deg, #34D399, #059669)'
-                      : 'linear-gradient(180deg, #475569, #1e293b)',
-                }}
-              />
 
-              <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                {/* Left: checkbox (select mode) + icon + info */}
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {selectMode && (
-                    <div className="flex-shrink-0 mt-0.5">
-                      {isSelected ? (
-                        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
-                          <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
-                      )}
-                    </div>
-                  )}
+          {upcomingAnnouncements.length === 0 ? (
+            <p className="text-xs text-slate-500 italic pl-1 py-1">
+              No active or upcoming announcements.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {upcomingAnnouncements.map((announcement) => {
+                const isImportant = announcement.is_important;
+                const isSelected = selectedIds.has(announcement.id);
+
+                return (
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    key={announcement.id}
+                    onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
+                    className={`relative rounded-xl overflow-hidden transition-all duration-150 ${selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
+                      } animate-fade-in`}
                     style={{
                       background: isSelected
-                        ? 'rgba(244, 63, 94, 0.12)'
+                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
                         : isImportant
-                          ? 'rgba(52,211,153,0.12)'
-                          : 'rgba(148,163,184,0.08)',
+                          ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
+                          : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
                       border: isSelected
-                        ? '1px solid rgba(244, 63, 94, 0.25)'
+                        ? '1px solid rgba(244, 63, 94, 0.4)'
                         : isImportant
-                          ? '1px solid rgba(52,211,153,0.25)'
+                          ? '1px solid rgba(52,211,153,0.28)'
                           : '1px solid rgba(148,163,184,0.15)',
+                      boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
                   >
-                    <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                      <h3 className="text-sm font-extrabold text-white break-words leading-snug">
-                        {announcement.title}
-                      </h3>
-                      {announcement.telegram_posted && (
-                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] uppercase tracking-wider">
-                          Telegram
-                        </span>
+                    {/* Left accent bar */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1"
+                      style={{
+                        background: isSelected
+                          ? 'linear-gradient(180deg, #f43f5e, #be123c)'
+                          : isImportant
+                            ? 'linear-gradient(180deg, #34D399, #059669)'
+                            : 'linear-gradient(180deg, #475569, #1e293b)',
+                      }}
+                    />
+
+                    <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      {/* Left: checkbox + icon + info */}
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {selectMode && (
+                          <div className="flex-shrink-0 mt-0.5">
+                            {isSelected ? (
+                              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+                                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                            )}
+                          </div>
+                        )}
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isSelected
+                              ? 'rgba(244, 63, 94, 0.12)'
+                              : isImportant
+                                ? 'rgba(52,211,153,0.12)'
+                                : 'rgba(148,163,184,0.08)',
+                            border: isSelected
+                              ? '1px solid rgba(244, 63, 94, 0.25)'
+                              : isImportant
+                                ? '1px solid rgba(52,211,153,0.25)'
+                                : '1px solid rgba(148,163,184,0.15)',
+                          }}
+                        >
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                              {announcement.title}
+                            </h3>
+                            {announcement.telegram_posted && (
+                              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] uppercase tracking-wider">
+                                Telegram
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
+                            {announcement.body}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right: author/date + actions (hidden in select mode) */}
+                      {!selectMode && (
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
+                          <div className="flex flex-col items-start sm:items-end">
+                            <span className="text-[10px] text-slate-400 font-bold leading-none">
+                              {announcement.creator?.full_name || 'CR'}
+                            </span>
+                            <span className="text-[9px] text-slate-500 font-medium mt-1">
+                              {formatDateTime(announcement.created_at)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {announcement.attachment_url && (
+                              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                <button
+                                  title="View Attachment"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
+                                  <span>Attachment</span>
+                                </button>
+                              </AttachmentViewer>
+                            )}
+                            <Link
+                              href={`/cr/announcements/${announcement.id}`}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
+                            >
+                              Question &amp; Answer
+                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                            </Link>
+                            <EditAnnouncementModal announcement={announcement} />
+                            <DeleteButton
+                              id={announcement.id}
+                              onDelete={deleteAnnouncement}
+                              confirmMessage="Are you sure you want to delete this announcement?"
+                            />
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
-                      {announcement.body}
-                    </p>
                   </div>
-                </div>
-
-                {/* Right: author/date + actions (hidden in select mode) */}
-                {!selectMode && (
-                  <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
-                    <div className="flex flex-col items-start sm:items-end">
-                      <span className="text-[10px] text-slate-400 font-bold leading-none">
-                        {announcement.creator?.full_name || 'CR'}
-                      </span>
-                      <span className="text-[9px] text-slate-500 font-medium mt-1">
-                        {formatDateTime(announcement.created_at)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {announcement.attachment_url && (
-                        <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
-                          <button
-                            title="View Attachment"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
-                          >
-                            <FileText className="w-3 h-3 flex-shrink-0" />
-                            <span>Attachment</span>
-                          </button>
-                        </AttachmentViewer>
-                      )}
-                      <Link
-                        href={`/cr/announcements/${announcement.id}`}
-                        className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
-                      >
-                        Question &amp; Answer
-                        <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                      </Link>
-                      <EditAnnouncementModal announcement={announcement} />
-                      <DeleteButton
-                        id={announcement.id}
-                        onDelete={deleteAnnouncement}
-                        confirmMessage="Are you sure you want to delete this announcement?"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+                );
+              })}
             </div>
-          );
-        })}
+          )}
+        </div>
+
+        {/* Past Section */}
+        {pastAnnouncements.length > 0 && (
+          <div className="flex flex-col gap-3.5 animate-fade-in">
+            <div className="flex items-center gap-2 px-1">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Past Announcements</h2>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {pastAnnouncements.map((announcement) => {
+                const isSelected = selectedIds.has(announcement.id);
+
+                return (
+                  <div
+                    key={announcement.id}
+                    onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
+                    className={`relative rounded-xl overflow-hidden transition-all duration-150 ${selectMode ? 'cursor-pointer' : 'opacity-75 hover:opacity-100 hover:translate-x-0.5'
+                      } animate-fade-in`}
+                    style={{
+                      background: isSelected
+                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
+                        : 'linear-gradient(90deg, rgba(148,163,184,0.02) 0%, rgba(20,22,28,0.4) 100%)',
+                      border: isSelected
+                        ? '1px solid rgba(244, 63, 94, 0.4)'
+                        : '1px solid rgba(148,163,184,0.08)',
+                      boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
+                    }}
+                  >
+                    {/* Left accent bar */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1"
+                      style={{
+                        background: isSelected
+                          ? 'linear-gradient(180deg, #f43f5e, #be123c)'
+                          : 'linear-gradient(180deg, #475569, #1e293b)',
+                      }}
+                    />
+
+                    <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      {/* Left: checkbox + icon + info */}
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {selectMode && (
+                          <div className="flex-shrink-0 mt-0.5">
+                            {isSelected ? (
+                              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+                                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                            )}
+                          </div>
+                        )}
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isSelected
+                              ? 'rgba(244, 63, 94, 0.12)'
+                              : 'rgba(148,163,184,0.04)',
+                            border: isSelected
+                              ? '1px solid rgba(244, 63, 94, 0.25)'
+                              : '1px solid rgba(148,163,184,0.08)',
+                          }}
+                        >
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : 'text-slate-500'}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <h3 className="text-sm font-bold text-slate-300 break-words leading-snug">
+                              {announcement.title}
+                            </h3>
+                            {announcement.telegram_posted && (
+                              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/60 text-slate-400 uppercase tracking-wider">
+                                Telegram
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 whitespace-pre-line leading-relaxed break-words">
+                            {announcement.body}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right: author/date + actions (hidden in select mode) */}
+                      {!selectMode && (
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.02] sm:border-0 sm:items-end">
+                          <div className="flex flex-col items-start sm:items-end">
+                            <span className="text-[10px] text-slate-500 font-bold leading-none">
+                              {announcement.creator?.full_name || 'CR'}
+                            </span>
+                            <span className="text-[9px] text-slate-600 font-medium mt-1">
+                              {formatDateTime(announcement.created_at)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {announcement.attachment_url && (
+                              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                <button
+                                  title="View Attachment"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-400 border border-slate-700 bg-slate-800/40 hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                  <FileText className="w-3 h-3 flex-shrink-0 text-slate-400" />
+                                  <span>Attachment</span>
+                                </button>
+                              </AttachmentViewer>
+                            )}
+                            <Link
+                              href={`/cr/announcements/${announcement.id}`}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-slate-400 border border-slate-700 bg-slate-800/20 hover:bg-slate-800/40 transition-all whitespace-nowrap"
+                            >
+                              Question &amp; Answer
+                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                            </Link>
+                            <EditAnnouncementModal announcement={announcement} />
+                            <DeleteButton
+                              id={announcement.id}
+                              onDelete={deleteAnnouncement}
+                              confirmMessage="Are you sure you want to delete this announcement?"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <BulkDeleteBar

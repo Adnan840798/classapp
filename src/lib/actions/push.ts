@@ -83,6 +83,7 @@ export async function sendFCMPush(payload: {
   title: string;
   body: string;
   url?: string;
+  targetUserId?: string;
 }) {
   const fcmServiceAccountStr = process.env.FCM_SERVICE_ACCOUNT;
 
@@ -118,16 +119,22 @@ export async function sendFCMPush(payload: {
       throw new Error('Failed to retrieve FCM access token');
     }
 
-    // 2. Fetch all profiles that have a registered FCM token
+    // 2. Fetch profiles that have a registered FCM token
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: profiles, error } = await adminClient
+    let query = adminClient
       .from('profiles')
       .select('id, fcm_token')
       .not('fcm_token', 'is', null);
+
+    if (payload.targetUserId) {
+      query = query.eq('id', payload.targetUserId);
+    }
+
+    const { data: profiles, error } = await query;
 
     if (error) {
       console.error('[sendFCMPush] Error fetching FCM tokens:', error);
