@@ -23,6 +23,24 @@ function getClientIp(req: NextRequest): string {
   );
 }
 
+/**
+ * Copies all cookies from one response onto another.
+ * Used to propagate refreshed auth tokens when we redirect.
+ */
+function copyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((c) => {
+    to.cookies.set(c.name, c.value, {
+      path:     c.path,
+      domain:   c.domain,
+      expires:  c.expires,
+      maxAge:   c.maxAge,
+      sameSite: c.sameSite,
+      secure:   c.secure,
+      httpOnly: c.httpOnly,
+    });
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIp(request);
@@ -41,9 +59,12 @@ export async function middleware(request: NextRequest) {
   const rl = rateLimit(bucket, ip, limit, windowMs);
   if (!rl.success) return rateLimitResponse(rl, pathname);
 
-  // Inject x-pathname so Server Components can read the route
+  // Inject x-pathname so Server Components / Layouts can read the active route
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-pathname', pathname);
+
+  // Base response — always created with the enriched headers so every response
+  // (including token-refresh ones from setAll) preserves x-pathname.
   let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
 
   const tenantUrl     = request.cookies.get('tenant_supabase_url')?.value;
@@ -54,98 +75,131 @@ export async function middleware(request: NextRequest) {
   const isResetPage  = pathname === '/reset-password';
   const isAsset      = pathname.includes('.') || pathname.startsWith('/_next/');
   const isDashboard  = !isPublicPage && !isResetPage && !isAsset;
+  const needsAuth    = isDashboard || isResetPage;
 
-  // Both dashboard and reset-password require a tenant config + session
-  const needsAuth = isDashboard || isResetPage;
+  const hasSessionCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-'));
 
-  const hasSessionCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-'));
-
-  // ── 2. No tenant config → send to /login for any auth-required route ──────
+  // ── 2. No tenant config → redirect auth-required routes to /login ─────────
   if (!tenantUrl && needsAuth) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // ── Fast-path: no session cookie → skip DB call, redirect immediately ─────
+  // ── 3. Fast-path: no session cookie → skip DB call ────────────────────────
   if (!hasSessionCookie && needsAuth) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // ── 3. Root path: always allow through only if NOT logged in ─────────────
-  // If the user has a valid session, redirect them directly to their semester timeline.
-  if (pathname === '/' && tenantUrl && tenantAnonKey && hasSessionCookie) {
-    const supabase = createServerClient(tenantUrl, tenantAnonKey, {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('password_reset_required, role')
-        .eq('id', user.id)
-        .single();
-
-      // Only redirect away if the user still needs to reset their password
-      if (profile?.password_reset_required === true) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/reset-password';
-        return NextResponse.redirect(url);
-      } else {
-        const url = request.nextUrl.clone();
-        const role = profile?.role;
-        url.pathname = role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
-        return NextResponse.redirect(url);
+  // ── 4. Root path "/" handling ─────────────────────────────────────────────
+  //
+  //  Case A — Fresh/external load (no same-origin Referer):
+  //    If the user is authenticated, redirect them straight to their timeline
+  //    so they don't have to click through the landing page.
+  //
+  //  Case B — Internal navigation (Referer is our own host, e.g. clicking the
+  //    logo from inside the dashboard):
+  //    Allow the landing page to render so logged-in users can still reach it.
+  //
+  if (pathname === '/') {
+    // Determine whether this is an in-app navigation (clicking a link inside
+    // the app) vs a fresh browser load / external entry.
+    let isInternalNavigation = false;
+    const referer = request.headers.get('referer');
+    if (referer) {
+      try {
+        const refHost = new URL(referer).host;
+        const reqHost = request.headers.get('host') ?? '';
+        isInternalNavigation = refHost === reqHost;
+      } catch {
+        // Malformed Referer — treat as external
       }
     }
+
+    // Only do the auth-redirect on fresh/external loads
+    if (!isInternalNavigation && tenantUrl && tenantAnonKey && hasSessionCookie) {
+      const supabase = createServerClient(tenantUrl, tenantAnonKey, {
+        cookies: {
+          getAll() { return request.cookies.getAll(); },
+          setAll(cookiesToSet) {
+            // Apply to the mutable request copy first
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            // Rebuild supabaseResponse preserving x-pathname header
+            supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options),
+            );
+          },
+        },
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('password_reset_required, role')
+          .eq('id', user.id)
+          .single();
+
+        const destUrl = request.nextUrl.clone();
+        if (profile?.password_reset_required === true) {
+          destUrl.pathname = '/reset-password';
+        } else {
+          const role = profile?.role;
+          destUrl.pathname =
+            role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
+        }
+
+        const redirectRes = NextResponse.redirect(destUrl);
+        // ⚠️ CRITICAL: carry any refreshed auth tokens onto the redirect so the
+        // browser's next request (to the timeline page) sees a valid session.
+        copyCookies(supabaseResponse, redirectRes);
+        return redirectRes;
+      }
+    }
+
+    // Internal nav OR unauthenticated → render the landing page normally
+    return supabaseResponse;
   }
 
-  // ── 4. Public & API paths pass through ────────────────────────────────────
+  // ── 5. Public & API paths pass through ────────────────────────────────────
   if (isPublicPage) return supabaseResponse;
 
-  // ── 5. Auth-required routes (dashboard + /reset-password) — verify session ─
+  // ── 6. Auth-required routes (dashboard + /reset-password) ─────────────────
   if (tenantUrl && tenantAnonKey) {
     const supabase = createServerClient(tenantUrl, tenantAnonKey, {
       cookies: {
         getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
+          // Rebuild supabaseResponse preserving x-pathname header
+          supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
     });
 
-    // Verify session — also refreshes the token if close to expiry
+    // Verify session — also refreshes the token if it is close to expiry.
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    // Bad/expired session → wipe stale cookies and send to login
     if (error || !user) {
+      // Session is invalid or expired.
+      // We do NOT wipe tenant cookies here — the user still belongs to the
+      // same class; they just need to re-authenticate with their password.
+      // Wiping tenant cookies would force them to re-enter their join code.
       const url = request.nextUrl.clone();
       url.pathname = '/login';
-      const failResponse = NextResponse.redirect(url);
-      failResponse.cookies.set('tenant_supabase_url', '', { maxAge: 0, path: '/' });
-      failResponse.cookies.set('tenant_supabase_anon_key', '', { maxAge: 0, path: '/' });
-      return failResponse;
+      return NextResponse.redirect(url);
     }
 
-    // ── 6. Password-reset gate ──────────────────────────────────────────────
-    // Block ALL dashboard routes for accounts that still have a temporary
-    // password. /reset-password itself is excluded to avoid an infinite loop.
+    // ── 7. Password-reset gate ───────────────────────────────────────────────
+    // Block ALL dashboard routes for accounts flagged as needing a reset.
+    // /reset-password is excluded to avoid an infinite redirect loop.
     if (isDashboard) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -161,6 +215,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Return supabaseResponse which carries any refreshed session cookies
   return supabaseResponse;
 }
 

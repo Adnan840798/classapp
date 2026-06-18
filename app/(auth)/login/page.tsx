@@ -183,9 +183,24 @@ export default function LoginPage() {
     }
     setForgotPending(true);
     try {
-      // requestPasswordReset validates the email exists in this class before sending
-      await requestPasswordReset(forgotEmail.trim().toLowerCase());
-      // Always show success (prevents email enumeration)
+      const result = await requestPasswordReset(forgotEmail.trim().toLowerCase());
+
+      // Email is not registered in this class → show professional rejection
+      if (result?.unrecognized) {
+        setForgotError(
+          result.error ??
+          'This email address is not associated with any verified account in this class. Please contact your Class Representative.'
+        );
+        return;
+      }
+
+      // Any other server-side error
+      if (result?.error) {
+        setForgotError(result.error);
+        return;
+      }
+
+      // Success: the reset link was dispatched
       setForgotSent(true);
     } catch (err: any) {
       setForgotError(err.message || 'Failed to send reset email. Please try again.');

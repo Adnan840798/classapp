@@ -110,8 +110,8 @@ export function Header() {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 touch-compact">
+        {/* Logo — links to the user's timeline (the app's home screen) */}
+        <Link href={`${prefix}/timeline`} className="flex items-center gap-2.5 touch-compact">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
             style={{
@@ -281,8 +281,10 @@ export function Header() {
             <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#23262D] pb-4">
+                {/* Mobile drawer logo → landing page (marketing) */}
                 <Link
                   href="/"
+                  prefetch={false}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2.5 text-lg font-bold text-white cursor-pointer"
                 >
