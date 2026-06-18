@@ -205,7 +205,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold tracking-tight gradient-text">ClassApp</h1>
         </Link>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Academic management for your class
+          Academic management portal for your class
         </p>
       </div>
 
@@ -220,13 +220,13 @@ export default function LoginPage() {
                 Connect to Class
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Enter your Google Classroom-style join code to connect to your class database
+                Enter your Classcode to accesss your class
               </p>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="joinCode" className="text-xs font-semibold text-slate-300">
-                Class Join Code
+                Classcode
               </label>
               <input
                 id="joinCode"

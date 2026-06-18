@@ -151,17 +151,7 @@ export default async function RootPage() {
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="flex flex-col items-center justify-center text-center py-14 sm:py-20 md:py-24 px-5 max-w-4xl mx-auto w-full">
-        <div
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-6 border"
-          style={{
-            background: 'rgba(52,211,153,0.06)',
-            borderColor: 'rgba(52,211,153,0.2)',
-            color: '#34D399',
-          }}
-        >
-          <Smartphone className="w-3 h-3" />
-          Academic Management Platform
-        </div>
+
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-white">
           Everything your class needs.{' '}
           <span
@@ -175,9 +165,8 @@ export default async function RootPage() {
           </span>
         </h1>
         <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl leading-relaxed px-2">
-          ClassApp is a private academic management system built for university classes — giving
-          students real-time access to their schedule, deadlines, results, and announcements,
-          all through a native Android app.
+          A private academic management portal built for university classes and giving
+          students real-time access to their schedule, deadlines, results, announcements and more.
         </p>
         <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:gap-4 w-full max-w-xs mx-auto">
           <Link
@@ -258,16 +247,7 @@ export default async function RootPage() {
 
           {/* Left: Copy */}
           <div className="flex-1 flex flex-col gap-5 relative">
-            <div
-              className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border"
-              style={{
-                background: 'rgba(52,211,153,0.06)',
-                borderColor: 'rgba(52,211,153,0.2)',
-                color: '#34D399',
-              }}
-            >
-              Get Access
-            </div>
+
 
             <h2 className="text-2xl md:text-3xl font-extrabold text-white leading-snug">
               Want ClassApp for{' '}
