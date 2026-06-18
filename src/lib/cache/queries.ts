@@ -17,15 +17,9 @@
  */
 
 import { unstable_cache } from 'next/cache';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Announcement, Deadline, ExamResult } from '@/types';
-
-/** Read the active tenant URL from cookies — used as the cache key discriminator. */
-async function getTenantKey(): Promise<string> {
-  const cookieStore = await cookies();
-  return cookieStore.get('tenant_supabase_url')?.value ?? 'default';
-}
 
 // ─── Announcements ──────────────────────────────────────────────────────────
 
@@ -34,11 +28,29 @@ async function getTenantKey(): Promise<string> {
  * Cached 60 seconds per tenant. Bust with revalidateTag('announcements', { expire: 0 }).
  */
 export async function getCachedAnnouncements(): Promise<Announcement[]> {
-  const tenantKey = await getTenantKey();
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
 
   return unstable_cache(
     async () => {
-      const supabase = await getSupabaseServerClient();
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return allCookies;
+            },
+            setAll() {
+              // No-op inside caching callbacks
+            },
+          },
+        }
+      );
+
       const { data, error } = await supabase
         .from('announcements')
         .select('id, title, body, is_important, attachment_url, attachment_type, telegram_posted, created_by, created_at, creator:profiles!created_by(full_name, profile_pic_url)')
@@ -61,11 +73,29 @@ export async function getCachedAnnouncements(): Promise<Announcement[]> {
  * Cached 120 seconds per tenant. Bust with revalidateTag('deadlines', { expire: 0 }).
  */
 export async function getCachedDeadlines(): Promise<Deadline[]> {
-  const tenantKey = await getTenantKey();
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
 
   return unstable_cache(
     async () => {
-      const supabase = await getSupabaseServerClient();
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return allCookies;
+            },
+            setAll() {
+              // No-op inside caching callbacks
+            },
+          },
+        }
+      );
+
       const { data, error } = await supabase
         .from('deadlines')
         .select('id, title, subject, description, due_date, color, created_by, created_at')
@@ -86,11 +116,29 @@ export async function getCachedDeadlines(): Promise<Deadline[]> {
  * Cached 300 seconds per tenant. Bust with revalidateTag('results', { expire: 0 }).
  */
 export async function getCachedResults(): Promise<ExamResult[]> {
-  const tenantKey = await getTenantKey();
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
 
   return unstable_cache(
     async () => {
-      const supabase = await getSupabaseServerClient();
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return allCookies;
+            },
+            setAll() {
+              // No-op inside caching callbacks
+            },
+          },
+        }
+      );
+
       const { data, error } = await supabase
         .from('exam_results')
         .select('id, exam_name, published_at, result_sheet_url')
@@ -103,3 +151,4 @@ export async function getCachedResults(): Promise<ExamResult[]> {
     { revalidate: 300, tags: ['results'] }
   )();
 }
+
