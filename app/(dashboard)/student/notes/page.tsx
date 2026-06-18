@@ -2,14 +2,15 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/server';
 import { ResourcesList } from '@/components/features/ResourcesList';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentNotesPage() {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   const { data: notes, error } = await supabase
     .from('notes')

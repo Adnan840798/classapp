@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, Clock, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle, BookOpen } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -16,15 +16,14 @@ export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentDeadlineDetailPage({ params }: StudentDeadlineDetailPageProps) {
   const { id } = await params;
-  const supabase = await getSupabaseServerClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   // Fetch deadline details
   const { data: deadline, error: deadlineError } = await supabase
     .from('deadlines')
-    .select('*')
+    .select('id, title, subject, description, due_date, color, created_by, created_at')
     .eq('id', id)
     .single();
 

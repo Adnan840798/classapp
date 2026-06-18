@@ -1,7 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
@@ -90,6 +90,7 @@ export async function createDeadline(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
+    revalidateTag('deadlines', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
     revalidatePath('/cr/timeline');
@@ -117,6 +118,7 @@ export async function deleteDeadline(id: string) {
     const supabase = await getSupabaseServerClient();
     const { error } = await supabase.from('deadlines').delete().eq('id', id);
     if (error) return { error: error.message };
+    revalidateTag('deadlines', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
     return { success: true };

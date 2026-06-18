@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, Megaphone, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AskQuestionForm } from '../../calendar/[id]/AskQuestionForm';
@@ -16,10 +16,9 @@ export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentAnnouncementDetailPage({ params }: StudentAnnouncementDetailPageProps) {
   const { id } = await params;
-  const supabase = await getSupabaseServerClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   // Fetch announcement details
   const { data: announcement, error: announcementError } = await supabase

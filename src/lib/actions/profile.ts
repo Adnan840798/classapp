@@ -405,8 +405,11 @@ export async function requestPasswordReset(email: string) {
       .maybeSingle();
 
     if (!profileRow) {
-      // Return success to prevent email enumeration (don't reveal if email exists)
-      return { success: true };
+      return {
+        success: false,
+        unrecognized: true,
+        error: 'Access Denied: The email address you provided is not recognized in our verified student registry. If you are a registered student of this class, please reach out to your Class Representative to activate your credentials.',
+      };
     }
 
     // Send the Supabase password reset email

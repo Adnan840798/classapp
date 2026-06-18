@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, Calendar, HelpCircle, MessageSquare, CornerDownRight, Check, AlertCircle } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDate, formatEventType, getEventTypeColor, formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AskQuestionForm } from './AskQuestionForm';
@@ -15,15 +15,14 @@ export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentCalendarDetailPage({ params }: StudentCalendarDetailPageProps) {
   const { id } = await params;
-  const supabase = await getSupabaseServerClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   // Fetch event details
   const { data: event, error: eventError } = await supabase
     .from('calendar_events')
-    .select('*')
+    .select('id, title, description, event_date, event_type, is_public, qa_enabled, created_by, created_at')
     .eq('id', id)
     .single();
 

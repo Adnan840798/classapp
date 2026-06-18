@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { EditNoteForm } from '../../../student/notes/[id]/EditNoteForm';
 
 interface EditNotePageProps {
@@ -12,15 +12,14 @@ export const revalidate = 0; // force dynamic rendering
 
 export default async function EditNotePage({ params }: EditNotePageProps) {
   const { id } = await params;
-  const supabase = await getSupabaseServerClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   // Fetch note and make sure it belongs to the logged-in user
   const { data: note, error } = await supabase
     .from('notes')
-    .select('*')
+    .select('id, user_id, title, content, drive_link, is_public, is_pending, updated_at, created_at')
     .eq('id', id)
     .eq('user_id', user.id)
     .single();

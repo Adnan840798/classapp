@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, HelpCircle, MessageSquare } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDate, formatEventType, getEventTypeColor } from '@/lib/utils/formatters';
 import { QuestionCard } from '@/components/features/QuestionCard';
 import { TimelineQuestion } from '@/types';
@@ -19,7 +19,7 @@ export default async function CRCalendarDetailPage({ params }: CRCalendarDetailP
   // Fetch event details
   const { data: event, error: eventError } = await supabase
     .from('calendar_events')
-    .select('*')
+    .select('id, title, description, event_date, event_type, is_public, qa_enabled, created_by, created_at')
     .eq('id', id)
     .single();
 
@@ -48,8 +48,8 @@ export default async function CRCalendarDetailPage({ params }: CRCalendarDetailP
   // Cast questions to the type including answers
   const questions = (rawQuestions || []) as TimelineQuestion[];
 
-  // Get current user session to pass as author
-  const { data: { user } } = await supabase.auth.getUser();
+  // Get current user ID via cached helper — no extra auth network call
+  const { user } = await getAuthUser();
 
   const typeColor = getEventTypeColor(event.event_type);
 

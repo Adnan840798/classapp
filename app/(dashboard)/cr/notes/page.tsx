@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { ResourcesList } from '@/components/features/ResourcesList';
 import { PendingResourceCard } from '@/components/features/PendingResourceCard';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function CRNotesPage() {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   // Fetch pending notes
   const { data: pendingNotes } = await supabase

@@ -74,9 +74,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // ── 3. Root path: always allow through so landing page can render ────────
-  // (Authenticated users see "Go to Dashboard" button on the landing page itself)
-  // Still redirect if password reset is required
+  // ── 3. Root path: always allow through only if NOT logged in ─────────────
+  // If the user has a valid session, redirect them directly to their semester timeline.
   if (pathname === '/' && tenantUrl && tenantAnonKey && hasSessionCookie) {
     const supabase = createServerClient(tenantUrl, tenantAnonKey, {
       cookies: {
@@ -95,7 +94,7 @@ export async function middleware(request: NextRequest) {
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('password_reset_required')
+        .select('password_reset_required, role')
         .eq('id', user.id)
         .single();
 
@@ -103,6 +102,11 @@ export async function middleware(request: NextRequest) {
       if (profile?.password_reset_required === true) {
         const url = request.nextUrl.clone();
         url.pathname = '/reset-password';
+        return NextResponse.redirect(url);
+      } else {
+        const url = request.nextUrl.clone();
+        const role = profile?.role;
+        url.pathname = role === 'cr' || role === 'admin' ? '/cr/timeline' : '/student/timeline';
         return NextResponse.redirect(url);
       }
     }

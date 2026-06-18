@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [forgotPending, setForgotPending] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotError, setForgotError] = useState<string | null>(null);
+  const [showForgotLink, setShowForgotLink] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -91,6 +92,7 @@ export default function LoginPage() {
     captchaRef.current?.resetCaptcha();
     setShowForgotPassword(false);
     setForgotSent(false);
+    setShowForgotLink(false);
   }
 
   async function handleSignIn(e: React.FormEvent) {
@@ -135,7 +137,8 @@ export default function LoginPage() {
       if (signInError) {
         // Show forgot password hint on bad credentials
         if (signInError.message.toLowerCase().includes('invalid') || signInError.message.toLowerCase().includes('credentials')) {
-          throw new Error(signInError.message + ' — Did you forget your password?');
+          setShowForgotLink(true);
+          throw new Error('Invalid login credentials. Please verify your email and password.');
         }
         throw new Error(signInError.message);
       }
@@ -287,14 +290,15 @@ export default function LoginPage() {
                   <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">Check your inbox</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    If <span className="text-slate-300">{forgotEmail}</span> is registered, a reset link has been sent. Check your spam folder too.
+                  <p className="text-sm font-bold text-white">Reset Link Dispatched</p>
+                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                    A secure password reset link has been dispatched to <span className="text-slate-300 font-semibold">{forgotEmail}</span>. 
+                    Please check your university inbox (including the spam or promotions tab) and follow the instructions to restore your account access.
                   </p>
                 </div>
                 <button
                   onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                  className="text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2 mt-2"
                 >
                   Back to Sign In
                 </button>
@@ -318,7 +322,7 @@ export default function LoginPage() {
                 </div>
 
                 {forgotError && (
-                  <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 leading-relaxed text-center">
                     {forgotError}
                   </div>
                 )}
@@ -375,13 +379,15 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <button
-                  type="button"
-                  onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
-                  className="text-[11px] text-slate-500 hover:text-emerald-400 transition-colors underline underline-offset-2"
-                >
-                  Forgot password?
-                </button>
+                {showForgotLink && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
+                    className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2 animate-fade-in"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </div>
               <div className="relative">
                 <input
@@ -435,13 +441,13 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 leading-relaxed">
                 {error}
-                {error.includes('forget') && (
+                {showForgotLink && (
                   <button
                     type="button"
                     onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
-                    className="mt-1 block text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                    className="mt-2 block text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2 font-medium"
                   >
                     Reset your password →
                   </button>

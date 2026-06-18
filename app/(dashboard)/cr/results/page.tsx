@@ -1,24 +1,22 @@
 import Link from 'next/link';
 import { Plus, Award, Calendar, FileText, ArrowUpRight } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteResult } from '@/lib/actions/results';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { getCachedResults } from '@/lib/cache/queries';
+import { redirect } from 'next/navigation';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function CRResultsPage() {
-  const supabase = await getSupabaseServerClient();
+  const { user } = await getAuthUser();
+  if (!user) redirect('/login');
 
-  const { data: results, error } = await supabase
-    .from('exam_results')
-    .select('*')
-    .order('published_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load results:', error);
-  }
+  // Uses tenant-scoped unstable_cache — shared with students, 300s TTL.
+  // revalidateTag('results') in results.ts actions busts this immediately on publish/delete.
+  const results = await getCachedResults();
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">

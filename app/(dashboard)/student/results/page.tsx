@@ -1,25 +1,18 @@
 import { redirect } from 'next/navigation';
 import { Award, FileText, Calendar, ArrowUpRight } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { getCachedResults } from '@/lib/cache/queries';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentResultsPage() {
-  const supabase = await getSupabaseServerClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
 
-  const { data: results, error } = await supabase
-    .from('exam_results')
-    .select('id, exam_name, result_sheet_url, published_at')
-    .order('published_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load results:', error);
-  }
+  // Uses tenant-scoped unstable_cache internally — DB query shared across all students for 300s.
+  const results = await getCachedResults();
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">

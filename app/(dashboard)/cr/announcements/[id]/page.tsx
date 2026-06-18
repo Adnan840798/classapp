@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Megaphone, Calendar, HelpCircle, MessageSquare, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { QuestionCard } from '@/components/features/QuestionCard';
@@ -49,8 +49,8 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
 
   const questions = (rawQuestions || []) as TimelineQuestion[];
 
-  // Get current user session to pass as author
-  const { data: { user } } = await supabase.auth.getUser();
+  // Get current user ID via cached helper — no extra auth network call
+  const { user } = await getAuthUser();
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full animate-fade-in">

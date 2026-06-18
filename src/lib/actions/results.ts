@@ -1,7 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
@@ -161,7 +161,9 @@ export async function publishResult(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
+    revalidateTag('results', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/results');
+    revalidatePath('/student/results');
     revalidatePath('/cr/timeline');
     revalidatePath('/student/timeline');
     
@@ -187,7 +189,9 @@ export async function deleteResult(id: string) {
     const supabase = await getSupabaseServerClient();
     const { error } = await supabase.from('exam_results').delete().eq('id', id);
     if (error) return { error: error.message };
+    revalidateTag('results', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/results');
+    revalidatePath('/student/results');
     return { success: true };
   } catch (err: any) {
     console.error('deleteResult error:', err);

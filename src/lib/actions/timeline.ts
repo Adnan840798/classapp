@@ -13,7 +13,7 @@ export async function getClassRoutine() {
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
     .from('class_routine')
-    .select('*')
+    .select('id, file_url, image_url, uploaded_at')
     .order('uploaded_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -52,7 +52,7 @@ export async function getTimelineData(weekNumber: number) {
   // Fetch deadlines in the week
   const { data: deadlines, error: deadError } = await supabase
     .from('deadlines')
-    .select('*')
+    .select('id, title, subject, due_date, color')
     .gte('due_date', startDate.toISOString())
     .lte('due_date', endDate.toISOString())
     .order('due_date', { ascending: true });
@@ -62,7 +62,7 @@ export async function getTimelineData(weekNumber: number) {
   // Fetch results in the week
   const { data: examResults, error: resError } = await supabase
     .from('exam_results')
-    .select('*')
+    .select('id, exam_name, published_at')
     .gte('published_at', startDate.toISOString())
     .lte('published_at', endDate.toISOString())
     .order('published_at', { ascending: true });

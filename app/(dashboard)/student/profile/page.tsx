@@ -1,17 +1,17 @@
 import { redirect } from 'next/navigation';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { ProfileForm } from './ProfileForm';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentProfilePage() {
-  const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthUser();
   if (!user) redirect('/login');
+  const supabase = await getSupabaseServerClient();
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, full_name, email, role, profile_pic_url, university_id, phone, whatsapp, telegram_handle, facebook_id, blood_group, address, batch, department, notif_enabled, notif_sound_on, password_reset_required, cr_last_read_at, fcm_token, created_at, updated_at')
     .eq('id', user.id)
     .single();
 

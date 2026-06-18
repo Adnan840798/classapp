@@ -32,3 +32,13 @@ export const getSupabaseServerClient = cache(async () => {
   );
 });
 
+/**
+ * Returns the currently authenticated user, memoized for the duration of the
+ * current request via React cache(). Calling this multiple times in the same
+ * request (layout + child pages) only makes ONE network round-trip to Supabase Auth.
+ */
+export const getAuthUser = cache(async () => {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  return { user: error ? null : user };
+});

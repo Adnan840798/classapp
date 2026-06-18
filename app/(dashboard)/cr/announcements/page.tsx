@@ -10,26 +10,18 @@ import {
   Megaphone,
   ArrowRight,
 } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteAnnouncement } from '@/lib/actions/announcements';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { getCachedAnnouncements } from '@/lib/cache/queries';
 export const revalidate = 0; // force dynamic rendering
 
 export default async function CRAnnouncementsPage() {
-  const supabase = await getSupabaseServerClient();
-
-  const { data: announcements, error } = await supabase
-    .from('announcements')
-    .select('*, creator:profiles(full_name, profile_pic_url)')
-    .order('is_important', { ascending: false })
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load announcements:', error);
-  }
+  // Uses tenant-scoped unstable_cache — shared with students, 60s TTL.
+  // revalidateTag('announcements') in announcements.ts busts this immediately on post/delete.
+  const announcements = await getCachedAnnouncements();
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">

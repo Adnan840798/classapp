@@ -62,7 +62,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     async function loadNotifications() {
       const { data, error } = await supabase
         .from('my_notifications')
-        .select('*')
+        .select('id, type, title, message, reference_id, is_read, created_at')
         .order('created_at', { ascending: false })
         .limit(30);
 

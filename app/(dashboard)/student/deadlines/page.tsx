@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { Clock, Calendar, BookOpen, ArrowRight } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
+import { getCachedDeadlines } from '@/lib/cache/queries';
 
 export const revalidate = 0; // force dynamic rendering
 
@@ -54,16 +54,8 @@ const colorThemes = {
 };
 
 export default async function StudentDeadlinesPage() {
-  const supabase = await getSupabaseServerClient();
-
-  const { data: deadlines, error } = await supabase
-    .from('deadlines')
-    .select('*')
-    .order('due_date', { ascending: true });
-
-  if (error) {
-    console.error('Failed to load deadlines:', error);
-  }
+  // Uses tenant-scoped unstable_cache internally — DB query shared across all students for 120s.
+  const deadlines = await getCachedDeadlines();
 
   const enriched = deadlines ? enrichDeadlines(deadlines) : [];
   const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= Date.now());

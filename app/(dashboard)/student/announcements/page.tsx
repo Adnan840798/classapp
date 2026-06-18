@@ -5,23 +5,17 @@ import {
   Image as ImageIcon,
   ArrowRight,
 } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { getCachedAnnouncements } from '@/lib/cache/queries';
+
+// revalidate = 0 kept because this page reads cookies for auth context
 export const revalidate = 0;
 
 export default async function StudentAnnouncementsPage() {
-  const supabase = await getSupabaseServerClient();
-
-  const { data: announcements, error } = await supabase
-    .from('announcements')
-    .select('*, creator:profiles(full_name, profile_pic_url)')
-    .order('is_important', { ascending: false })
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load announcements:', error);
-  }
+  // Uses tenant-scoped unstable_cache internally — DB query is shared
+  // across all students for 60s instead of 60 individual queries.
+  const announcements = await getCachedAnnouncements();
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">

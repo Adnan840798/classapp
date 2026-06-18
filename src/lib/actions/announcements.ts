@@ -1,7 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
@@ -175,7 +175,9 @@ export async function createAnnouncement(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
+    revalidateTag('announcements', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
     revalidatePath('/cr/timeline');
     revalidatePath('/student/timeline');
     
@@ -201,7 +203,9 @@ export async function deleteAnnouncement(id: string) {
     const supabase = await getSupabaseServerClient();
     const { error } = await supabase.from('announcements').delete().eq('id', id);
     if (error) return { error: error.message };
+    revalidateTag('announcements', { expire: 0 }); // bust unstable_cache immediately
     revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
     return { success: true };
   } catch (err: any) {
     console.error('deleteAnnouncement error:', err);
