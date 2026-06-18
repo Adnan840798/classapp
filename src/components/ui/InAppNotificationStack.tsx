@@ -12,7 +12,7 @@ const AUTO_DISMISS_MS = 30_000; // 30 s
 
 // ── Type → style map ─────────────────────────────────────────────────────────
 interface NotifStyle {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   iconBg: string;
   iconColor: string;
   borderColor: string;
