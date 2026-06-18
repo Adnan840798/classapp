@@ -38,18 +38,13 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
       if (res?.error) {
         setError(res.error);
       } else {
-        setIsUploadOpen(false);
-        setIsModalOpen(true); // Open the view modal after success
-        // Refresh page to sync state
-        router.refresh();
-        // Set local state as well
+        // Fetch the freshly stored URL from the server
         const freshRes = await fetch('/api/routine-url').then(r => r.json()).catch(() => null);
-        if (freshRes?.image_url) {
-          setImageUrl(freshRes.image_url);
-        } else {
-          // Fallback refresh page should work
-          window.location.reload();
-        }
+        const freshUrl = freshRes?.image_url ?? null;
+        setImageUrl(freshUrl);
+        setIsUploadOpen(false);
+        setIsModalOpen(true); // Show the routine immediately
+        router.refresh();    // Sync server components in the background
       }
     });
   }

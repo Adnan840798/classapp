@@ -3,7 +3,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { STORAGE_BUCKETS } from '@/lib/constants';
 import { getWeekDates, toISODateString } from '@/lib/utils/timelineDates';
 import { resolveSupabaseUrl } from '@/lib/utils/resolveUrlServer';
 
@@ -14,7 +13,7 @@ export async function getClassRoutine() {
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
     .from('class_routine')
-    .select('id, file_url, image_url, uploaded_at')
+    .select('id, image_url, uploaded_at')
     .order('uploaded_at', { ascending: false })
     .limit(1)
     .maybeSingle();

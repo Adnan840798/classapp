@@ -197,22 +197,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // ── 7. Password-reset gate ───────────────────────────────────────────────
-    // Block ALL dashboard routes for accounts flagged as needing a reset.
-    // /reset-password is excluded to avoid an infinite redirect loop.
-    if (isDashboard) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('password_reset_required')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile?.password_reset_required === true) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/reset-password';
-        return NextResponse.redirect(url);
-      }
-    }
   }
 
   // Return supabaseResponse which carries any refreshed session cookies

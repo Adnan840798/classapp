@@ -110,8 +110,8 @@ export function Header() {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo — links to the user's timeline (the app's home screen) */}
-        <Link href={`${prefix}/timeline`} className="flex items-center gap-2.5 touch-compact">
+        {/* Logo — tapping goes to the landing page (middleware allows internal nav) */}
+        <Link href="/" prefetch={false} className="flex items-center gap-2.5 touch-compact">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
             style={{
