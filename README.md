@@ -7,9 +7,11 @@ ClassApp is a collaborative academic management platform built for university cl
 ## 🚀 Features
 
 - **Semester Timeline & Calendar**: Interactive, responsive schedule displaying exams, assignments, holiday announcements, and daily details.
+- **Announcements Board**: Categorized into active ("Announcements") and historical ("Past Announcements") sections. Active entries sort ascending (earliest first), while past entries sort descending (most recent first) with muted slate styling. Features an academic weekend fallback (Thursday-Friday) to keep weekend posts active together. Supports image/PDF attachments and automated Telegram bot forwarding.
+- **Bulk Selection & Actions**: iOS-style "Select Mode" across CR dashboard listings (Announcements, Deadlines, Results, Resources) allowing multi-card selection and bulk deletion with custom checked boxes and a floating action bar.
+- **Notification Routing & Cleanup**: In-app notifications and Firebase Cloud Messaging (FCM) push alerts dispatched to students when CRs resolve their timeline questions. Automated database gates clean up notifications when reference items are deleted.
 - **Q&A System**: Integrated directly into calendar events and deadlines, allowing students to ask questions and CRs to resolve them.
 - **Real-Time Chat**: Live messaging classroom hub utilizing Supabase Realtime with pinning and message moderation.
-- **Announcements**: Broadcast board supporting image/PDF attachments and optional automated Telegram bot forwarding.
 - **Deadlines & Submissions**: Visual trackers for due dates and academic deliverables.
 - **Class Routine**: Easy view of the current weekly class schedule with zooming and CR upload options.
 - **Notes Manager**: Personal workspace for students to store links, descriptions, and documents.

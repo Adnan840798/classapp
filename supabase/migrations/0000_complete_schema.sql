@@ -1,16 +1,19 @@
 -- ============================================================
--- 0000_complete_schema.sql — ClassApp: Complete Database Setup
+-- 0000_complete_schema.sql — ClassApp: Client Supabase Setup
 -- ============================================================
--- Run this single file in Supabase SQL Editor against a FRESH
--- (reset) database to create all tables, functions, RLS policies,
--- storage buckets, and realtime config in one shot.
+-- Run this SINGLE FILE in a NEW buyer's Supabase project SQL
+-- Editor to bootstrap the entire class database in one shot.
 --
--- Order of sections:
+-- This consolidates ALL migrations (0000 → 0009), excluding
+-- migration 0006 which belongs to the MASTER SaaS registry only.
+--
+-- Sections:
 --   1. Enums & Tables
---   2. Functions & Triggers (Must precede RLS policies using them)
+--   2. Functions & Triggers
 --   3. Row Level Security
---   4. Storage Buckets & Policies
---   5. Realtime
+--   4. Views
+--   5. Storage Buckets & Policies
+--   6. Realtime
 -- ============================================================
 
 
@@ -38,9 +41,20 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'system');
+  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'system', 'qna', 'resource_pending');
 EXCEPTION
   WHEN duplicate_object THEN null;
+END $$;
+
+-- Safely add enum values in case this type existed from an older migration
+-- Each ALTER TYPE runs as its own auto-committed statement (safe outside a txn block)
+DO $$ BEGIN
+  ALTER TYPE public.notif_type ADD VALUE IF NOT EXISTS 'qna';
+EXCEPTION WHEN others THEN null;
+END $$;
+DO $$ BEGIN
+  ALTER TYPE public.notif_type ADD VALUE IF NOT EXISTS 'resource_pending';
+EXCEPTION WHEN others THEN null;
 END $$;
 
 -- ── profiles ──────────────────────────────────────────────
@@ -59,6 +73,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   notif_enabled           boolean DEFAULT true,
   -- TRUE until the student completes their first-login password reset
   password_reset_required boolean NOT NULL DEFAULT true,
+  -- FCM push notification token
+  fcm_token               text DEFAULT NULL,
+  -- Tracks when CR/Admin last viewed their notification panel
+  cr_last_read_at         timestamptz DEFAULT now(),
   created_at              timestamptz DEFAULT now(),
   updated_at              timestamptz DEFAULT now()
 );
@@ -134,6 +152,7 @@ CREATE TABLE IF NOT EXISTS timeline_answers (
 );
 
 -- ── notes ─────────────────────────────────────────────────
+-- is_pending: true = awaiting CR/Admin approval before going public
 CREATE TABLE IF NOT EXISTS notes (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid REFERENCES profiles(id) ON DELETE CASCADE,
@@ -141,6 +160,7 @@ CREATE TABLE IF NOT EXISTS notes (
   content    text,
   drive_link text,
   is_public  boolean DEFAULT false NOT NULL,
+  is_pending boolean DEFAULT false NOT NULL,
   updated_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
 );
@@ -185,7 +205,21 @@ CREATE TABLE IF NOT EXISTS public.class_routine (
   uploaded_at timestamptz DEFAULT now()
 );
 
+-- ── holiday_days ───────────────────────────────────────────
+-- Stores which academic day slots (week_number, day_index) are
+-- marked as holidays by the CR.
+CREATE TABLE IF NOT EXISTS public.holiday_days (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  week_number  int NOT NULL CHECK (week_number BETWEEN 1 AND 52),
+  day_index    int NOT NULL CHECK (day_index BETWEEN 0 AND 4), -- 0=SAT, 1=SUN, 2=MON, 3=TUE, 4=WED
+  note         text,
+  created_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at   timestamptz DEFAULT now(),
+  UNIQUE (week_number, day_index)
+);
+
 -- ── semester_config ─────────────────────────────────────────
+-- Singleton row: stores global semester settings.
 CREATE TABLE IF NOT EXISTS public.semester_config (
   id           int PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- singleton row
   total_weeks  int NOT NULL DEFAULT 14 CHECK (total_weeks BETWEEN 1 AND 52),
@@ -194,7 +228,7 @@ CREATE TABLE IF NOT EXISTS public.semester_config (
   updated_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL
 );
 
--- Seed default row if not exists
+-- Seed the default singleton row
 INSERT INTO public.semester_config (id, total_weeks, start_date)
 VALUES (1, 14, '2026-05-20')
 ON CONFLICT (id) DO NOTHING;
@@ -223,70 +257,18 @@ CREATE TRIGGER notes_updated_at
   BEFORE UPDATE ON public.notes
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
--- 2. broadcast_notification — inserts one notification per student
-CREATE OR REPLACE FUNCTION public.broadcast_notification(
-  p_title        text,
-  p_message      text,
-  p_type         public.notif_type,
-  p_reference_id uuid DEFAULT NULL
-)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  student_record RECORD;
-BEGIN
-  FOR student_record IN 
-    SELECT id FROM public.profiles WHERE role = 'student'
-  LOOP
-    INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-    VALUES (student_record.id, p_title, p_message, p_type, p_reference_id);
+DROP TRIGGER IF EXISTS semester_config_updated_at ON public.semester_config;
+CREATE TRIGGER semester_config_updated_at
+  BEFORE UPDATE ON public.semester_config
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
-    -- Delete notifications beyond the latest 15 for this student
-    DELETE FROM public.notifications
-    WHERE user_id = student_record.id
-      AND id NOT IN (
-        SELECT id
-        FROM public.notifications
-        WHERE user_id = student_record.id
-        ORDER BY created_at DESC
-        LIMIT 15
-      );
-  END LOOP;
-END;
-$$;
-
--- 3. notify_single_student — targeted notification for one student
-CREATE OR REPLACE FUNCTION public.notify_single_student(
-  p_student_id   uuid,
-  p_title        text,
-  p_message      text,
-  p_type         public.notif_type,
-  p_reference_id uuid DEFAULT NULL
-)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-  VALUES (p_student_id, p_title, p_message, p_type, p_reference_id);
-
-  -- Delete notifications beyond the latest 15 for this student
-  DELETE FROM public.notifications
-  WHERE user_id = p_student_id
-    AND id NOT IN (
-      SELECT id
-      FROM public.notifications
-      WHERE user_id = p_student_id
-      ORDER BY created_at DESC
-      LIMIT 15
-    );
-END;
-$$;
-
--- 4. get_my_role — helper used by RLS policies
+-- 2. get_my_role — helper used by RLS policies
 CREATE OR REPLACE FUNCTION public.get_my_role()
 RETURNS public.user_role LANGUAGE sql STABLE SET search_path = public AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid();
 $$;
 
--- 5. handle_new_user — auto-creates a profile row on Supabase Auth signup
+-- 3. handle_new_user — auto-creates a profile row on Supabase Auth signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -313,7 +295,64 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 6. cleanup_orphaned_push_devices — auto-deletes push_devices when no users are linked
+-- 4. broadcast_notification — inserts one notification per student
+CREATE OR REPLACE FUNCTION public.broadcast_notification(
+  p_title        text,
+  p_message      text,
+  p_type         public.notif_type,
+  p_reference_id uuid DEFAULT NULL
+)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  student_record RECORD;
+BEGIN
+  FOR student_record IN
+    SELECT id FROM public.profiles WHERE role = 'student'
+  LOOP
+    INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+    VALUES (student_record.id, p_title, p_message, p_type, p_reference_id);
+
+    -- Keep only the latest 15 notifications per student
+    DELETE FROM public.notifications
+    WHERE user_id = student_record.id
+      AND id NOT IN (
+        SELECT id
+        FROM public.notifications
+        WHERE user_id = student_record.id
+        ORDER BY created_at DESC
+        LIMIT 15
+      );
+  END LOOP;
+END;
+$$;
+
+-- 5. notify_single_student — targeted notification for one student
+CREATE OR REPLACE FUNCTION public.notify_single_student(
+  p_student_id   uuid,
+  p_title        text,
+  p_message      text,
+  p_type         public.notif_type,
+  p_reference_id uuid DEFAULT NULL
+)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+  VALUES (p_student_id, p_title, p_message, p_type, p_reference_id);
+
+  -- Keep only the latest 15 notifications per student
+  DELETE FROM public.notifications
+  WHERE user_id = p_student_id
+    AND id NOT IN (
+      SELECT id
+      FROM public.notifications
+      WHERE user_id = p_student_id
+      ORDER BY created_at DESC
+      LIMIT 15
+    );
+END;
+$$;
+
+-- 6. cleanup_orphaned_push_devices — deletes push_devices when no users are linked
 CREATE OR REPLACE FUNCTION public.cleanup_orphaned_push_devices()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
@@ -332,6 +371,27 @@ CREATE TRIGGER trigger_cleanup_orphaned_push_devices
   AFTER DELETE ON public.user_push_devices
   FOR EACH ROW EXECUTE FUNCTION public.cleanup_orphaned_push_devices();
 
+-- 7. check_profile_role_update — blocks self-privilege escalation
+CREATE OR REPLACE FUNCTION public.check_profile_role_update()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.role <> OLD.role THEN
+    -- Only service_role (backend) or existing CRs/Admins can change roles
+    IF (auth.jwt()->>'role' = 'service_role') OR (public.get_my_role() IN ('cr', 'admin')) THEN
+      RETURN NEW;
+    ELSE
+      -- Silently revert unauthorized role change
+      NEW.role = OLD.role;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_check_profile_role_update ON public.profiles;
+CREATE TRIGGER tr_check_profile_role_update
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.check_profile_role_update();
 
 
 -- ============================================================
@@ -345,69 +405,67 @@ ALTER TABLE exam_results        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE calendar_events     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timeline_questions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timeline_answers    ENABLE ROW LEVEL SECURITY;
-
 ALTER TABLE notes               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.class_routine ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.push_devices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_push_devices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.semester_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.class_routine        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_devices         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_push_devices    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.holiday_days         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.semester_config      ENABLE ROW LEVEL SECURITY;
 
--- Clean up existing policies if they already exist (idempotency safety)
+-- Drop existing policies for clean idempotent re-run
 DO $$
 BEGIN
   -- profiles
   DROP POLICY IF EXISTS "profiles_read_all" ON public.profiles;
   DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
   DROP POLICY IF EXISTS "profiles_admin_all" ON public.profiles;
-  
+
   -- announcements
   DROP POLICY IF EXISTS "ann_read_authenticated" ON public.announcements;
   DROP POLICY IF EXISTS "ann_read_public" ON public.announcements;
   DROP POLICY IF EXISTS "ann_cr_admin_insert" ON public.announcements;
   DROP POLICY IF EXISTS "ann_cr_admin_delete" ON public.announcements;
-  
+
   -- deadlines
   DROP POLICY IF EXISTS "dl_read_authenticated" ON public.deadlines;
   DROP POLICY IF EXISTS "dl_cr_admin_insert" ON public.deadlines;
   DROP POLICY IF EXISTS "dl_cr_admin_delete" ON public.deadlines;
-  
+
   -- exam_results
   DROP POLICY IF EXISTS "res_read_authenticated" ON public.exam_results;
   DROP POLICY IF EXISTS "res_cr_admin_insert" ON public.exam_results;
   DROP POLICY IF EXISTS "res_cr_admin_delete" ON public.exam_results;
-  
+
   -- calendar_events
   DROP POLICY IF EXISTS "cal_read_authenticated" ON public.calendar_events;
   DROP POLICY IF EXISTS "cal_read_public" ON public.calendar_events;
   DROP POLICY IF EXISTS "cal_cr_admin_insert" ON public.calendar_events;
   DROP POLICY IF EXISTS "cal_cr_admin_update" ON public.calendar_events;
   DROP POLICY IF EXISTS "cal_cr_admin_delete" ON public.calendar_events;
-  
+
   -- timeline_questions
   DROP POLICY IF EXISTS "tq_read_authenticated" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_student_insert" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_cr_admin_update" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_cr_admin_delete" ON public.timeline_questions;
-  
+
   -- timeline_answers
   DROP POLICY IF EXISTS "ta_read_authenticated" ON public.timeline_answers;
   DROP POLICY IF EXISTS "ta_cr_admin_insert" ON public.timeline_answers;
   DROP POLICY IF EXISTS "ta_cr_admin_delete" ON public.timeline_answers;
-  
 
-  
   -- notes
   DROP POLICY IF EXISTS "notes_own_select" ON public.notes;
   DROP POLICY IF EXISTS "notes_own_insert" ON public.notes;
   DROP POLICY IF EXISTS "notes_own_update" ON public.notes;
   DROP POLICY IF EXISTS "notes_own_delete" ON public.notes;
-  
+
   -- notifications
   DROP POLICY IF EXISTS "notif_own_select" ON public.notifications;
   DROP POLICY IF EXISTS "notif_own_update" ON public.notifications;
   DROP POLICY IF EXISTS "notif_own_delete" ON public.notifications;
-  
+
   -- class_routine
   DROP POLICY IF EXISTS "class_routine_select" ON public.class_routine;
   DROP POLICY IF EXISTS "class_routine_cr_admin_all" ON public.class_routine;
@@ -418,19 +476,24 @@ BEGIN
   DROP POLICY IF EXISTS "upd_insert_own" ON public.user_push_devices;
   DROP POLICY IF EXISTS "upd_delete_own" ON public.user_push_devices;
 
+  -- holiday_days
+  DROP POLICY IF EXISTS "hd_read_authenticated" ON public.holiday_days;
+  DROP POLICY IF EXISTS "hd_cr_admin_insert" ON public.holiday_days;
+  DROP POLICY IF EXISTS "hd_cr_admin_delete" ON public.holiday_days;
+
   -- semester_config
   DROP POLICY IF EXISTS "sc_read_authenticated" ON public.semester_config;
   DROP POLICY IF EXISTS "sc_cr_admin_update" ON public.semester_config;
-
-  -- storage policies (on storage.objects)
-  DROP POLICY IF EXISTS "avatars_public_read" ON storage.objects;
-  DROP POLICY IF EXISTS "avatars_authenticated_upload" ON storage.objects;
-  DROP POLICY IF EXISTS "avatars_authenticated_update" ON storage.objects;
-  DROP POLICY IF EXISTS "avatars_authenticated_delete" ON storage.objects;
-  DROP POLICY IF EXISTS "notices_public_read" ON storage.objects;
-  DROP POLICY IF EXISTS "notices_cr_admin_upload" ON storage.objects;
-  DROP POLICY IF EXISTS "notices_cr_admin_delete" ON storage.objects;
 END $$;
+
+-- Storage policies must be dropped as standalone statements (outside DO block)
+DROP POLICY IF EXISTS "avatars_public_read"          ON storage.objects;
+DROP POLICY IF EXISTS "avatars_authenticated_upload"  ON storage.objects;
+DROP POLICY IF EXISTS "avatars_authenticated_update"  ON storage.objects;
+DROP POLICY IF EXISTS "avatars_authenticated_delete"  ON storage.objects;
+DROP POLICY IF EXISTS "notices_public_read"           ON storage.objects;
+DROP POLICY IF EXISTS "notices_cr_admin_upload"       ON storage.objects;
+DROP POLICY IF EXISTS "notices_cr_admin_delete"       ON storage.objects;
 
 -- ── profiles ──────────────────────────────────────────────
 CREATE POLICY "profiles_read_all"
@@ -602,27 +665,29 @@ CREATE POLICY "ta_cr_admin_delete"
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'));
 
-
 -- ── notes ─────────────────────────────────────────────────
+-- Students see their own + public notes; CR/Admin see all (incl. pending)
 CREATE POLICY "notes_own_select"
   ON notes FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id OR is_public = true);
+  USING (auth.uid() = user_id OR is_public = true OR public.get_my_role() IN ('cr', 'admin'));
 
 CREATE POLICY "notes_own_insert"
   ON notes FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+-- Students update own; CR/Admin can update any (for approving resources)
 CREATE POLICY "notes_own_update"
   ON notes FOR UPDATE
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id OR public.get_my_role() IN ('cr', 'admin'));
 
+-- Students delete own; CR/Admin can delete any (for rejecting resources)
 CREATE POLICY "notes_own_delete"
   ON notes FOR DELETE
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id OR public.get_my_role() IN ('cr', 'admin'));
 
 -- ── notifications ─────────────────────────────────────────
 CREATE POLICY "notif_own_select"
@@ -679,6 +744,22 @@ CREATE POLICY "class_routine_cr_admin_all"
   USING (public.get_my_role() IN ('cr', 'admin'))
   WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
 
+-- ── holiday_days ──────────────────────────────────────────
+CREATE POLICY "hd_read_authenticated"
+  ON public.holiday_days FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "hd_cr_admin_insert"
+  ON public.holiday_days FOR INSERT
+  TO authenticated
+  WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
+
+CREATE POLICY "hd_cr_admin_delete"
+  ON public.holiday_days FOR DELETE
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'));
+
 -- ── semester_config ─────────────────────────────────────────
 CREATE POLICY "sc_read_authenticated"
   ON public.semester_config FOR SELECT
@@ -693,7 +774,64 @@ CREATE POLICY "sc_cr_admin_update"
 
 
 -- ============================================================
--- SECTION 4: Storage Buckets & Policies
+-- SECTION 4: Views
+-- ============================================================
+
+-- Drop old views first so CREATE VIEW succeeds cleanly on re-runs
+DROP VIEW IF EXISTS public.my_notifications;
+DROP VIEW IF EXISTS public.cr_notifications;
+
+-- my_notifications: unified notification feed for all user roles.
+-- WITH (security_invoker = on) ensures RLS of underlying tables is enforced.
+CREATE VIEW public.my_notifications
+WITH (security_invoker = on) AS
+  -- 1. Regular user-targeted notifications
+  SELECT
+    n.id::text          AS id,
+    n.type::text        AS type,
+    n.title::text       AS title,
+    n.message::text     AS message,
+    n.reference_id::text AS reference_id,
+    n.is_read           AS is_read,
+    n.created_at        AS created_at
+  FROM public.notifications n
+  WHERE n.user_id = auth.uid()
+
+  UNION ALL
+
+  -- 2. CR/Admin: unresolved student questions
+  SELECT
+    q.id::text AS id,
+    CASE
+      WHEN q.announcement_id IS NOT NULL THEN 'qna_announcement'
+      WHEN q.deadline_id     IS NOT NULL THEN 'qna_deadline'
+      ELSE 'qna_event'
+    END::text AS type,
+    'New Student Question'::text AS title,
+    substring(q.question FROM 1 FOR 100) AS message,
+    COALESCE(q.announcement_id, q.deadline_id, q.event_id)::text AS reference_id,
+    (q.created_at <= (SELECT cr_last_read_at FROM public.profiles WHERE id = auth.uid())) AS is_read,
+    q.created_at AS created_at
+  FROM public.timeline_questions q
+  WHERE q.is_resolved = false AND public.get_my_role() IN ('cr', 'admin')
+
+  UNION ALL
+
+  -- 3. CR/Admin: pending resource approvals
+  SELECT
+    n.id::text               AS id,
+    'resource_pending'::text AS type,
+    'Resource Pending Review'::text AS title,
+    n.title                  AS message,
+    n.id::text               AS reference_id,
+    (n.created_at <= (SELECT cr_last_read_at FROM public.profiles WHERE id = auth.uid())) AS is_read,
+    n.created_at             AS created_at
+  FROM public.notes n
+  WHERE n.is_pending = true AND public.get_my_role() IN ('cr', 'admin');
+
+
+-- ============================================================
+-- SECTION 5: Storage Buckets & Policies
 -- ============================================================
 
 -- ── avatars bucket ────────────────────────────────────────
@@ -721,39 +859,49 @@ ON CONFLICT (id) DO UPDATE SET
   allowed_mime_types  = EXCLUDED.allowed_mime_types;
 
 -- ── avatars RLS ───────────────────────────────────────────
-CREATE POLICY "avatars_public_read"   ON storage.objects FOR SELECT TO public
+CREATE POLICY "avatars_public_read"
+  ON storage.objects FOR SELECT TO public
   USING (bucket_id = 'avatars');
-CREATE POLICY "avatars_authenticated_upload" ON storage.objects FOR INSERT TO authenticated
+
+CREATE POLICY "avatars_authenticated_upload"
+  ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
-CREATE POLICY "avatars_authenticated_update" ON storage.objects FOR UPDATE TO authenticated
+
+CREATE POLICY "avatars_authenticated_update"
+  ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
-CREATE POLICY "avatars_authenticated_delete" ON storage.objects FOR DELETE TO authenticated
+
+CREATE POLICY "avatars_authenticated_delete"
+  ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ── notices RLS ───────────────────────────────────────────
-CREATE POLICY "notices_public_read"       ON storage.objects FOR SELECT TO public
+CREATE POLICY "notices_public_read"
+  ON storage.objects FOR SELECT TO public
   USING (bucket_id = 'notices');
-CREATE POLICY "notices_cr_admin_upload"   ON storage.objects FOR INSERT TO authenticated
+
+CREATE POLICY "notices_cr_admin_upload"
+  ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'notices' AND public.get_my_role() IN ('cr', 'admin'));
-CREATE POLICY "notices_cr_admin_delete"   ON storage.objects FOR DELETE TO authenticated
+
+CREATE POLICY "notices_cr_admin_delete"
+  ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'notices' AND public.get_my_role() IN ('cr', 'admin'));
 
 
 -- ============================================================
--- SECTION 5: Realtime
+-- SECTION 6: Realtime
 -- ============================================================
 
--- Enable realtime broadcasts for chat and notifications.
--- NOTE: If you get "already member" errors, these tables are already
--- in the publication — that is fine, just ignore the error.
-
+-- Enable realtime for notifications.
+-- NOTE: "already member" errors are safe to ignore.
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_publication_tables 
-    WHERE pubname = 'supabase_realtime' 
-      AND schemaname = 'public' 
-      AND tablename = 'notifications'
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname    = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename  = 'notifications'
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
   END IF;
@@ -762,6 +910,10 @@ END $$;
 
 -- ============================================================
 -- Done!
--- After running this file, run: node supabase/seed_users.js
--- to create the three test accounts (CR, Student, Admin).
+--
+-- Next steps after running this file:
+--   1. In Supabase Dashboard → Authentication → Users,
+--      create the CR auth account for this class.
+--   2. Register this project's URL + anon key in your
+--      MASTER Supabase tenants table with the class join code.
 -- ============================================================

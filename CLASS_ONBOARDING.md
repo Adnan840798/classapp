@@ -5,6 +5,114 @@ Follow every step in order. Do not skip any step.
 
 ---
 
+## ⚡ Quick Step-by-Step Setup & Total Handover Guide
+
+As the owner/seller of ClassApp, when you onboard a new client (a new class), you will need to perform the following steps to fully set them up and hand over the app to their Class Representative (CR).
+
+### 1. Plan & Collect Client Information
+Before starting, get these details from the client's CR:
+*   **CR Full Name** (e.g., *Adnan Islam*)
+*   **CR Email** (e.g., *cr@university.edu*)
+*   **CR University ID / Roll** (e.g., *CSE-2021-001*)
+*   **Batch & Department** (e.g., Batch *2024*, Dept *Computer Science*)
+*   **Desired Class Join Code** (e.g., *CSE2026B* — must be uppercase, alphanumeric, no spaces, 6–10 chars)
+*   **Class Display Name** (e.g., *CSE Batch 2026 B*)
+
+---
+
+### 2. Step-by-Step Technical Setup
+
+#### Step A: Create the Client's Supabase Project
+1. Log into your [Supabase Dashboard](https://supabase.com/dashboard) and click **New Project**.
+2. Name it clearly (e.g., `classapp-cse-2026-b`).
+3. Set a strong password, choose a region close to the users, and click **Create New Project** (~2 mins to initialize).
+4. Once created, copy the **Project URL** and the **anon/public API key** from **Project Settings → API**. You'll need these to register the tenant.
+
+#### Step B: Apply the Schema Database Migration
+1. In your project codebase, open [COMBINED_CLASS_SCHEMA.sql](file:///c:/Users/User/Desktop/classapp/supabase/migrations/COMBINED_CLASS_SCHEMA.sql) and copy the entire contents.
+2. In the new client's Supabase project sidebar, go to the **SQL Editor** and click **New Query**.
+3. Paste the entire SQL script and click **Run**. Confirm that all tables (e.g. `profiles`, `timeline_slots`, `announcements`) have been created successfully in the **Table Editor**.
+
+#### Step C: Configure Supabase Authentication
+1. In the client's Supabase project, go to **Authentication** → **URL Configuration**.
+2. Set the **Site URL** to your deployed app URL (e.g., `https://your-classapp.vercel.app`).
+3. Under **Redirect URLs**, add `https://your-classapp.vercel.app/**` and click **Save**.
+
+#### Step D: Register the Tenant & Class Code in the Master DB
+1. Open your **Master Supabase project** SQL Editor.
+2. Run the registration SQL to insert a new tenant and create their unique Join Code:
+   ```sql
+   -- Insert the tenant first
+   INSERT INTO tenants (buyer_email, supabase_url, supabase_anon_key)
+   VALUES (
+     'cr@university.edu',                        -- The CR's email
+     'https://YOUR-CLASS-PROJECT.supabase.co',   -- The tenant URL from Step A
+     'eyJhbGci...'                               -- The anon key from Step A
+   )
+   RETURNING id;
+   ```
+3. Copy the returned UUID (tenant ID) and run:
+   ```sql
+   -- Insert class connection with the Join Code
+   INSERT INTO class_connections (join_code, class_name, tenant_id)
+   VALUES (
+     'CSE2026B',             -- The custom classcode (uppercase, alphanumeric)
+     'CSE Batch 2026 B',     -- The class display name
+     'PASTE-TENANT-UUID-HERE' -- The UUID from the previous step
+   );
+   ```
+
+#### Step E: Create the CR Auth & Profile Accounts
+1. In the **client's Supabase project**, go to **Authentication** → **Users** and click **Add User** → **Create New User**.
+2. Fill in the CR's email and a temporary password (e.g., `TempPass123!`), check **"Auto Confirm User"**, and click **Create User**.
+3. Copy the generated User ID (UUID) from the list.
+4. Go to the **SQL Editor** in the client's project and run:
+   ```sql
+   INSERT INTO public.profiles (id, full_name, email, university_id, role, batch, department, password_reset_required)
+   VALUES (
+     'PASTE-CR-UUID-HERE',      -- CR's Auth UUID
+     'CR Full Name',            -- CR's Full Name
+     'cr@university.edu',        -- CR's Email
+     'CR-UNIV-ID',              -- CR's University ID
+     'cr',                      -- Role MUST be 'cr'
+     '2024',                    -- Batch year
+     'Computer Science',        -- Department
+     true                       -- Force password change on first sign-in
+   );
+   ```
+
+---
+
+### 3. Total Handover Package
+
+Once the setup is completed, send the following handover details directly to the client's CR via email or chat:
+
+```markdown
+Hello [CR Name], 
+
+Your ClassApp environment is fully set up and ready for your batch! Here are your access and management credentials:
+
+1. **Access Link:** https://your-classapp.vercel.app/login
+2. **Class Join Code:** [JOINCODE]
+3. **CR Admin Account:**
+   * **Email:** [CR Email]
+   * **Temporary Password:** [Temporary Password]
+   *(Note: You will be asked to set a secure password upon your first login)*
+
+### Next Steps for you (the CR):
+1. **Connect & Log In:** Open the link, enter the Join Code, click "Connect Class", then sign in using your CR credentials.
+2. **Add Students:** Go to your **Dashboard → Manage Accounts** or **Profile → Create Student Account** to start registering your classmates.
+3. **Set Up Routine:** Go to **Timeline** and click "Add/Edit Week" to build your semester calendar schedule.
+```
+
+---
+
+## Detailed Onboarding Walkthrough
+
+The following sections provide deep-dive details on the individual technical steps summarized above.
+
+---
+
 ## How It Works (Overview)
 
 ClassApp uses a **multi-tenant architecture**:
