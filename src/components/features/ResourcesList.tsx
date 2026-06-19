@@ -186,15 +186,9 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           {note.content}
                         </p>
                       )}
-                    </div>
-                  </div>
 
-                  {/* ── Right section: meta + drive + edit/delete ── */}
-                  {!selectMode && (
-                    <div className="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
-
-                      {/* Metadata: badge + timestamp */}
-                      <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 min-w-[80px]">
+                      {/* Metadata: badge + creator + timestamp */}
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2 text-[10px] text-slate-500 font-medium">
                         {isOwner ? (
                           note.is_pending ? (
                             <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
@@ -217,13 +211,17 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                             {note.creator?.full_name || 'Classmate'}
                           </span>
                         )}
-                        <p className="text-[9px] text-slate-500 font-medium">
-                          {formatDateTime(note.updated_at)}
-                        </p>
+                        <span className="text-slate-700">•</span>
+                        <span>{formatDateTime(note.updated_at)}</span>
                       </div>
+                    </div>
+                  </div>
 
+                  {/* ── Right section: drive + edit/delete ── */}
+                  {!selectMode && (
+                    <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
                       {/* Action buttons */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         {/* Drive link — always shown when present */}
                         {note.drive_link && (
                           <a

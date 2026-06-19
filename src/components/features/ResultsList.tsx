@@ -134,22 +134,22 @@ export function ResultsList({ results }: { results: Result[] }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-extrabold text-white break-words leading-snug">{res.exam_name}</h3>
+                    <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                      <span>Published: {formatDateTime(res.published_at)}</span>
+                    </span>
                   </div>
                 </div>
 
                 {!selectMode && (
-                  <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
-                    <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
-                      <span className="hidden sm:inline">Published: </span>
-                      {formatDateTime(res.published_at)}
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                    <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
                       {res.result_sheet_url ? (
                         <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
                           <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer">
                             <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span>View Marksheet</span>
+                            <span className="hidden xs:inline">View Marksheet</span>
+                            <span className="xs:hidden">View</span>
                             <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
                           </button>
                         </AttachmentViewer>
