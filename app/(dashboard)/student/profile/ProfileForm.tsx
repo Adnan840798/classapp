@@ -3,10 +3,35 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
+
+function getBdSuffix(num: string | null | undefined): string {
+  if (!num) return '';
+  const digits = num.replace(/\D/g, '');
+  if (digits.length === 10 && digits.startsWith('1')) {
+    return digits;
+  }
+  if (digits.length === 11 && digits.startsWith('01')) {
+    return digits.slice(1);
+  }
+  if (digits.length === 13 && digits.startsWith('8801')) {
+    return digits.slice(3);
+  }
+  return digits;
+}
+
+const formatBdPhoneInput = (val: string) => {
+  let cleaned = val.replace(/\D/g, ''); // only digits
+  if (cleaned.startsWith('880')) {
+    cleaned = cleaned.slice(3);
+  } else if (cleaned.startsWith('0')) {
+    cleaned = cleaned.slice(1);
+  }
+  return cleaned.slice(0, 10); // max 10 digits
+};
 
 interface ProfileFormProps {
   profile: Profile;
@@ -20,6 +45,8 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.profile_pic_url);
+  const [phoneVal, setPhoneVal] = useState(getBdSuffix(initialProfile.phone));
+  const [whatsappVal, setWhatsAppVal] = useState(getBdSuffix(initialProfile.whatsapp));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [className, setClassName] = useState('');
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission>('default');
@@ -253,6 +280,30 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
     }
   }
 
+  async function handleRemoveAvatar() {
+    if (!confirm('Are you sure you want to remove your profile picture?')) return;
+    setIsAvatarUploading(true);
+    setAvatarError(null);
+    setAvatarSuccess(false);
+
+    try {
+      const res = await removeAvatar();
+      if (res.error) {
+        setAvatarError(res.error);
+      } else {
+        setAvatarSuccess(true);
+        setAvatarPreview(null);
+        setProfile(prev => ({ ...prev, profile_pic_url: null }));
+      }
+    } catch (err) {
+      console.error('Remove avatar error:', err);
+      setAvatarError('Failed to remove profile picture.');
+    } finally {
+      setIsAvatarUploading(false);
+    }
+  }
+
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsPending(true);
@@ -289,34 +340,51 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       <div className="flex flex-col gap-4 sm:gap-6">
         {/* Avatar Card */}
         <div className="glass-card p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center hover:scale-[1.01]">
-          <div className="relative group">
-            <div className="w-24 h-24 rounded-full overflow-hidden border border-primary/20 group-hover:border-primary/50 relative bg-accent transition-colors shadow-inner">
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt={profile.full_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl font-extrabold text-muted-foreground uppercase">
-                  {profile.full_name.slice(0, 2)}
-                </div>
-              )}
-              {isAvatarUploading && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in backdrop-blur-[2px]">
-                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                </div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full overflow-hidden border border-white/[0.08] bg-[#121316]/50 transition-colors shadow-inner flex items-center justify-center">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt={profile.full_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-extrabold text-slate-400 uppercase">
+                    {profile.full_name.slice(0, 2)}
+                  </div>
+                )}
+                {isAvatarUploading && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in backdrop-blur-[2px]">
+                    <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons Row */}
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isPending || isAvatarUploading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-white/[0.08] bg-white/[0.02] text-slate-300 hover:text-white hover:bg-white/[0.06] active:scale-95 transition-all cursor-pointer disabled:opacity-40"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Change</span>
+              </button>
+              {avatarPreview && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={isPending || isAvatarUploading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer disabled:opacity-40"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Remove</span>
+                </button>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isPending || isAvatarUploading}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Upload photo"
-            >
-              <Camera className="w-4 h-4" />
-            </button>
             <input
               type="file"
               ref={fileInputRef}
@@ -503,15 +571,22 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                     <label htmlFor="phone" className="text-xs font-semibold text-foreground">
                       Phone Number
                     </label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      defaultValue={profile.phone || ''}
-                      placeholder="e.g. +8801700000000"
-                      className="form-input"
-                      disabled={isPending}
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold select-none flex items-center gap-1 border-r border-border/60 pr-2 pb-0.5">
+                        <span className="text-sm">🇧🇩</span>
+                        <span>+880</span>
+                      </span>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value={phoneVal}
+                        onChange={(e) => setPhoneVal(formatBdPhoneInput(e.target.value))}
+                        placeholder="1712345678"
+                        className="form-input pl-[76px] font-mono tracking-wider"
+                        disabled={isPending}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -527,15 +602,22 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                     <label htmlFor="whatsapp" className="text-xs font-semibold text-foreground">
                       WhatsApp Number
                     </label>
-                    <input
-                      id="whatsapp"
-                      name="whatsapp"
-                      type="tel"
-                      defaultValue={profile.whatsapp || ''}
-                      placeholder="e.g. +8801700000000"
-                      className="form-input"
-                      disabled={isPending}
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold select-none flex items-center gap-1 border-r border-border/60 pr-2 pb-0.5">
+                        <span className="text-sm">🇧🇩</span>
+                        <span>+880</span>
+                      </span>
+                      <input
+                        id="whatsapp"
+                        name="whatsapp"
+                        type="tel"
+                        value={whatsappVal}
+                        onChange={(e) => setWhatsAppVal(formatBdPhoneInput(e.target.value))}
+                        placeholder="1712345678"
+                        className="form-input pl-[76px] font-mono tracking-wider"
+                        disabled={isPending}
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-1.5">

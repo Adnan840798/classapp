@@ -16,12 +16,11 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
   if (!user) redirect('/login');
   const supabase = await getSupabaseServerClient();
 
-  // Fetch note and make sure it belongs to the logged-in user
+  // Fetch note (CR can edit any note)
   const { data: note, error } = await supabase
     .from('notes')
     .select('id, user_id, title, content, drive_link, is_public, is_pending, updated_at, created_at')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single();
 
   if (error || !note) {

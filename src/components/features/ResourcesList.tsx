@@ -284,8 +284,8 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           </a>
                         )}
 
-                        {/* Edit + Delete — owner only */}
-                        {isOwner && (
+                        {/* Edit + Delete — owner or CR */}
+                        {(isOwner || isCR) && (
                           <>
                             <Link
                               href={`${notesPath}/${note.id}`}

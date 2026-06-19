@@ -306,3 +306,76 @@ export async function setWeekHoliday(
     return { success: false, error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function getAllSemesterTimelineData(totalWeeks: number, semesterStartDate: string = '2026-05-20') {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  // Compute boundaries for the entire semester
+  const { days: firstWeekDays } = getWeekDates(1, semesterStartDate);
+  const { days: lastWeekDays } = getWeekDates(totalWeeks, semesterStartDate);
+
+  const startDate = new Date(firstWeekDays[0].getTime());
+  const endDate = new Date(lastWeekDays[4].getTime() + 24 * 60 * 60 * 1000 - 1);
+
+  // Fetch announcements, deadlines, results
+  const [annRes, deadRes, resultsRes] = await Promise.all([
+    supabase
+      .from('announcements')
+      .select('*, creator:profiles(full_name, profile_pic_url)')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('deadlines')
+      .select('id, title, subject, due_date')
+      .gte('due_date', startDate.toISOString())
+      .lte('due_date', endDate.toISOString())
+      .order('due_date', { ascending: true }),
+    supabase
+      .from('exam_results')
+      .select('id, exam_name, published_at')
+      .gte('published_at', startDate.toISOString())
+      .lte('published_at', endDate.toISOString())
+      .order('published_at', { ascending: true })
+  ]);
+
+  if (annRes.error) console.error('Error fetching announcements for timeline:', annRes.error);
+  if (deadRes.error) console.error('Error fetching deadlines for timeline:', deadRes.error);
+  if (resultsRes.error) console.error('Error fetching exam results for timeline:', resultsRes.error);
+
+  const announcements = annRes.data || [];
+  const deadlines = deadRes.data || [];
+  const examResults = resultsRes.data || [];
+
+  const dayNames = ['SAT', 'SUN', 'MON', 'TUE', 'WED'];
+  const allWeeksData: Record<number, any[]> = {};
+
+  for (let w = 1; w <= totalWeeks; w++) {
+    const { days } = getWeekDates(w, semesterStartDate);
+    allWeeksData[w] = days.map((dayDate, index) => {
+      const dateStr = toISODateString(dayDate);
+      const dayStart = dayDate.getTime();
+      const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
+
+      const filterByDay = (itemDateStr: string) => {
+        const itemDate = new Date(itemDateStr);
+        const time = itemDate.getTime();
+        return time >= dayStart && time <= dayEnd;
+      };
+
+      return {
+        dateStr,
+        dayName: dayNames[index],
+        dateLabel: dayDate.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }),
+        announcements: announcements.filter(item => filterByDay(item.created_at)),
+        deadlines: deadlines.filter(item => filterByDay(item.due_date)),
+        results: examResults.filter(item => filterByDay(item.published_at)),
+      };
+    });
+  }
+
+  return allWeeksData;
+}
+

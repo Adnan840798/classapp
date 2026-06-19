@@ -688,7 +688,13 @@ CREATE POLICY "notes_own_insert"
 CREATE POLICY "notes_own_update"
   ON notes FOR UPDATE
   TO authenticated
-  USING (auth.uid() = user_id OR public.get_my_role() IN ('cr', 'admin'));
+  USING (auth.uid() = user_id OR public.get_my_role() IN ('cr', 'admin'))
+  WITH CHECK (
+    public.get_my_role() IN ('cr', 'admin') OR (
+      auth.uid() = user_id 
+      AND (is_public = false)
+    )
+  );
 
 -- Students delete own; CR/Admin can delete any (for rejecting resources)
 CREATE POLICY "notes_own_delete"

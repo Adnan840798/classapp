@@ -113,7 +113,7 @@ export async function updateNote(id: string, formData: FormData) {
       }
     }
 
-    const { error } = await supabase
+    let query = supabase
       .from('notes')
       .update({
         title: parsed.data.title,
@@ -123,8 +123,13 @@ export async function updateNote(id: string, formData: FormData) {
         is_pending: finalIsPending,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .eq('user_id', user.id); // RLS guard for update
+      .eq('id', id);
+
+    if (!isCR) {
+      query = query.eq('user_id', user.id); // Student can only update own
+    }
+
+    const { error } = await query;
 
     if (error) return { error: error.message };
 

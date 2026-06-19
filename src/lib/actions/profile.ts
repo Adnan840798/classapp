@@ -8,13 +8,50 @@ import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { createClient } from '@supabase/supabase-js';
 
+function normalizeBdNumber(num: string | null | undefined): string | null {
+  if (!num) return null;
+  const cleaned = num.trim();
+  if (cleaned === '') return null;
+  
+  const digits = cleaned.replace(/\D/g, ''); // strip all non-digits
+  if (digits.length === 10 && digits.startsWith('1')) {
+    return '+880' + digits;
+  }
+  if (digits.length === 11 && digits.startsWith('01')) {
+    return '+88' + digits;
+  }
+  if (digits.length === 13 && digits.startsWith('8801')) {
+    return '+' + digits;
+  }
+  if (cleaned.startsWith('+')) {
+    const plusDigits = cleaned.slice(1).replace(/\D/g, '');
+    if (plusDigits.length === 13 && plusDigits.startsWith('8801')) {
+      return '+' + plusDigits;
+    }
+  }
+  return cleaned; // return original for validation failure
+}
+
 const ProfileSchema = z.object({
   full_name: z.string().min(1, 'Full name is required').max(100),
-  phone: z.string().max(20).optional().nullable(),
-  whatsapp: z.string().max(20).optional().nullable(),
+  phone: z.string()
+    .transform((val) => normalizeBdNumber(val))
+    .refine((val) => val === null || val === undefined || /^\+8801[3-9]\d{8}$/.test(val), {
+      message: 'Invalid Bangladeshi phone number. Must be a valid 11-digit mobile number.',
+    })
+    .optional()
+    .nullable(),
+  whatsapp: z.string()
+    .transform((val) => normalizeBdNumber(val))
+    .refine((val) => val === null || val === undefined || /^\+8801[3-9]\d{8}$/.test(val), {
+      message: 'Invalid Bangladeshi WhatsApp number. Must be a valid 11-digit mobile number.',
+    })
+    .optional()
+    .nullable(),
   telegram_handle: z.string().max(100).optional().nullable(),
   notif_enabled: z.boolean().default(true),
 });
+
 
 export async function updateProfile(formData: FormData) {
   try {
@@ -538,3 +575,37 @@ export async function updateAvatar(formData: FormData) {
     return { error: err.message || 'Failed to update profile picture.' };
   }
 }
+
+export async function removeAvatar() {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        profile_pic_url: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('removeAvatar error:', err);
+    return { error: err.message || 'Failed to remove profile picture.' };
+  }
+}
+

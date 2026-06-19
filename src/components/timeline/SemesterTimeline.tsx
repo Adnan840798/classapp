@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus, Umbrella, Coffee, Calendar } from 'lucide-react';
 import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils/timelineDates';
-import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks } from '@/lib/actions/timeline';
+import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks, getAllSemesterTimelineData } from '@/lib/actions/timeline';
 import { RoutineButton } from './RoutineButton';
 import { DayDetailPanel } from './DayDetailPanel';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -129,7 +129,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
   const [startDate, setStartDate] = useState<string>('2026-05-20');
   const currentWeek = getCurrentWeekNumber(startDate, totalWeeks);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [weekData, setWeekData] = useState<any[]>([]);
+  const [allWeeksData, setAllWeeksData] = useState<Record<number, any[]>>({});
+  const weekData = allWeeksData[selectedWeek] || [];
   const [isPending, startTransition] = useTransition();
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [hasScrolledInit, setHasScrolledInit] = useState(false);
@@ -139,13 +140,64 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
   const weekListRef = useRef<HTMLDivElement>(null);
 
-  // Fetch week data when selected week changes
-  useEffect(() => {
+  // Drag scroll ref properties
+  const isMouseDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const dragMovedRef = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const container = weekListRef.current;
+    if (!container) return;
+    isMouseDownRef.current = true;
+    container.style.cursor = 'grabbing';
+    startXRef.current = e.pageX - container.offsetLeft;
+    scrollLeftRef.current = container.scrollLeft;
+    dragMovedRef.current = false;
+  };
+
+  const handleMouseLeave = () => {
+    isMouseDownRef.current = false;
+    const container = weekListRef.current;
+    if (container) {
+      container.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseUp = () => {
+    isMouseDownRef.current = false;
+    const container = weekListRef.current;
+    if (container) {
+      container.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDownRef.current) return;
+    const container = weekListRef.current;
+    if (!container) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 5) {
+      dragMovedRef.current = true;
+    }
+    container.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const fetchAllData = (weeksCount: number, startD: string) => {
     startTransition(async () => {
-      const data = await getTimelineData(selectedWeek, startDate);
-      setWeekData(data);
+      const data = await getAllSemesterTimelineData(weeksCount, startD);
+      setAllWeeksData(data);
     });
-  }, [selectedWeek, startDate]);
+  };
+
+  // Fetch timeline data when totalWeeks or startDate changes
+  useEffect(() => {
+    if (totalWeeks && startDate) {
+      fetchAllData(totalWeeks, startDate);
+    }
+  }, [totalWeeks, startDate]);
 
   // Fetch holiday data and total weeks once on mount
   useEffect(() => {
@@ -165,16 +217,6 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       });
   }, []);
 
-  // Realtime subscription for semester timeline changes.
-  // Only subscribes to tables that are UNIQUE to the timeline view:
-  //   • holiday_days   — holiday toggling directly affects the week grid
-  //   • semester_config — total week count drives the week list
-  //   • class_routine   — routine image needs a server re-render
-  //
-  // announcements / deadlines / exam_results are intentionally NOT subscribed
-  // here — NotificationContext already calls router.refresh() for those tables,
-  // which re-renders the server component and passes fresh data down as props,
-  // making a second getTimelineData() call redundant and wasteful.
   const holidayDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const channel = supabase
@@ -183,15 +225,14 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         'postgres_changes',
         { event: '*', schema: 'public', table: 'holiday_days' },
         () => {
-          // Debounce 600 ms so bulk holiday inserts don't each fire a DB fetch
           if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
           holidayDebounceRef.current = setTimeout(async () => {
-            const [updatedHolidays, updatedWeekData] = await Promise.all([
+            const [updatedHolidays, updatedAllData] = await Promise.all([
               getHolidayDays(),
-              getTimelineData(selectedWeek, startDate),
+              getAllSemesterTimelineData(totalWeeks, startDate),
             ]);
             setHolidays(updatedHolidays);
-            setWeekData(updatedWeekData);
+            setAllWeeksData(updatedAllData);
           }, 600);
         }
       )
@@ -223,7 +264,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
       if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
       supabase.removeChannel(channel);
     };
-  }, [supabase, router, selectedWeek]);
+  }, [supabase, router, totalWeeks, startDate]);
 
   // Scroll to current/selected week
   useEffect(() => {
@@ -547,7 +588,11 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               {/* Scrollable week cards */}
               <div
                 ref={weekListRef}
-                className="flex-1 flex gap-3 overflow-x-auto tl-scroll pt-7 pb-4"
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+                className="flex-1 flex gap-3 overflow-x-auto tl-scroll pt-7 pb-4 select-none cursor-grab"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 {displayGroups.map((group) => {
@@ -561,7 +606,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       <button
                         key={`hg-${weeks[0]}`}
                         data-week={weeks[0]}
-                        onClick={() => setSelectedWeek(weeks[0])}
+                        onClick={() => { if (!dragMovedRef.current) setSelectedWeek(weeks[0]); }}
                         className={`flex-shrink-0 relative flex flex-col items-center justify-center gap-1 cursor-pointer select-none transition-all duration-200 rounded-xl holiday-shimmer ${isSelected ? 'week-glow' : ''}`}
                         style={{
                           width: weeks.length > 1 ? Math.min(80 + weeks.length * 20, 180) : 145,
@@ -576,7 +621,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       >
                         {/* Collapsed holiday badge */}
                         <span
-                          className="absolute text-[7px] font-black tracking-[0.15em] uppercase"
+                           className="absolute text-[7px] font-black tracking-[0.15em] uppercase"
                           style={{
                             top: -18,
                             left: '50%',
@@ -627,7 +672,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     <button
                       key={weekNum}
                       data-week={weekNum}
-                      onClick={() => setSelectedWeek(weekNum)}
+                      onClick={() => { if (!dragMovedRef.current) setSelectedWeek(weekNum); }}
                       className={`flex-shrink-0 relative flex flex-col items-center justify-center cursor-pointer select-none transition-all duration-200 rounded-xl ${
                         isSelected 
                           ? 'week-glow' 
@@ -844,8 +889,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     // ── Holiday Day Row ──
                     return (
                       <div key={day.dateStr} className="flex items-center gap-2">
-                        <div
-                          className="flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border"
+                        <button
+                          onClick={() => setSelectedDayIndex(index)}
+                          className="flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border text-left cursor-pointer hover:bg-white/[0.01]"
                           style={{
                             background: '#121214',
                             borderColor: '#23262D',
@@ -874,7 +920,12 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                               Holiday Break
                             </span>
                           </div>
-                        </div>
+
+                          {/* Right chevron */}
+                          <ChevronRight
+                            className="w-4 h-4 flex-shrink-0 transition-colors text-slate-600"
+                          />
+                        </button>
 
                         {/* CR: Remove Holiday button (inline, right of row) */}
                         {isCR && (
@@ -882,7 +933,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             onClick={() => handleToggleHoliday(selectedWeek, index)}
                             disabled={isTogglingHoliday}
                             title="Remove Holiday"
-                            className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-amber-500/35 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                            className="flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-amber-500/35 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                           >
                             <Umbrella className="w-4 h-4" />
                           </button>
@@ -981,7 +1032,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           onClick={() => handleToggleHoliday(selectedWeek, index)}
                           disabled={isTogglingHoliday}
                           title="Mark as Holiday"
-                          className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
+                          className="flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
                         >
                           <Umbrella className="w-4 h-4" />
                         </button>
