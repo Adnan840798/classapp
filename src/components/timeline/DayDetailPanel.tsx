@@ -278,7 +278,7 @@ export function DayDetailPanel({
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="flex-1 min-w-[85px] sm:min-w-0 text-[11px] sm:text-[12px] font-bold py-3.5 transition-all cursor-pointer relative whitespace-nowrap text-center px-1"
+                className="flex-1 min-w-[85px] sm:min-w-0 text-[11px] sm:text-[12px] font-bold py-3.5 transition-all cursor-pointer relative whitespace-nowrap text-center px-1 flex-shrink-0"
                 style={{
                   color: activeTab === tab.key ? '#ffffff' : '#64748b',
                   borderBottom: activeTab === tab.key ? '2px solid #34D399' : '2px solid transparent',

@@ -362,7 +362,7 @@ export default async function RootPage() {
             <div className="flex flex-col gap-1">
               <p className="text-sm font-extrabold text-white">Send a request</p>
               <p className="text-xs text-slate-400">
-                Drop a message with your class details and I'll get back to you.
+                Drop a message with your class details and I&apos;ll get back to you.
               </p>
             </div>
 

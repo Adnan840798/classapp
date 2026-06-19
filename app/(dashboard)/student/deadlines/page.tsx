@@ -58,6 +58,7 @@ export default async function StudentDeadlinesPage() {
   const deadlines = await getCachedDeadlines();
 
   const enriched = deadlines ? enrichDeadlines(deadlines) : [];
+  // eslint-disable-next-line react-hooks/purity
   const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= Date.now());
 
   return (

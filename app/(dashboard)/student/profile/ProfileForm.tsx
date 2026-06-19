@@ -827,7 +827,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 ) : (
                   <>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Configure the total weeks and starting date for this semester's timeline.
+                      Configure the total weeks and starting date for this semester&apos;s timeline.
                     </p>
                     
                     <div className="flex flex-col gap-3 mt-2">

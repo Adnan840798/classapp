@@ -69,7 +69,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer ${
+              className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer flex-shrink-0 ${
                 filter === type
                   ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'

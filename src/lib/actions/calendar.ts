@@ -282,3 +282,109 @@ export async function askQuestion(
   }
 }
 
+export async function editQuestion(questionId: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const question = formData.get('question') as string;
+    if (!question || question.length > 500) {
+      return { error: 'Question must be 1–500 characters.' };
+    }
+
+    // 1. Fetch the question to verify details and resolution state
+    const { data: q, error: fetchErr } = await supabase
+      .from('timeline_questions')
+      .select('is_resolved, asked_by')
+      .eq('id', questionId)
+      .single();
+
+    if (fetchErr || !q) return { error: 'Question not found.' };
+    if (q.is_resolved) return { error: 'Cannot edit a resolved question.' };
+    if (q.asked_by !== user.id) return { error: 'Unauthorized.' };
+
+    // 2. Perform the update
+    const { error } = await supabase
+      .from('timeline_questions')
+      .update({ question })
+      .eq('id', questionId)
+      .eq('asked_by', user.id)
+      .eq('is_resolved', false);
+
+    if (error) return { error: error.message };
+
+    await revalidateQuestionPaths(supabase, questionId);
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('editQuestion error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function editAnswer(answerId: string, formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const answer = formData.get('answer') as string;
+    if (!answer || answer.length > 1000) {
+      return { error: 'Answer must be 1–1000 characters.' };
+    }
+
+    // 1. Fetch answer & parent question to check resolution state
+    const { data: ans, error: fetchErr } = await supabase
+      .from('timeline_answers')
+      .select('question_id, answered_by, question:timeline_questions(is_resolved, asked_by, event_id, announcement_id, deadline_id)')
+      .eq('id', answerId)
+      .single();
+
+    if (fetchErr || !ans) return { error: 'Answer not found.' };
+    
+    const parentQuestion = ans.question as any;
+    if (!parentQuestion) return { error: 'Associated question not found.' };
+    if (parentQuestion.is_resolved) return { error: 'Cannot edit an answer to a resolved question.' };
+    if (ans.answered_by !== user.id) return { error: 'Unauthorized.' };
+
+    // 2. Perform the update on timeline_answers
+    const { error } = await supabase
+      .from('timeline_answers')
+      .update({ answer })
+      .eq('id', answerId)
+      .eq('answered_by', user.id);
+
+    if (error) return { error: error.message };
+
+    // 3. Update student notification if exists
+    const referenceId = parentQuestion.announcement_id || parentQuestion.deadline_id || parentQuestion.event_id;
+    if (parentQuestion.asked_by && referenceId) {
+      const displayMsg = answer.length > 150 ? `${answer.slice(0, 147)}...` : answer;
+      await supabase
+        .from('notifications')
+        .update({ message: displayMsg })
+        .eq('user_id', parentQuestion.asked_by)
+        .eq('type', 'qna')
+        .eq('reference_id', referenceId);
+    }
+
+    await revalidateQuestionPaths(supabase, ans.question_id);
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('editAnswer error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+

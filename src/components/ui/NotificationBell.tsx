@@ -5,12 +5,14 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown, Check, Lock, CheckSquare } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
 import { timeAgo } from '@/lib/utils/formatters';
 import { cn } from '@/lib/utils';
+import { bulkDeleteNotifications } from '@/lib/actions/notifications';
+import { BulkDeleteBar } from '@/components/ui/BulkDeleteBar';
 
 interface NotifTypeConfig {
   icon: React.ComponentType<{ className?: string }>;
@@ -43,10 +45,27 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
   }
 }
 
-function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: string; onClose: () => void }) {
+const DELETABLE_TYPES: NotifType[] = ['announcement', 'deadline', 'result', 'system'];
+
+function NotifItem({ 
+  notif, 
+  prefix, 
+  onClose,
+  selectMode,
+  isSelected,
+  onToggle
+}: { 
+  notif: Notification; 
+  prefix: string; 
+  onClose: () => void;
+  selectMode: boolean;
+  isSelected: boolean;
+  onToggle: () => void;
+}) {
   const typeConfig = notifTypeIcon[notif.type] || notifTypeIcon.system;
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
+  const isDeletable = DELETABLE_TYPES.includes(notif.type);
 
   // Track touch position and start time to differentiate a fast tap/click from scrolling/dragging
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -67,6 +86,7 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
     const dx = touch.clientX - touchStart.current.x;
     const dy = touch.clientY - touchStart.current.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    // eslint-disable-next-line react-hooks/purity
     const duration = Date.now() - touchStart.current.time;
 
     // Reset touch tracking
@@ -80,7 +100,12 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
 
     e.preventDefault();
     e.stopPropagation();
-    navigate();
+    
+    if (selectMode) {
+      if (isDeletable) onToggle();
+    } else {
+      navigate();
+    }
   };
 
   const handleTouchCancel = () => {
@@ -90,7 +115,12 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
   const handleMouseClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate();
+    
+    if (selectMode) {
+      if (isDeletable) onToggle();
+    } else {
+      navigate();
+    }
   };
 
   const navigate = () => {
@@ -111,10 +141,30 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
       className={cn(
-        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-brand-purple/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-brand-purple/10 cursor-pointer',
-        !notif.is_read && 'bg-brand-purple/[0.03]'
+        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-brand-purple/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-brand-purple/10 cursor-pointer items-center',
+        !notif.is_read && !selectMode && 'bg-brand-purple/[0.03]'
       )}
     >
+      {/* Checkbox for selection */}
+      {selectMode && isDeletable && (
+        <div className="flex-shrink-0 mr-1">
+          {isSelected ? (
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
+              <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+            </div>
+          ) : (
+            <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+          )}
+        </div>
+      )}
+      
+      {/* Locked icon for non-deletable items in selection mode */}
+      {selectMode && !isDeletable && (
+        <div className="flex-shrink-0 mr-1 w-5 h-5 opacity-25 flex items-center justify-center">
+          <Lock className="w-3.5 h-3.5 text-slate-500" />
+        </div>
+      )}
+
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0 transition-transform group-hover:scale-105', typeConfig.bg)}>
         <IconComponent className="w-5 h-5" />
       </div>
@@ -123,7 +173,7 @@ function NotifItem({ notif, prefix, onClose }: { notif: Notification; prefix: st
         <p className="text-xs text-slate-400 mt-1 leading-normal line-clamp-2">{notif.message}</p>
         <p className="text-[10px] text-slate-500 mt-1.5 font-medium">{timeAgo(notif.created_at)}</p>
       </div>
-      {!notif.is_read && (
+      {!notif.is_read && !selectMode && (
         <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-purple shadow-[0_0_8px_#8B5CF6]" />
       )}
     </a>
@@ -139,6 +189,17 @@ export function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Reset selection states when bell panel opens or closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectMode(false);
+      setSelectedIds(new Set());
+    }
+  }, [isOpen]);
 
   const INITIAL_COUNT = 8;
   const visibleNotifs = showAll ? notifications : notifications.slice(0, INITIAL_COUNT);
@@ -299,6 +360,25 @@ export function NotificationBell() {
     </button>
   ) : null;
 
+  function toggleItem(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    const idsArray = Array.from(selectedIds);
+    const res = await bulkDeleteNotifications(idsArray);
+    if (res && res.error) {
+      alert(res.error);
+    } else {
+      setSelectedIds(new Set());
+      setSelectMode(false);
+    }
+  }
+
   // ── The panel content (shared between desktop dropdown and mobile sheet) ──
   const panelContent = (
     <>
@@ -307,14 +387,40 @@ export function NotificationBell() {
         <div className="flex items-center gap-2.5">
           <Bell className="w-4 h-4 text-[#34D399]" />
           <h3 className="font-bold text-sm text-white">Notifications</h3>
-          {unreadCount > 0 && (
-            <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
+          {unreadCount > 0 && !selectMode && (
+            <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5 animate-pulse">
               {unreadCount}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
+          {notifications.length > 0 && (
+            <button
+              onClick={() => {
+                setSelectMode((prev) => !prev);
+                setSelectedIds(new Set());
+              }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
+                selectMode
+                  ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
+                  : "border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04]"
+              )}
+            >
+              {selectMode ? (
+                <>
+                  <X className="w-3 h-3 text-rose-400 flex-shrink-0" />
+                  <span>Cancel</span>
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  <span>Select</span>
+                </>
+              )}
+            </button>
+          )}
+          {unreadCount > 0 && !selectMode && (
             <button
               onClick={markAllRead}
               className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
@@ -346,7 +452,15 @@ export function NotificationBell() {
         ) : (
           <>
             {visibleNotifs.map((notif) => (
-              <NotifItem key={notif.id} notif={notif} prefix={prefix} onClose={() => setIsOpen(false)} />
+              <NotifItem 
+                key={notif.id} 
+                notif={notif} 
+                prefix={prefix} 
+                onClose={() => setIsOpen(false)} 
+                selectMode={selectMode}
+                isSelected={selectedIds.has(notif.id)}
+                onToggle={() => toggleItem(notif.id)}
+              />
             ))}
             {loadMoreButton}
           </>
@@ -383,6 +497,7 @@ export function NotificationBell() {
         }}
       >
         {/* Drag handle + header zone — gesture handlers scoped HERE only */}
+        {/* drag zones */}
         <div
           onTouchStart={handleSheetTouchStart}
           onTouchMove={handleSheetTouchMove}
@@ -402,14 +517,40 @@ export function NotificationBell() {
             <div className="flex items-center gap-2.5">
               <Bell className="w-4 h-4 text-[#34D399]" />
               <h3 className="font-bold text-sm text-white">Notifications</h3>
-              {unreadCount > 0 && (
+              {unreadCount > 0 && !selectMode && (
                 <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
                   {unreadCount}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
+              {notifications.length > 0 && (
+                <button
+                  onClick={() => {
+                    setSelectMode((prev) => !prev);
+                    setSelectedIds(new Set());
+                  }}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
+                    selectMode
+                      ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
+                      : "border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04]"
+                  )}
+                >
+                  {selectMode ? (
+                    <>
+                      <X className="w-3 h-3 text-rose-400 flex-shrink-0" />
+                      <span>Cancel</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                      <span>Select</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {unreadCount > 0 && !selectMode && (
                 <button
                   onClick={markAllRead}
                   className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
@@ -435,7 +576,15 @@ export function NotificationBell() {
           ) : (
             <>
               {visibleNotifs.map((notif) => (
-                <NotifItem key={notif.id} notif={notif} prefix={prefix} onClose={() => setIsOpen(false)} />
+                <NotifItem 
+                  key={notif.id} 
+                  notif={notif} 
+                  prefix={prefix} 
+                  onClose={() => setIsOpen(false)} 
+                  selectMode={selectMode}
+                  isSelected={selectedIds.has(notif.id)}
+                  onToggle={() => toggleItem(notif.id)}
+                />
               ))}
               {loadMoreButton}
             </>
@@ -493,6 +642,16 @@ export function NotificationBell() {
 
       {/* Mobile bottom sheet */}
       {mobileSheet}
+
+      <BulkDeleteBar
+        count={selectedIds.size}
+        onCancel={() => {
+          setSelectMode(false);
+          setSelectedIds(new Set());
+        }}
+        onDelete={handleBulkDelete}
+        label="notifications"
+      />
 
       <style>{`
         @keyframes notif-dropdown {

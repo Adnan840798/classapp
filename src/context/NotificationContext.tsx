@@ -66,61 +66,77 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false })
         .limit(30);
 
-      if (error) {
-        console.error('Failed to load notifications:', error);
-        return;
-      }
+       if (error) {
+         console.error('Failed to load notifications:', error);
+         return;
+       }
 
-      if (data) {
-        setNotifications(data as Notification[]);
-        setUnreadCount(data.filter((n: any) => !n.is_read).length);
+       if (data) {
+         setNotifications(data as Notification[]);
+         setUnreadCount(data.filter((n: any) => !n.is_read).length);
 
-        // Pruning check
-        const regularNotifs = data.filter((n: any) => 
-          ['announcement', 'deadline', 'result', 'system'].includes(n.type)
-        );
-        if (regularNotifs.length > 15) {
-          const obsoleteIds = regularNotifs.slice(15).map((n: any) => n.id);
-          supabase
-            .from('notifications')
-            .delete()
-            .in('id', obsoleteIds)
-            .then((res: any) => {
-              if (res.error) console.error('Failed to prune database notifications:', res.error);
-            });
-        }
-      }
-    }
+         // Pruning check
+         const regularNotifs = data.filter((n: any) => 
+           ['announcement', 'deadline', 'result', 'system'].includes(n.type)
+         );
+         if (regularNotifs.length > 15) {
+           const obsoleteIds = regularNotifs.slice(15).map((n: any) => n.id);
+           supabase
+             .from('notifications')
+             .delete()
+             .in('id', obsoleteIds)
+             .then((res: any) => {
+               if (res.error) console.error('Failed to prune database notifications:', res.error);
+             });
+         }
+       }
+     }
 
-    loadNotifications();
-  }, [profile?.id, profile?.cr_last_read_at]);
+     loadNotifications();
+  }, [profile?.id]);
 
   // Realtime subscription
   useEffect(() => {
     if (!profile?.id) return;
 
-    // Regular notification channel
+    // Regular notification channel (listening to all events: INSERT, UPDATE, DELETE)
     const regularChannel = supabase
       .channel(`notifications:${profile.id}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${profile.id}`,
         },
         (payload: any) => {
-          const newNotif = payload.new as Notification;
-          setNotifications((prev) => {
-            const updated = [newNotif, ...prev]
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, 30);
-            return updated;
-          });
-          setUnreadCount((count) => count + 1);
-          playSound();
-          triggerPopup(newNotif);
+          if (payload.eventType === 'INSERT') {
+            const newNotif = payload.new as Notification;
+            setNotifications((prev) => {
+              const updated = [newNotif, ...prev]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 30);
+              return updated;
+            });
+            setUnreadCount((count) => count + 1);
+            playSound();
+            triggerPopup(newNotif);
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedNotif = payload.new as Notification;
+            setNotifications((prev) => {
+              const next = prev.map((n) => (n.id === updatedNotif.id ? updatedNotif : n));
+              setUnreadCount(next.filter((n) => !n.is_read).length);
+              return next;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old.id;
+            setNotifications((prev) => {
+              const next = prev.filter((n) => n.id !== deletedId);
+              setUnreadCount(next.filter((n) => !n.is_read).length);
+              return next;
+            });
+          }
         }
       )
       .subscribe();
@@ -178,6 +194,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                   return updated;
                 });
                 setActivePopups((prev) => prev.filter((p) => p.id !== payload.new.id));
+              } else {
+                // A question comment was edited!
+                setNotifications((prev) =>
+                  prev.map((n) =>
+                    ['qna', 'qna_announcement', 'qna_deadline', 'qna_event'].includes(n.type) && n.id === payload.new.id
+                      ? { ...n, message: payload.new.question }
+                      : n
+                  )
+                );
               }
             }
           }

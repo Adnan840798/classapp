@@ -448,12 +448,14 @@ BEGIN
   DROP POLICY IF EXISTS "tq_read_authenticated" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_student_insert" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_cr_admin_update" ON public.timeline_questions;
+  DROP POLICY IF EXISTS "tq_update_policy" ON public.timeline_questions;
   DROP POLICY IF EXISTS "tq_cr_admin_delete" ON public.timeline_questions;
 
   -- timeline_answers
   DROP POLICY IF EXISTS "ta_read_authenticated" ON public.timeline_answers;
   DROP POLICY IF EXISTS "ta_cr_admin_insert" ON public.timeline_answers;
   DROP POLICY IF EXISTS "ta_cr_admin_delete" ON public.timeline_answers;
+  DROP POLICY IF EXISTS "ta_update_policy" ON public.timeline_answers;
 
   -- notes
   DROP POLICY IF EXISTS "notes_own_select" ON public.notes;
@@ -639,10 +641,10 @@ CREATE POLICY "tq_student_insert"
     )
   );
 
-CREATE POLICY "tq_cr_admin_update"
+CREATE POLICY "tq_update_policy"
   ON timeline_questions FOR UPDATE
   TO authenticated
-  USING (public.get_my_role() IN ('cr', 'admin'));
+  USING ((auth.uid() = asked_by AND is_resolved = false) OR public.get_my_role() IN ('cr', 'admin'));
 
 CREATE POLICY "tq_cr_admin_delete"
   ON timeline_questions FOR DELETE
@@ -659,6 +661,11 @@ CREATE POLICY "ta_cr_admin_insert"
   ON timeline_answers FOR INSERT
   TO authenticated
   WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
+
+CREATE POLICY "ta_update_policy"
+  ON timeline_answers FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = answered_by);
 
 CREATE POLICY "ta_cr_admin_delete"
   ON timeline_answers FOR DELETE
