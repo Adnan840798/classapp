@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -32,6 +32,51 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const isCR = notesPath === '/cr/notes';
+
+  // Long-press detection refs and handlers (CR only)
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressActive = useRef(false);
+
+  const handleTouchStart = (id: string) => {
+    isLongPressActive.current = false;
+    if (!selectMode && isCR) {
+      longPressTimeout.current = setTimeout(() => {
+        isLongPressActive.current = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Haptic vibration
+        }
+        setSelectMode(true);
+        setSelectedIds(new Set([id]));
+      }, 500);
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressActive.current = false;
+    }
+  };
+
+  const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (selectMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItem(id);
+    }
+  };
 
   function toggleSelectMode() {
     setSelectMode((v) => !v);
@@ -113,7 +158,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
             return (
               <div
                 key={note.id}
-                onClick={selectMode ? () => toggleItem(note.id) : undefined}
+                onClick={(e) => handleItemClick(e, note.id)}
+                onTouchStart={() => handleTouchStart(note.id)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 className={`relative rounded-xl overflow-hidden transition-all duration-150 ${
                   selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
                 }`}

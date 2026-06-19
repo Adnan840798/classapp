@@ -594,14 +594,21 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                         <Umbrella className="w-6 h-6 text-amber-500 mb-1" />
                         <span
-                          className="font-semibold text-center leading-tight text-slate-300"
-                          style={{ fontSize: 12 }}
+                          className="font-bold tracking-tight text-center leading-tight"
+                          style={{ 
+                            fontSize: 14,
+                            color: isSelected ? '#ffffff' : '#cbd5e1'
+                          }}
                         >
                           Holiday Break
                         </span>
                         <span
-                          className="text-[10px] font-medium block mt-1"
-                          style={{ color: '#475569' }}
+                          className="font-medium tracking-normal block mt-1"
+                          style={{ 
+                            fontSize: 12,
+                            color: isSelected ? '#fde68a' : '#64748b',
+                            opacity: isSelected ? 0.95 : 0.8
+                          }}
                         >
                           {rangeLabel}
                         </span>
@@ -665,9 +672,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                       {/* Week label */}
                       <span
-                        className="font-extrabold leading-none block"
+                        className="font-bold tracking-tight leading-none block"
                         style={{
-                          fontSize: 17,
+                          fontSize: 19,
                           color: isSelected ? '#ffffff' : '#94a3b8',
                           marginBottom: 8,
                         }}
@@ -677,12 +684,11 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                       {/* Date range */}
                       <span
-                        className="block leading-none"
+                        className="block font-medium tracking-normal leading-none"
                         style={{
-                          fontSize: 11,
-                          color: isSelected ? '#94a3b8' : '#475569',
-                          fontWeight: 400,
-                          opacity: 0.6,
+                          fontSize: 13,
+                          color: isSelected ? '#a7f3d0' : '#64748b',
+                          opacity: isSelected ? 0.95 : 0.8,
                         }}
                       >
                         {rangeLabel.line1} - {rangeLabel.line2}
@@ -934,7 +940,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                               <CalendarGridIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Deadlines</div>
-                                <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.deadlines.length}</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.deadlines.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.deadlines.length}</div>
                               </div>
                             </div>
 
@@ -945,7 +951,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                               <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-purple flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
-                                <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.announcements.length}</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.announcements.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.announcements.length}</div>
                               </div>
                             </div>
 
@@ -956,7 +962,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                               <SquarePlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-cyan flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
                                 <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Results</div>
-                                <div className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{day.results.length}</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.results.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.results.length}</div>
                               </div>
                             </div>
                           </div>

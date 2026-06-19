@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, Award, Calendar, FileText, ArrowUpRight, Square, Trash2, Check, CheckSquare } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
@@ -20,6 +20,51 @@ type Result = {
 export function ResultsList({ results }: { results: Result[] }) {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Long-press detection refs and handlers
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressActive = useRef(false);
+
+  const handleTouchStart = (id: string) => {
+    isLongPressActive.current = false;
+    if (!selectMode) {
+      longPressTimeout.current = setTimeout(() => {
+        isLongPressActive.current = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Haptic vibration
+        }
+        setSelectMode(true);
+        setSelectedIds(new Set([id]));
+      }, 500);
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressActive.current = false;
+    }
+  };
+
+  const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (selectMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItem(id);
+    }
+  };
 
   function toggleSelectMode() {
     setSelectMode((v) => !v);
@@ -89,7 +134,10 @@ export function ResultsList({ results }: { results: Result[] }) {
             return (
               <div
                 key={res.id}
-                onClick={selectMode ? () => toggleItem(res.id) : undefined}
+                onClick={(e) => handleItemClick(e, res.id)}
+                onTouchStart={() => handleTouchStart(res.id)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
                   selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
                 }`}

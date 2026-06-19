@@ -53,7 +53,8 @@ function NotifItem({
   onClose,
   selectMode,
   isSelected,
-  onToggle
+  onToggle,
+  onLongPress
 }: { 
   notif: Notification; 
   prefix: string; 
@@ -61,14 +62,17 @@ function NotifItem({
   selectMode: boolean;
   isSelected: boolean;
   onToggle: () => void;
+  onLongPress?: () => void;
 }) {
   const typeConfig = notifTypeIcon[notif.type] || notifTypeIcon.system;
   const IconComponent = typeConfig.icon;
   const href = getNotifHref(notif.type, notif.reference_id, prefix);
   const isDeletable = DELETABLE_TYPES.includes(notif.type);
 
-  // Track touch position and start time to differentiate a fast tap/click from scrolling/dragging
+  // Refs for tracking touch states and timers
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null);
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressActive = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -77,9 +81,42 @@ function NotifItem({
       y: touch.clientY,
       time: Date.now(),
     };
+    isLongPressActive.current = false;
+
+    // Start 500ms long-press timer if item is deletable and not already in selectMode
+    if (isDeletable && !selectMode) {
+      longPressTimeout.current = setTimeout(() => {
+        isLongPressActive.current = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Haptic vibration feedback
+        }
+        onLongPress?.();
+      }, 500);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStart.current.x;
+    const dy = touch.clientY - touchStart.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Cancel timer if user scrolls or drags finger significantly (more than 10px)
+    if (distance > 10) {
+      if (longPressTimeout.current) {
+        clearTimeout(longPressTimeout.current);
+        longPressTimeout.current = null;
+      }
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+
     if (!touchStart.current) return;
 
     const touch = e.changedTouches[0];
@@ -92,8 +129,16 @@ function NotifItem({
     // Reset touch tracking
     touchStart.current = null;
 
+    // If it was a long press, prevent navigation and return
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressActive.current = false;
+      return;
+    }
+
     // If moved more than 8 pixels, or touch duration is longer than 250ms,
-    // count it as a drag, scroll, or hold — not a clean click tap.
+    // count it as a drag/scroll — not a clean click tap.
     if (distance > 8 || duration > 250) {
       return;
     }
@@ -109,6 +154,10 @@ function NotifItem({
   };
 
   const handleTouchCancel = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
     touchStart.current = null;
   };
 
@@ -138,6 +187,7 @@ function NotifItem({
       href={href}
       onClick={handleMouseClick}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
       className={cn(
@@ -349,6 +399,19 @@ export function NotificationBell() {
     setShowAll(true);
   };
 
+  const handleSelectToggle = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectMode((prev) => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const handleMarkAllRead = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    markAllRead();
+  };
+
   const loadMoreButton = !showAll && hiddenCount > 0 ? (
     <button
       onClick={handleLoadMore}
@@ -396,10 +459,8 @@ export function NotificationBell() {
         <div className="flex items-center gap-2">
           {notifications.length > 0 && (
             <button
-              onClick={() => {
-                setSelectMode((prev) => !prev);
-                setSelectedIds(new Set());
-              }}
+              onClick={handleSelectToggle}
+              onTouchEnd={handleSelectToggle}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
                 selectMode
@@ -422,7 +483,8 @@ export function NotificationBell() {
           )}
           {unreadCount > 0 && !selectMode && (
             <button
-              onClick={markAllRead}
+              onClick={handleMarkAllRead}
+              onTouchEnd={handleMarkAllRead}
               className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
             >
               <CheckCheck className="w-3.5 h-3.5" />
@@ -460,6 +522,10 @@ export function NotificationBell() {
                 selectMode={selectMode}
                 isSelected={selectedIds.has(notif.id)}
                 onToggle={() => toggleItem(notif.id)}
+                onLongPress={() => {
+                  setSelectMode(true);
+                  setSelectedIds(new Set([notif.id]));
+                }}
               />
             ))}
             {loadMoreButton}
@@ -526,10 +592,8 @@ export function NotificationBell() {
             <div className="flex items-center gap-2">
               {notifications.length > 0 && (
                 <button
-                  onClick={() => {
-                    setSelectMode((prev) => !prev);
-                    setSelectedIds(new Set());
-                  }}
+                  onClick={handleSelectToggle}
+                  onTouchEnd={handleSelectToggle}
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
                     selectMode
@@ -552,7 +616,8 @@ export function NotificationBell() {
               )}
               {unreadCount > 0 && !selectMode && (
                 <button
-                  onClick={markAllRead}
+                  onClick={handleMarkAllRead}
+                  onTouchEnd={handleMarkAllRead}
                   className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
@@ -584,6 +649,10 @@ export function NotificationBell() {
                   selectMode={selectMode}
                   isSelected={selectedIds.has(notif.id)}
                   onToggle={() => toggleItem(notif.id)}
+                  onLongPress={() => {
+                    setSelectMode(true);
+                    setSelectedIds(new Set([notif.id]));
+                  }}
                 />
               ))}
               {loadMoreButton}

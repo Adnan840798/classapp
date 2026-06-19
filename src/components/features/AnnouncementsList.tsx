@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import {
   Plus, Megaphone, FileText, ArrowRight,
@@ -28,6 +28,51 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
+
+  // Long-press detection refs and handlers
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressActive = useRef(false);
+
+  const handleTouchStart = (id: string) => {
+    isLongPressActive.current = false;
+    if (!selectMode) {
+      longPressTimeout.current = setTimeout(() => {
+        isLongPressActive.current = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Haptic vibration
+        }
+        setSelectMode(true);
+        setSelectedIds(new Set([id]));
+      }, 500);
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressActive.current = false;
+    }
+  };
+
+  const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (selectMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItem(id);
+    }
+  };
 
   function toggleSelectMode() {
     setSelectMode((v) => !v);
@@ -129,7 +174,10 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                 return (
                   <div
                     key={announcement.id}
-                    onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
+                    onClick={(e) => handleItemClick(e, announcement.id)}
+                    onTouchStart={() => handleTouchStart(announcement.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     className={`relative rounded-xl overflow-hidden transition-all duration-150 ${selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
                       } animate-fade-in`}
                     style={{
@@ -268,7 +316,10 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                 return (
                   <div
                     key={announcement.id}
-                    onClick={selectMode ? () => toggleItem(announcement.id) : undefined}
+                    onClick={(e) => handleItemClick(e, announcement.id)}
+                    onTouchStart={() => handleTouchStart(announcement.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     className={`relative rounded-xl overflow-hidden transition-all duration-150 ${selectMode ? 'cursor-pointer' : 'opacity-75 hover:opacity-100 hover:translate-x-0.5'
                       } animate-fade-in`}
                     style={{

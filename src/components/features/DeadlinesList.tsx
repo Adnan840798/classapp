@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, Clock, BookOpen, Calendar, ArrowRight, Square, Trash2, Check, CheckSquare } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
@@ -44,14 +44,59 @@ const colorThemes = {
     bg: 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)',
     border: '1px solid rgba(244, 63, 94, 0.4)',
     accent: 'linear-gradient(180deg, #f43f5e, #be123c)',
-    badgeBg: 'rgba(244,63,94,0.12)', badgeBorder: '1px solid rgba(244,63,94,0.25)', badgeText: '#f43f5e',
-    iconColor: 'text-rose-400', iconBg: 'rgba(244,63,94,0.12)', iconBorder: '1px solid rgba(244,63,94,0.25)',
+    badgeBg: 'rgba(244,63,94,0.15)', badgeBorder: '1px solid rgba(244,63,94,0.3)', badgeText: '#f43f5e',
+    iconColor: 'text-rose-400', iconBg: 'rgba(244,63,94,0.12)', iconBorder: '1px solid rgba(244, 63, 94, 0.25)',
   },
 };
 
 export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Long-press detection refs and handlers
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressActive = useRef(false);
+
+  const handleTouchStart = (id: string) => {
+    isLongPressActive.current = false;
+    if (!selectMode) {
+      longPressTimeout.current = setTimeout(() => {
+        isLongPressActive.current = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Haptic vibration
+        }
+        setSelectMode(true);
+        setSelectedIds(new Set([id]));
+      }, 500);
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressActive.current = false;
+    }
+  };
+
+  const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (selectMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItem(id);
+    }
+  };
 
   const enriched = enrichDeadlines(deadlines);
   // eslint-disable-next-line react-hooks/purity
@@ -126,7 +171,10 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
           return (
             <div
               key={deadline.id}
-              onClick={selectMode ? () => toggleItem(deadline.id) : undefined}
+              onClick={(e) => handleItemClick(e, deadline.id)}
+              onTouchStart={() => handleTouchStart(deadline.id)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
                 selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
               }`}
