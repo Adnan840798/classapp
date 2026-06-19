@@ -75,7 +75,7 @@ export function ResultsList({ results }: { results: Result[] }) {
             {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
           </button>
           {!selectMode && (
-            <Link href="/cr/results/publish" className="btn-yellow w-full sm:w-auto justify-center flex-shrink-0">
+            <Link href="/cr/results/publish" className="btn-yellow flex-1 sm:flex-initial sm:w-auto justify-center">
               <Plus className="w-4 h-4" /> Publish Result
             </Link>
           )}

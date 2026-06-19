@@ -110,7 +110,7 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
             {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
           </button>
           {!selectMode && (
-            <Link href="/cr/deadlines/new" className="btn-yellow flex-shrink-0">
+            <Link href="/cr/deadlines/new" className="btn-yellow flex-1 sm:flex-initial sm:w-auto justify-center">
               <Plus className="w-4 h-4" /> New Deadline
             </Link>
           )}
