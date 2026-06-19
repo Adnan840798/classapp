@@ -68,6 +68,7 @@ Before starting, get these details from the client's CR:
 3. Copy the generated User ID (UUID) from the list.
 4. Go to the **SQL Editor** in the client's project and run:
    ```sql
+   -- Use ON CONFLICT because the database trigger may have already auto-inserted a student profile row.
    INSERT INTO public.profiles (id, full_name, email, university_id, role, batch, department, password_reset_required)
    VALUES (
      'PASTE-CR-UUID-HERE',      -- CR's Auth UUID
@@ -78,7 +79,10 @@ Before starting, get these details from the client's CR:
      '2024',                    -- Batch year
      'Computer Science',        -- Department
      true                       -- Force password change on first sign-in
-   );
+   )
+   ON CONFLICT (id) DO UPDATE SET
+     role = 'cr',
+     password_reset_required = true;
    ```
 
 ---
@@ -255,7 +259,8 @@ The CR is the admin of the class. You need to:
 In the class Supabase SQL Editor, run:
 
 ```sql
--- Replace ALL values below with real information
+-- Replace ALL values below with real information.
+-- We use ON CONFLICT because the database trigger may have already auto-inserted a student profile row.
 INSERT INTO public.profiles (
   id,
   full_name,
@@ -275,7 +280,10 @@ VALUES (
   '2024',                       -- batch year (e.g. '2024')
   'Computer Science',           -- department
   false                         -- false = CR can log in without forced reset
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  role = 'cr',
+  password_reset_required = EXCLUDED.password_reset_required;
 ```
 
 > If you want to force the CR to change their password on first login, set `password_reset_required = true` and share the temporary password with them.

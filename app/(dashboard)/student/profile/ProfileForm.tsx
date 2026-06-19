@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig } from '@/lib/actions/profile';
 import { Profile } from '@/types';
@@ -22,6 +22,19 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.profile_pic_url);
   const [compressedAvatar, setCompressedAvatar] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [className, setClassName] = useState('');
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('tenant_class_name');
+      if (stored) setClassName(stored);
+      
+      if ('Notification' in window) {
+        setBrowserPermission(Notification.permission);
+      }
+    }
+  }, []);
 
   // Notification toggles
   const [notifEnabled, setNotifEnabled] = useState(initialProfile.notif_enabled);
@@ -61,6 +74,12 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [isConfigPending, setIsConfigPending] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
   const [configSuccess, setConfigSuccess] = useState(false);
+
+  // Accordion open/close states
+  const [isClassAdminOpen, setIsClassAdminOpen] = useState(false);
+  const [isSemesterSettingsOpen, setIsSemesterSettingsOpen] = useState(false);
+  const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(true);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   async function handleSaveSemesterConfig() {
     setIsConfigPending(true);
@@ -250,11 +269,11 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
       {/* Left Column: Avatar & Notifications */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
         {/* Avatar Card */}
-        <div className="glass-card p-6 flex flex-col items-center justify-center gap-4 text-center hover:scale-[1.01]">
+        <div className="glass-card p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center hover:scale-[1.01]">
           <div className="relative group">
             <div className="w-24 h-24 rounded-full overflow-hidden border border-primary/20 group-hover:border-primary/50 relative bg-accent transition-colors shadow-inner">
               {avatarPreview ? (
@@ -300,420 +319,556 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                 {profile.role.toUpperCase()}
               </span>
             </div>
+            {className && (
+              <span className="text-xs font-bold text-slate-100 mt-1 select-none">
+                {className}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Notifications Card */}
-        <div className="glass-card p-6 flex flex-col gap-4">
-          <h3 className="font-bold text-sm text-foreground border-b border-border/60 pb-2">
+        <div className="glass-card p-4 sm:p-6 flex flex-col gap-4">
+          <h3 className="font-bold text-sm text-foreground border-b border-border/60 pb-2 flex items-center gap-2">
+            <Bell className="w-4 h-4 text-primary" />
             Notification Preferences
           </h3>
 
-          {/* Toggle 1: Enable Notifs */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold text-foreground">In-App Notifications</span>
-              <span className="text-[10px] text-muted-foreground">Receive real-time alerts</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const nextVal = !notifEnabled;
-                setNotifEnabled(nextVal);
-                if (nextVal) {
-                  playNotificationChime();
-                }
-              }}
-              disabled={isPending}
-              className={`touch-compact relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                notifEnabled ? 'bg-primary' : 'bg-muted'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  notifEnabled ? 'translate-x-5' : 'translate-x-0'
+          <div className="flex flex-col gap-4">
+            {/* Toggle 1: Enable Notifs */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-semibold text-foreground">In-App Notifications</span>
+                <span className="text-[10px] text-muted-foreground">Receive real-time alerts</span>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const nextVal = !notifEnabled;
+                  
+                  if (nextVal) {
+                    // 1. Web Browser Permission Flow
+                    if (typeof window !== 'undefined' && 'Notification' in window) {
+                      let currentPermission = Notification.permission;
+                      
+                      if (currentPermission === 'default') {
+                        currentPermission = await Notification.requestPermission();
+                        setBrowserPermission(currentPermission);
+                      }
+                      
+                      if (currentPermission === 'denied') {
+                        alert('Notifications are blocked in your browser settings. To enable them, click the lock/settings icon in your browser address bar and allow notifications.');
+                        return; // Block activation if permission is denied
+                      }
+                    }
+                    
+                    // 2. Native Capacitor App Permission Flow
+                    if (typeof window !== 'undefined' && window.Capacitor) {
+                      try {
+                        const { PushNotifications } = await import('@capacitor/push-notifications');
+                        const permission = await PushNotifications.requestPermissions();
+                        if (permission.receive !== 'granted') {
+                          alert('Notification permissions are blocked in your phone settings. Please enable them in your device settings to receive alerts.');
+                          return; // Block activation if permission is denied
+                        }
+                      } catch (err) {
+                        console.error('Failed to request native push permissions:', err);
+                      }
+                    }
+                  }
+                  
+                  setNotifEnabled(nextVal);
+                  if (nextVal) {
+                    playNotificationChime();
+                  }
+                }}
+                disabled={isPending}
+                className={`touch-compact relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  notifEnabled && browserPermission !== 'denied' ? 'bg-primary' : 'bg-muted'
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    notifEnabled && browserPermission !== 'denied' ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Show warnings if blocked in browser settings */}
+            {browserPermission === 'denied' && (
+              <div className="text-[10px] text-rose-400 font-semibold leading-relaxed border-t border-border/40 pt-2.5 mt-1.5 flex items-start gap-1.5 animate-fade-in">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-400" />
+                <span>
+                  Notifications are blocked in your browser settings. Click the lock/settings icon in the address bar to allow them, then reload.
+                </span>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* Right Column: Settings & Preferences */}
+      <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
+        {/* Personal & Contact Details */}
+        <div className={`glass-card flex flex-col transition-all duration-200 ${
+          isPersonalInfoOpen ? 'p-4 sm:p-6 md:p-8 gap-5 sm:gap-6' : 'py-3.5 px-4 sm:px-5 md:py-4 md:px-6 gap-0'
+        }`}>
+          <button
+            type="button"
+            onClick={() => setIsPersonalInfoOpen(!isPersonalInfoOpen)}
+            className={`w-full flex items-center justify-between cursor-pointer select-none text-left focus:outline-none group ${
+              isPersonalInfoOpen ? 'border-b border-border/60 pb-2' : ''
+            }`}
+          >
+            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              Personal & Contact Details
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 ${
+                isPersonalInfoOpen ? 'rotate-180 text-primary' : ''
+              }`}
+            />
+          </button>
+
+          {isPersonalInfoOpen && (
+            <div className="animate-fade-in flex flex-col gap-6">
+              {error && (
+                <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-lg flex items-start gap-3 text-sm">
+                  <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Profile updated successfully!</span>
+                </div>
+              )}
+
+              {/* Personal Information */}
+              <div className="flex flex-col gap-4">
+                <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-1.5">
+                  Personal Information
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="full_name" className="text-xs font-semibold text-foreground">
+                      Full Name
+                    </label>
+                    <input
+                      id="full_name"
+                      name="full_name"
+                      type="text"
+                      required
+                      defaultValue={profile.full_name}
+                      className="form-input"
+                      disabled={isPending}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="phone" className="text-xs font-semibold text-foreground">
+                      Phone Number
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      defaultValue={profile.phone || ''}
+                      placeholder="e.g. +8801700000000"
+                      className="form-input"
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex flex-col gap-4 border-t border-border pt-4">
+                <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-1.5">
+                  Contact & Social Profiles
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="whatsapp" className="text-xs font-semibold text-foreground">
+                      WhatsApp Number
+                    </label>
+                    <input
+                      id="whatsapp"
+                      name="whatsapp"
+                      type="tel"
+                      defaultValue={profile.whatsapp || ''}
+                      placeholder="e.g. +8801700000000"
+                      className="form-input"
+                      disabled={isPending}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="telegram_handle" className="text-xs font-semibold text-foreground">
+                      Telegram Username
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="telegram_handle"
+                        name="telegram_handle"
+                        type="text"
+                        defaultValue={profile.telegram_handle || ''}
+                        placeholder="username"
+                        className="form-input pl-8"
+                        disabled={isPending}
+                      />
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold select-none">
+                        @
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-2 border-t border-border mt-2">
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="btn-primary"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+
+
+        {/* ── Change Password Card ────────────────────────── */}
+        <div className={`glass-card flex flex-col transition-all duration-200 ${
+          isChangePasswordOpen ? 'p-4 sm:p-6 md:p-8 gap-4 sm:gap-5' : 'py-3.5 px-4 sm:px-5 md:py-4 md:px-6 gap-0'
+        }`}>
+          <button
+            type="button"
+            onClick={() => setIsChangePasswordOpen(!isChangePasswordOpen)}
+            className={`w-full flex items-center justify-between cursor-pointer select-none text-left focus:outline-none group ${
+              isChangePasswordOpen ? 'border-b border-border pb-3' : ''
+            }`}
+          >
+            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-amber-400" />
+              Change Password
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 ${
+                isChangePasswordOpen ? 'rotate-180 text-primary' : ''
+              }`}
+            />
+          </button>
+
+          {isChangePasswordOpen && (
+            <div className="animate-fade-in flex flex-col gap-5">
+              <p className="text-xs text-muted-foreground">
+                Enter your current password to set a new one. Minimum 8 characters.
+              </p>
+
+              {cpError && (
+                <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                  {cpError}
+                </div>
+              )}
+              {cpSuccess && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+                  <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  Password changed successfully!
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                {/* Current Password */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground">Current Password</label>
+                  <div className="relative">
+                    <input
+                      type={cpShowCurrent ? 'text' : 'password'}
+                      value={cpCurrentPass}
+                      onChange={e => setCpCurrentPass(e.target.value)}
+                      placeholder="Your current password"
+                      className="form-input pr-10"
+                      disabled={cpPending}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCpShowCurrent(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* New Password */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={cpShowNew ? 'text' : 'password'}
+                      value={cpNewPass}
+                      onChange={e => setCpNewPass(e.target.value)}
+                      placeholder="At least 8 characters"
+                      className="form-input pr-10"
+                      disabled={cpPending}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCpShowNew(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={cpConfirmPass}
+                    onChange={e => setCpConfirmPass(e.target.value)}
+                    placeholder="Repeat new password"
+                    className="form-input"
+                    disabled={cpPending}
+                  />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    disabled={cpPending || !cpCurrentPass || !cpNewPass || !cpConfirmPass}
+                    onClick={async () => {
+                      setCpError(null);
+                      setCpSuccess(false);
+                      if (cpNewPass !== cpConfirmPass) {
+                        setCpError('New passwords do not match.');
+                        return;
+                      }
+                      if (cpNewPass.length < 8) {
+                        setCpError('New password must be at least 8 characters.');
+                        return;
+                      }
+                      setCpPending(true);
+                      try {
+                        const res = await changePassword(cpCurrentPass, cpNewPass);
+                        if (res.error) {
+                          setCpError(res.error);
+                        } else {
+                          setCpSuccess(true);
+                          setCpCurrentPass('');
+                          setCpNewPass('');
+                          setCpConfirmPass('');
+                        }
+                      } catch (err: any) {
+                        setCpError(err.message || 'An error occurred.');
+                      } finally {
+                        setCpPending(false);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {cpPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Updating…</>
+                    ) : (
+                      <><KeyRound className="w-4 h-4" /> Update Password</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Manage Accounts Card (CR/Admin only) */}
         {(profile.role === 'cr' || profile.role === 'admin') && allProfiles.length > 0 && (
-          <div className="glass-card p-6 flex flex-col gap-4">
-            <h3 className="font-bold text-sm text-foreground border-b border-border/60 pb-2 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-primary" />
-              Class Administration
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              As a Class Representative, you can view, edit roles, and delete authorized student accounts for this batch.
-            </p>
-            <div className="flex flex-col gap-2.5 mt-2">
-              <button
-                type="button"
-                onClick={() => { setIsCreateModalOpen(true); setCreateError(null); setCreateSuccess(null); }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-emerald-500/10 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                Create Student Account
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsManageModalOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-              >
-                <Users className="w-4 h-4 text-primary" />
-                Manage Accounts ({accountsList.length})
-              </button>
-            </div>
+          <div className={`glass-card flex flex-col transition-all duration-200 ${
+            isClassAdminOpen ? 'p-4 sm:p-6 gap-4' : 'py-3.5 px-4 sm:px-5 gap-0'
+          }`}>
+            <button
+              type="button"
+              onClick={() => setIsClassAdminOpen(!isClassAdminOpen)}
+              className={`w-full flex items-center justify-between cursor-pointer select-none text-left focus:outline-none group ${
+                isClassAdminOpen ? 'border-b border-border/60 pb-2' : ''
+              }`}
+            >
+              <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary" />
+                Class Administration
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 ${
+                  isClassAdminOpen ? 'rotate-180 text-primary' : ''
+                }`}
+              />
+            </button>
+
+            {isClassAdminOpen && (
+              <div className="animate-fade-in flex flex-col gap-4">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  As a Class Representative, you can view, edit roles, and delete authorized student accounts for this batch.
+                </p>
+                <div className="flex flex-col gap-2.5 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setIsCreateModalOpen(true); setCreateError(null); setCreateSuccess(null); }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-emerald-500/10 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Create Student Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsManageModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 text-primary" />
+                    Manage Accounts ({accountsList.length})
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* Semester Settings Card (CR/Admin only) */}
         {(profile.role === 'cr' || profile.role === 'admin') && (
-          <div className="glass-card p-6 flex flex-col gap-4">
-            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-emerald-400" />
-              Semester Settings
-            </h3>
-            
-            {!semesterConfig ? (
-              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex flex-col gap-2 text-xs leading-relaxed text-left">
-                <div className="flex items-center gap-2 font-bold">
-                  <AlertTriangle className="w-4 h-4" />
-                  Database Migration Required
-                </div>
-                <p>
-                  The semester settings option is unavailable because the required database columns do not exist in your database yet.
-                </p>
-                <p className="font-mono text-[10px] mt-1 bg-black/30 p-2 rounded">
-                  Please run the SQL statements in the files:
-                  <br />• supabase/migrations/0008_semester_start_date.sql
-                  <br />• supabase/migrations/0009_remove_profile_fields.sql
-                  <br />inside your Supabase SQL Editor.
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Configure the total weeks and starting date for this semester's timeline.
-                </p>
-                
-                <div className="flex flex-col gap-3 mt-2">
-              {configError && (
-                <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
-                  {configError}
-                </div>
-              )}
-              {configSuccess && (
-                <div className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
-                  Semester settings saved successfully!
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="total_weeks" className="text-xs font-semibold text-foreground">
-                  Total Weeks
-                </label>
-                <input
-                  id="total_weeks"
-                  type="number"
-                  min="1"
-                  max="52"
-                  required
-                  value={semesterWeeks}
-                  onChange={(e) => setSemesterWeeks(parseInt(e.target.value, 10))}
-                  className="form-input text-xs"
-                  disabled={isConfigPending}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="start_date" className="text-xs font-semibold text-foreground">
-                  Semester Start Date (Wednesday of Week 1)
-                </label>
-                <input
-                  id="start_date"
-                  type="date"
-                  required
-                  value={semesterStart}
-                  onChange={(e) => setSemesterStart(e.target.value)}
-                  className="form-input text-xs"
-                  disabled={isConfigPending}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveSemesterConfig}
-                disabled={isConfigPending}
-                className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isConfigPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Settings
-                  </>
-                )}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    )}
-      </div>
-
-      {/* Right Column: Profile details form */}
-      <div className="lg:col-span-2 flex flex-col gap-6">
-        <div className="glass-card p-6 md:p-8 flex flex-col gap-6">
-          {error && (
-            <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-lg flex items-start gap-3 text-sm">
-              <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <span>Profile updated successfully!</span>
-            </div>
-          )}
-
-          {/* Personal Information */}
-          <div className="flex flex-col gap-4">
-            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2">
-              Personal Information
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="full_name" className="text-xs font-semibold text-foreground">
-                  Full Name
-                </label>
-                <input
-                  id="full_name"
-                  name="full_name"
-                  type="text"
-                  required
-                  defaultValue={profile.full_name}
-                  className="form-input"
-                  disabled={isPending}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="phone" className="text-xs font-semibold text-foreground">
-                  Phone Number
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  defaultValue={profile.phone || ''}
-                  placeholder="e.g. +8801700000000"
-                  className="form-input"
-                  disabled={isPending}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Social Links */}
-          <div className="flex flex-col gap-4 border-t border-border pt-4">
-            <h3 className="font-bold text-sm text-foreground border-b border-border pb-2">
-              Contact & Social Profiles
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="whatsapp" className="text-xs font-semibold text-foreground">
-                  WhatsApp Number
-                </label>
-                <input
-                  id="whatsapp"
-                  name="whatsapp"
-                  type="tel"
-                  defaultValue={profile.whatsapp || ''}
-                  placeholder="e.g. +8801700000000"
-                  className="form-input"
-                  disabled={isPending}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="telegram_handle" className="text-xs font-semibold text-foreground">
-                  Telegram Username
-                </label>
-                <div className="relative">
-                  <input
-                    id="telegram_handle"
-                    name="telegram_handle"
-                    type="text"
-                    defaultValue={profile.telegram_handle || ''}
-                    placeholder="username"
-                    className="form-input pl-8"
-                    disabled={isPending}
-                  />
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold select-none">
-                    @
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex justify-end pt-2 border-t border-border mt-2">
+          <div className={`glass-card flex flex-col transition-all duration-200 ${
+            isSemesterSettingsOpen ? 'p-4 sm:p-6 gap-4' : 'py-3.5 px-4 sm:px-5 gap-0'
+          }`}>
             <button
-              type="submit"
-              disabled={isPending}
-              className="btn-primary"
+              type="button"
+              onClick={() => setIsSemesterSettingsOpen(!isSemesterSettingsOpen)}
+              className={`w-full flex items-center justify-between cursor-pointer select-none text-left focus:outline-none group ${
+                isSemesterSettingsOpen ? 'border-b border-border pb-2' : ''
+              }`}
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Save Changes
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ── Change Password Card ────────────────────────── */}
-        <div className="glass-card p-6 md:p-8 flex flex-col gap-5">
-          <div className="flex items-center gap-2 border-b border-border pb-3">
-            <KeyRound className="w-4 h-4 text-amber-400" />
-            <h3 className="font-bold text-sm text-foreground">Change Password</h3>
-          </div>
-          <p className="text-xs text-muted-foreground -mt-1">
-            Enter your current password to set a new one. Minimum 8 characters.
-          </p>
-
-          {cpError && (
-            <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
-              {cpError}
-            </div>
-          )}
-          {cpSuccess && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
-              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              Password changed successfully!
-            </div>
-          )}
-
-          <div className="flex flex-col gap-4">
-            {/* Current Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">Current Password</label>
-              <div className="relative">
-                <input
-                  type={cpShowCurrent ? 'text' : 'password'}
-                  value={cpCurrentPass}
-                  onChange={e => setCpCurrentPass(e.target.value)}
-                  placeholder="Your current password"
-                  className="form-input pr-10"
-                  disabled={cpPending}
-                />
-                <button
-                  type="button"
-                  onClick={() => setCpShowCurrent(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                >
-                  {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* New Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">New Password</label>
-              <div className="relative">
-                <input
-                  type={cpShowNew ? 'text' : 'password'}
-                  value={cpNewPass}
-                  onChange={e => setCpNewPass(e.target.value)}
-                  placeholder="At least 8 characters"
-                  className="form-input pr-10"
-                  disabled={cpPending}
-                />
-                <button
-                  type="button"
-                  onClick={() => setCpShowNew(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                >
-                  {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">Confirm New Password</label>
-              <input
-                type="password"
-                value={cpConfirmPass}
-                onChange={e => setCpConfirmPass(e.target.value)}
-                placeholder="Repeat new password"
-                className="form-input"
-                disabled={cpPending}
+              <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-emerald-400" />
+                Semester Settings
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 ${
+                  isSemesterSettingsOpen ? 'rotate-180 text-primary' : ''
+                }`}
               />
-            </div>
-
-            <div className="flex justify-end pt-1">
-              <button
-                type="button"
-                disabled={cpPending || !cpCurrentPass || !cpNewPass || !cpConfirmPass}
-                onClick={async () => {
-                  setCpError(null);
-                  setCpSuccess(false);
-                  if (cpNewPass !== cpConfirmPass) {
-                    setCpError('New passwords do not match.');
-                    return;
-                  }
-                  if (cpNewPass.length < 8) {
-                    setCpError('New password must be at least 8 characters.');
-                    return;
-                  }
-                  setCpPending(true);
-                  try {
-                    const res = await changePassword(cpCurrentPass, cpNewPass);
-                    if (res.error) {
-                      setCpError(res.error);
-                    } else {
-                      setCpSuccess(true);
-                      setCpCurrentPass('');
-                      setCpNewPass('');
-                      setCpConfirmPass('');
-                    }
-                  } catch (err: any) {
-                    setCpError(err.message || 'An error occurred.');
-                  } finally {
-                    setCpPending(false);
-                  }
-                }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {cpPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Updating…</>
+            </button>
+            
+            {isSemesterSettingsOpen && (
+              <div className="animate-fade-in flex flex-col gap-4">
+                {!semesterConfig ? (
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex flex-col gap-2 text-xs leading-relaxed text-left">
+                    <div className="flex items-center gap-2 font-bold">
+                      <AlertTriangle className="w-4 h-4" />
+                      Database Migration Required
+                    </div>
+                    <p>
+                      The semester settings option is unavailable because the required database columns do not exist in your database yet.
+                    </p>
+                    <p className="font-mono text-[10px] mt-1 bg-black/30 p-2 rounded">
+                      Please run the SQL statements in the files:
+                      <br />• supabase/migrations/0008_semester_start_date.sql
+                      <br />• supabase/migrations/0009_remove_profile_fields.sql
+                      <br />inside your Supabase SQL Editor.
+                    </p>
+                  </div>
                 ) : (
-                  <><KeyRound className="w-4 h-4" /> Update Password</>
+                  <>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Configure the total weeks and starting date for this semester's timeline.
+                    </p>
+                    
+                    <div className="flex flex-col gap-3 mt-2">
+                      {configError && (
+                        <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                          {configError}
+                        </div>
+                      )}
+                      {configSuccess && (
+                        <div className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                          Semester settings saved successfully!
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="total_weeks" className="text-xs font-semibold text-foreground">
+                          Total Weeks
+                        </label>
+                        <input
+                          id="total_weeks"
+                          type="number"
+                          min="1"
+                          max="52"
+                          required
+                          value={semesterWeeks}
+                          onChange={(e) => setSemesterWeeks(parseInt(e.target.value, 10))}
+                          className="form-input text-xs"
+                          disabled={isConfigPending}
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="start_date" className="text-xs font-semibold text-foreground">
+                          Semester Start Date (Wednesday of Week 1)
+                        </label>
+                        <input
+                          id="start_date"
+                          type="date"
+                          required
+                          value={semesterStart}
+                          onChange={(e) => setSemesterStart(e.target.value)}
+                          className="form-input text-xs"
+                          disabled={isConfigPending}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveSemesterConfig}
+                        disabled={isConfigPending}
+                        className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isConfigPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Save Settings
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
                 )}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </form>
 

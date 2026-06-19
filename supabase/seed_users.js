@@ -121,6 +121,16 @@ async function seed() {
         }
       } else {
         console.log(`✨ Profile already exists for ${u.email}`);
+        // Ensure the role is updated to match the seeded metadata role in case the trigger defaulted it to student
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ role: u.user_metadata.role })
+          .eq('id', userId);
+        if (updateError) {
+          console.error(`❌ Failed to update profile role for ${u.email}: ${updateError.message}`);
+        } else {
+          console.log(`✅ Profile role verified/updated for ${u.email}`);
+        }
       }
     }
   }

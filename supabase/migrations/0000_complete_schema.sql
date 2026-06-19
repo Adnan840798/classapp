@@ -280,7 +280,7 @@ BEGIN
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     COALESCE(NEW.raw_user_meta_data->>'university_id', 'NOT_SET'),
-    COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'student'),
+    'student'::public.user_role, -- Always default to student on signup for security (prevents metadata role escalation)
     COALESCE(NEW.raw_user_meta_data->>'batch', 'N/A'),
     COALESCE(NEW.raw_user_meta_data->>'department', 'N/A'),
     TRUE  -- always force password reset on first login

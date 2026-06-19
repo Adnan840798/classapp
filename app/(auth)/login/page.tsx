@@ -271,7 +271,7 @@ export default function LoginPage() {
                   Connecting…
                 </>
               ) : (
-                'Connect Class'
+                'Connect'
               )}
             </button>
           </form>
