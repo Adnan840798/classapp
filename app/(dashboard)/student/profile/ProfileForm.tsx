@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -20,7 +20,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.profile_pic_url);
-  const [compressedAvatar, setCompressedAvatar] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [className, setClassName] = useState('');
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission>('default');
@@ -80,6 +79,11 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [isSemesterSettingsOpen, setIsSemesterSettingsOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(true);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  // Avatar upload states
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarSuccess, setAvatarSuccess] = useState(false);
 
   async function handleSaveSemesterConfig() {
     setIsConfigPending(true);
@@ -202,13 +206,15 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setError(null);
-    setSuccess(false);
+    setAvatarError(null);
+    setAvatarSuccess(false);
 
     if (!file.type.startsWith('image/')) {
-      setError('Please choose a valid image file.');
+      setAvatarError('Please choose a valid image file.');
       return;
     }
+
+    setIsAvatarUploading(true);
 
     try {
       // Set temporary local preview
@@ -216,7 +222,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       setAvatarPreview(previewUrl);
 
       // Compress image
-      setIsPending(true);
       const options = {
         maxSizeMB: 0.5, // limit to 500KB
         maxWidthOrHeight: 400, // max 400x400px
@@ -224,12 +229,27 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       };
 
       const compressedFile = await imageCompression(file, options);
-      setCompressedAvatar(compressedFile);
+      
+      const formData = new FormData();
+      formData.set('avatar', compressedFile, compressedFile.name);
+
+      const res = await updateAvatar(formData);
+      if (res.error) {
+        setAvatarError(res.error);
+        setAvatarPreview(profile.profile_pic_url);
+      } else {
+        setAvatarSuccess(true);
+        if (res.url) {
+          setAvatarPreview(res.url);
+          setProfile(prev => ({ ...prev, profile_pic_url: res.url }));
+        }
+      }
     } catch (err) {
-      console.error('Image compression error:', err);
-      setError('Failed to compress avatar image.');
+      console.error('Avatar upload/compression error:', err);
+      setAvatarError('Failed to upload avatar image.');
+      setAvatarPreview(profile.profile_pic_url);
     } finally {
-      setIsPending(false);
+      setIsAvatarUploading(false);
     }
   }
 
@@ -244,11 +264,6 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
 
     // Append notification settings manually since they are toggles
     formData.set('notif_enabled', String(notifEnabled));
-
-    // Append compressed avatar if available
-    if (compressedAvatar) {
-      formData.set('avatar', compressedAvatar, compressedAvatar.name);
-    }
 
     try {
       const res = await updateProfile(formData);
@@ -287,12 +302,17 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                   {profile.full_name.slice(0, 2)}
                 </div>
               )}
+              {isAvatarUploading && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in backdrop-blur-[2px]">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                </div>
+              )}
             </div>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isPending}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
+              disabled={isPending || isAvatarUploading}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Upload photo"
             >
               <Camera className="w-4 h-4" />
@@ -303,7 +323,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               onChange={handleAvatarChange}
               accept="image/*"
               className="hidden"
-              disabled={isPending}
+              disabled={isPending || isAvatarUploading}
             />
           </div>
 
@@ -322,6 +342,16 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
             {className && (
               <span className="text-xs font-bold text-slate-100 mt-1 select-none">
                 {className}
+              </span>
+            )}
+            {avatarError && (
+              <span className="text-[10px] text-rose-400 font-semibold leading-relaxed mt-1 animate-fade-in block">
+                {avatarError}
+              </span>
+            )}
+            {avatarSuccess && (
+              <span className="text-[10px] text-emerald-400 font-semibold leading-relaxed mt-1 animate-fade-in block">
+                Avatar updated!
               </span>
             )}
           </div>

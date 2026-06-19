@@ -474,3 +474,67 @@ export async function updateSemesterConfig(formData: FormData) {
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+/**
+ * Update only the avatar (profile picture) directly.
+ */
+export async function updateAvatar(formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const avatarFile = formData.get('avatar') as File | null;
+    if (!avatarFile || avatarFile.size === 0) {
+      return { error: 'No avatar image file provided.' };
+    }
+    if (!avatarFile.type.startsWith('image/')) {
+      return { error: 'Only images are accepted for profile picture.' };
+    }
+    if (avatarFile.size > 2 * 1024 * 1024) {
+      return { error: 'Avatar must be under 2MB.' };
+    }
+
+    const path = generateStoragePath(user.id, avatarFile.name);
+    
+    // Upload image
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKETS.AVATARS)
+      .upload(path, avatarFile, { contentType: avatarFile.type, upsert: true });
+
+    if (uploadError || !uploadData) {
+      return { error: `Avatar upload failed: ${uploadError?.message || 'Unknown upload error'}` };
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(STORAGE_BUCKETS.AVATARS)
+      .getPublicUrl(uploadData.path);
+
+    const profile_pic_url = urlData.publicUrl;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        profile_pic_url,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true, url: profile_pic_url };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('updateAvatar error:', err);
+    return { error: err.message || 'Failed to update profile picture.' };
+  }
+}
