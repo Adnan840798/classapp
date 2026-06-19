@@ -34,7 +34,8 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
 
   return createPortal(
     <div
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] animate-slide-up w-[calc(100%-1.5rem)] xs:w-[calc(100%-2rem)] max-w-[480px]"
+      className="fixed left-1/2 -translate-x-1/2 z-[10000] animate-slide-up w-[calc(100%-1.5rem)] xs:w-[calc(100%-2rem)] max-w-[480px]"
+      style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <div
         className="flex items-center justify-between gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl"
