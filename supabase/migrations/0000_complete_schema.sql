@@ -425,16 +425,19 @@ BEGIN
   DROP POLICY IF EXISTS "ann_read_authenticated" ON public.announcements;
   DROP POLICY IF EXISTS "ann_read_public" ON public.announcements;
   DROP POLICY IF EXISTS "ann_cr_admin_insert" ON public.announcements;
+  DROP POLICY IF EXISTS "ann_cr_admin_update" ON public.announcements;
   DROP POLICY IF EXISTS "ann_cr_admin_delete" ON public.announcements;
 
   -- deadlines
   DROP POLICY IF EXISTS "dl_read_authenticated" ON public.deadlines;
   DROP POLICY IF EXISTS "dl_cr_admin_insert" ON public.deadlines;
+  DROP POLICY IF EXISTS "dl_cr_admin_update" ON public.deadlines;
   DROP POLICY IF EXISTS "dl_cr_admin_delete" ON public.deadlines;
 
   -- exam_results
   DROP POLICY IF EXISTS "res_read_authenticated" ON public.exam_results;
   DROP POLICY IF EXISTS "res_cr_admin_insert" ON public.exam_results;
+  DROP POLICY IF EXISTS "res_cr_admin_update" ON public.exam_results;
   DROP POLICY IF EXISTS "res_cr_admin_delete" ON public.exam_results;
 
   -- calendar_events
@@ -531,6 +534,11 @@ CREATE POLICY "ann_cr_admin_delete"
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'));
 
+CREATE POLICY "ann_cr_admin_update"
+  ON announcements FOR UPDATE
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'));
+
 -- ── deadlines ─────────────────────────────────────────────
 CREATE POLICY "dl_read_authenticated"
   ON deadlines FOR SELECT
@@ -547,6 +555,11 @@ CREATE POLICY "dl_cr_admin_delete"
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'));
 
+CREATE POLICY "dl_cr_admin_update"
+  ON deadlines FOR UPDATE
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'));
+
 -- ── exam_results ──────────────────────────────────────────
 CREATE POLICY "res_read_authenticated"
   ON exam_results FOR SELECT
@@ -560,6 +573,11 @@ CREATE POLICY "res_cr_admin_insert"
 
 CREATE POLICY "res_cr_admin_delete"
   ON exam_results FOR DELETE
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'));
+
+CREATE POLICY "res_cr_admin_update"
+  ON exam_results FOR UPDATE
   TO authenticated
   USING (public.get_my_role() IN ('cr', 'admin'));
 
