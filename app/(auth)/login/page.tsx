@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { verifyAndConnectClass } from '@/lib/actions/auth-tenant';
 import { requestPasswordReset } from '@/lib/actions/profile';
@@ -357,9 +357,20 @@ export default function LoginPage() {
           <form onSubmit={handleSignIn} className="flex flex-col gap-5">
             <div className="text-center mb-1">
               <h2 className="text-2xl font-bold text-white tracking-tight">Sign In</h2>
-              <p className="text-sm text-emerald-400 font-medium mt-1">
-                {className}
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-1.5 px-4">
+                <span className="text-sm text-emerald-400 font-semibold truncate max-w-[240px]" title={className}>
+                  {className}
+                </span>
+                <span className="text-slate-600 select-none">•</span>
+                <button
+                  type="button"
+                  onClick={handleSwitchClass}
+                  className="touch-compact inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-emerald-400 uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-2.5 h-2.5 transition-transform hover:rotate-180 duration-500" />
+                  Switch
+                </button>
+              </div>
             </div>
 
             {/* Email */}
