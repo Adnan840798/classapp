@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar, updateNotifEnabled } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -475,9 +475,22 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                     }
                   }
                   
-                  setNotifEnabled(nextVal);
-                  if (nextVal) {
-                    playNotificationChime();
+                  setIsPending(true);
+                  try {
+                    const res = await updateNotifEnabled(nextVal);
+                    if (res && res.error) {
+                      alert(res.error);
+                    } else {
+                      setNotifEnabled(nextVal);
+                      if (nextVal) {
+                        playNotificationChime();
+                      }
+                      window.location.reload();
+                    }
+                  } catch (err: any) {
+                    alert(err.message || 'Failed to update notification settings.');
+                  } finally {
+                    setIsPending(false);
                   }
                 }}
                 disabled={isPending}

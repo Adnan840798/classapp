@@ -609,3 +609,35 @@ export async function removeAvatar() {
   }
 }
 
+export async function updateNotifEnabled(enabled: boolean) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        notif_enabled: enabled,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) return { error: error.message };
+
+    revalidatePath('/student/profile');
+    revalidatePath('/cr/profile');
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('updateNotifEnabled error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+
