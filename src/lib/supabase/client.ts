@@ -2,6 +2,7 @@ import { createBrowserClient } from '@supabase/ssr';
 
 let client: any = null;
 let cachedUrl: string | null = null;
+let cachedKey: string | null = null;
 
 export function getSupabaseBrowserClient() {
   let tenantUrl = '';
@@ -14,12 +15,17 @@ export function getSupabaseBrowserClient() {
     tenantAnonKey = matchKey ? decodeURIComponent(matchKey[2]) : '';
   }
 
-  const targetUrl = tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  // Use local API proxy in the browser to bypass local DNS blocks/restrictions on *.supabase.co
+  const isBrowser = typeof window !== 'undefined';
+  const targetUrl = isBrowser
+    ? window.location.origin + '/api/supabase-proxy'
+    : (tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!);
   const targetKey = tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (!client || cachedUrl !== targetUrl) {
+  if (!client || cachedUrl !== targetUrl || cachedKey !== targetKey) {
     client = createBrowserClient(targetUrl, targetKey);
     cachedUrl = targetUrl;
+    cachedKey = targetKey;
   }
 
   return client;
