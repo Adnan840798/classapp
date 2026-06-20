@@ -17,6 +17,9 @@ import {
 } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
+import { ProfileProvider } from '@/context/ProfileContext';
+import { NotificationProvider } from '@/context/NotificationContext';
+import { InAppNotificationStack } from '@/components/ui/InAppNotificationStack';
 
 export const revalidate = 0;
 
@@ -416,6 +419,14 @@ export default async function RootPage() {
           </span>
         </div>
       </footer>
+
+      {user && profile && (
+        <ProfileProvider initialProfile={profile}>
+          <NotificationProvider>
+            <InAppNotificationStack />
+          </NotificationProvider>
+        </ProfileProvider>
+      )}
 
     </div>
   );

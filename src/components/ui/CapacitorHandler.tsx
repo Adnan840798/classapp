@@ -239,12 +239,36 @@ export default function CapacitorHandler() {
       }
     }, 100);
 
+    // 5. Register Service Worker client-side for asset caching & Web Push
+    let loadListener: (() => void) | null = null;
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const registerSW = () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => {
+            console.log('[Service Worker] Registered successfully with scope:', reg.scope);
+          })
+          .catch((err) => {
+            console.error('[Service Worker] Registration failed:', err);
+          });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        loadListener = registerSW;
+        window.addEventListener('load', loadListener);
+      }
+    }
+
     return () => {
       clearTimeout(timer);
       clearInterval(capacitorInterval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
+      }
+      if (loadListener) {
+        window.removeEventListener('load', loadListener);
       }
       if (backButtonListener) {
         backButtonListener.remove().catch((err: any) => {

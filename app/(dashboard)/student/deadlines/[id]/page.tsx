@@ -136,7 +136,7 @@ export default async function StudentDeadlineDetailPage({ params }: StudentDeadl
             <div className="flex flex-col gap-1">
               <span className="font-bold text-sm text-amber-400">Unresolved Question Pending</span>
               <p className="text-slate-300 text-xs leading-relaxed">
-                You currently have an active, unresolved question on this deadline. You can submit another question once your current post is answered and marked resolved by a Class Representative.
+                You have a pending question on this deadline. You can ask another once it is resolved by a Class Representative.
               </p>
             </div>
           </div>

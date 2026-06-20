@@ -290,7 +290,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                             <Link
                               href={`${notesPath}/${note.id}`}
                               title="Edit Resource"
-                              className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all"
+                              className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:text-white border border-white/[0.08] hover:bg-white/[0.04] transition-all"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                               <span className="hidden sm:inline ml-1">Edit</span>

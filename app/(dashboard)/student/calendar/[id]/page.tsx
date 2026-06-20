@@ -115,8 +115,8 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
             <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this event.
-                You can ask another question once your previous question has been answered and marked resolved by a CR.
+                <span className="font-bold">Pending Question:</span> You have a pending question on this event.
+                You can ask another once it is resolved by a Class Representative.
               </div>
             </div>
           ) : (

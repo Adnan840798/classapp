@@ -191,13 +191,15 @@ function NotifItem({
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
       className={cn(
-        'flex gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-brand-purple/5 relative border-b border-[#23262D]/50 last:border-b-0 group active:bg-brand-purple/10 cursor-pointer items-center',
-        !notif.is_read && !selectMode && 'bg-brand-purple/[0.03]'
+        'flex gap-3.5 px-4.5 py-4 transition-all duration-300 relative border-b border-[#23262D]/40 last:border-b-0 group cursor-pointer items-start',
+        !notif.is_read && !selectMode
+          ? 'bg-[#34D399]/[0.02] border-l-[3px] border-l-[#34D399] pl-[15px]'
+          : 'border-l-[3px] border-l-transparent hover:bg-white/[0.02] active:bg-white/[0.04]'
       )}
     >
       {/* Checkbox for selection */}
       {selectMode && isDeletable && (
-        <div className="flex-shrink-0 mr-1">
+        <div className="flex-shrink-0 mr-1 mt-2.5">
           {isSelected ? (
             <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
               <Check className="w-3.5 h-3.5 stroke-[3.5]" />
@@ -210,21 +212,37 @@ function NotifItem({
       
       {/* Locked icon for non-deletable items in selection mode */}
       {selectMode && !isDeletable && (
-        <div className="flex-shrink-0 mr-1 w-5 h-5 opacity-25 flex items-center justify-center">
+        <div className="flex-shrink-0 mr-1 mt-2.5 w-5 h-5 opacity-25 flex items-center justify-center">
           <Lock className="w-3.5 h-3.5 text-slate-500" />
         </div>
       )}
 
-      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0 transition-transform group-hover:scale-105', typeConfig.bg)}>
-        <IconComponent className="w-5 h-5" />
+      {/* Styled icon badge container */}
+      <div className={cn(
+        'w-10 h-10 rounded-2xl flex items-center justify-center border flex-shrink-0 transition-all duration-300 shadow-sm',
+        typeConfig.bg,
+        !notif.is_read && 'scale-105 shadow-md shadow-[#34D399]/5'
+      )}>
+        <IconComponent className="w-4.5 h-4.5" />
       </div>
+
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold leading-tight text-slate-100 truncate">{notif.title}</p>
-        <p className="text-xs text-slate-400 mt-1 leading-normal line-clamp-2">{notif.message}</p>
-        <p className="text-[10px] text-slate-500 mt-1.5 font-medium">{timeAgo(notif.created_at)}</p>
+        <p className={cn(
+          'text-sm leading-snug truncate transition-colors duration-200',
+          !notif.is_read ? 'font-extrabold text-white' : 'font-semibold text-slate-200'
+        )}>
+          {notif.title}
+        </p>
+        <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">{notif.message}</p>
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-2 font-medium">
+          <Clock className="w-3 h-3 text-slate-600" />
+          <span>{timeAgo(notif.created_at)}</span>
+        </div>
       </div>
+      
+      {/* Glowing Unread Indicator Dot */}
       {!notif.is_read && !selectMode && (
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-purple shadow-[0_0_8px_#8B5CF6]" />
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_8px_#34D399]" />
       )}
     </a>
   );
