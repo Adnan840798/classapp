@@ -179,7 +179,7 @@ export async function answerQuestion(questionId: string, formData: FormData) {
         // 2. Send targeted FCM push notification to the specific student
         try {
           await sendFCMPush({
-            title: '💬 CR Answered Your Question',
+            title: '💬 Q&A | CR Answered Your Question',
             body: answer.length > 120 ? `${answer.slice(0, 117)}...` : answer,
             url: '/student/timeline',
             targetUserId: studentProfile.id,

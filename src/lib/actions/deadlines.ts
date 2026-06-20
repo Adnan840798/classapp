@@ -70,7 +70,7 @@ export async function createDeadline(formData: FormData) {
     // Send Web Push notification (browsers)
     try {
       await sendWebPush({
-        title: `⏰ Deadline: ${parsed.data.title}`,
+        title: `📅 Deadline | ${parsed.data.title}`,
         body: `New deadline for ${parsed.data.subject}.`,
         url: `/student/deadlines/${deadline.id}`,
       });
@@ -81,7 +81,7 @@ export async function createDeadline(formData: FormData) {
     // Send FCM push notification (Android APK)
     try {
       await sendFCMPush({
-        title: `⏰ Deadline: ${parsed.data.title}`,
+        title: `📅 Deadline | ${parsed.data.title}`,
         body: `New deadline for ${parsed.data.subject}.`,
         url: `/student/deadlines/${deadline.id}`,
       });

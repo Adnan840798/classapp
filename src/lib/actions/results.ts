@@ -127,7 +127,7 @@ export async function publishResult(formData: FormData) {
     // Send Web Push notification (browsers) — results land on the results page
     try {
       await sendWebPush({
-        title: `📊 Result Published: ${parsed.data.exam_name}`,
+        title: `📄 Result | ${parsed.data.exam_name}`,
         body: `Exam results are available. Check your marksheet in the app.`,
         url: '/student/results',
       });
@@ -138,7 +138,7 @@ export async function publishResult(formData: FormData) {
     // Send FCM push notification (Android APK)
     try {
       await sendFCMPush({
-        title: `📊 Result Published: ${parsed.data.exam_name}`,
+        title: `📄 Result | ${parsed.data.exam_name}`,
         body: `Exam results are available. Check your marksheet in the app.`,
         url: '/student/results',
       });

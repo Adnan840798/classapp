@@ -131,7 +131,7 @@ export async function createAnnouncement(formData: FormData) {
     // Send Web Push notification (browsers)
     try {
       await sendWebPush({
-        title: `📢 ${parsed.data.title}`,
+        title: `📌 Announcement | ${parsed.data.title}`,
         body: parsed.data.body.slice(0, 150),
         url: `/student/announcements/${announcement.id}`,
       });
@@ -142,7 +142,7 @@ export async function createAnnouncement(formData: FormData) {
     // Send FCM push notification (Android APK)
     try {
       await sendFCMPush({
-        title: `📢 ${parsed.data.title}`,
+        title: `📌 Announcement | ${parsed.data.title}`,
         body: parsed.data.body.slice(0, 150),
         url: `/student/announcements/${announcement.id}`,
       });
