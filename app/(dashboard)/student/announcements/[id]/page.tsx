@@ -73,12 +73,12 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
       </div>
 
       {/* Announcement Details Card */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden">
+      <div className="glass-card p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl shadow-xl border border-white/[0.06] bg-slate-900/40">
         {/* Card Glow Effect */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-emerald-500 to-teal-500" />
         
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <UserAvatar
               profile={{
@@ -91,8 +91,8 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
               <p className="text-sm font-bold text-white leading-none">
                 {announcement.creator?.full_name || 'Class Representative'}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 font-medium">
-                <Calendar className="w-3.5 h-3.5" />
+              <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                 {formatDateTime(announcement.created_at)}
               </p>
             </div>
@@ -103,12 +103,12 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                 <button
                   title="View Attachment"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                 >
                   {announcement.attachment_type === 'image' ? (
-                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
                   ) : (
-                    <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
                   )}
                   <span>Attachment</span>
                 </button>
@@ -118,24 +118,27 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
         </div>
 
         {/* Content Section */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
             {announcement.title}
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed whitespace-pre-line">
+          <div className="bg-white/[0.02] border-l-3 border-emerald-500/40 p-4 rounded-r-xl text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line shadow-inner">
             {announcement.body}
-          </p>
+          </div>
         </div>
       </div>
 
       {/* Ask Question Input */}
       <div className="mt-2">
         {hasUnresolvedQuestion ? (
-          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex items-start gap-3 text-xs leading-normal">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold">Pending Question:</span> You currently have an unresolved question on this announcement.
-              You can ask another question once your previous question has been answered and marked resolved by a CR.
+          <div className="relative overflow-hidden bg-amber-500/[0.04] border border-amber-500/20 rounded-2xl p-5 flex items-start gap-3.5 shadow-lg backdrop-blur-sm">
+            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-amber-500" />
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5 animate-pulse" />
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-sm text-amber-400">Unresolved Question Pending</span>
+              <p className="text-slate-300 text-xs leading-relaxed">
+                You currently have an active, unresolved question on this announcement. You can submit another question once your current post is answered and marked resolved by a Class Representative.
+              </p>
             </div>
           </div>
         ) : (
@@ -144,31 +147,46 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
       </div>
 
       {/* Q&A List */}
-      <div className="border-t border-border pt-6 mt-2">
-        <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
-          <HelpCircle className="w-5 h-5 text-primary" />
-          Questions & Answers ({questions.length})
-        </h3>
+      <div className="border-t border-white/[0.08] pt-6 mt-4">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
+            <HelpCircle className="w-5.5 h-5.5 text-emerald-400" />
+            <span>
+              Discussion Feed
+              {questions.length > 0 && (
+                <span className="text-slate-400 font-normal text-sm ml-2">
+                  • {questions.length}
+                </span>
+              )}
+            </span>
+          </h3>
+        </div>
 
         {questions.length === 0 ? (
-          <div className="glass-card p-10 text-center flex flex-col items-center justify-center gap-2">
-            <MessageSquare className="w-10 h-10 text-muted-foreground opacity-30" />
-            <h4 className="text-sm font-semibold">No questions yet</h4>
-            <p className="text-xs text-muted-foreground">
-              Have questions about this announcement? Ask them above to get answers from your CRs.
-            </p>
+          <div className="glass-card p-10 text-center flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/[0.06] bg-slate-900/20">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-slate-400">
+              <MessageSquare className="w-6 h-6 opacity-60" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h4 className="text-sm font-bold text-white">No questions posted yet</h4>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                Have questions about this announcement? Post your query above to get a response directly from your Class Representatives.
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             {questions.map((q) => (
               <div
                 key={q.id}
-                className={`glass-card p-5 flex flex-col gap-4 border ${
-                  q.is_resolved ? 'border-emerald-500/20 bg-emerald-500/5' : ''
+                className={`glass-card p-5.5 flex flex-col gap-4 rounded-2xl border transition-all duration-200 hover:border-white/[0.12] ${
+                  q.is_resolved 
+                    ? 'border-emerald-500/30 bg-emerald-500/[0.03] shadow-md shadow-emerald-950/20' 
+                    : 'border-white/[0.06] bg-slate-900/30'
                 }`}
               >
                 {/* Question Header */}
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <UserAvatar
                       profile={{
@@ -177,17 +195,17 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
                       }}
                       size="sm"
                     />
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-slate-200">
                         {q.asker?.full_name || 'Student'}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      </span>
+                      <span className="text-[10px] text-slate-400">
                         {formatDateTime(q.created_at)}
-                      </p>
+                      </span>
                     </div>
                   </div>
                   {q.is_resolved && (
-                    <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-0.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-400 shadow-sm animate-fade-in">
                       <Check className="w-3 h-3" />
                       Resolved
                     </span>
@@ -195,26 +213,31 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
                 </div>
 
                 {/* Question text */}
-                <p className="text-sm font-semibold text-foreground pl-1">
+                <p className="text-sm font-medium text-white leading-relaxed pl-1">
                   {q.question}
                 </p>
 
                 {/* Answers list */}
                 {q.answers && q.answers.length > 0 && (
-                  <div className="flex flex-col gap-3 pl-4 border-l border-border mt-1">
+                  <div className="flex flex-col gap-3 pl-4 border-l border-white/10 mt-1">
                     {q.answers.map((ans) => (
                       <div key={ans.id} className="flex items-start gap-2.5 text-xs">
-                        <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground mt-1 flex-shrink-0" />
-                        <div className="flex-1 bg-accent/20 border border-border/30 rounded-xl p-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-foreground">
-                              {ans.answerer?.full_name || 'CR'}
-                            </span>
-                            <span className="text-[9px] text-muted-foreground">
+                        <CornerDownRight className="w-3.5 h-3.5 text-emerald-400 mt-1.5 flex-shrink-0" />
+                        <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 shadow-sm">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-200">
+                                {ans.answerer?.full_name || 'CR'}
+                              </span>
+                              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold uppercase tracking-widest scale-90">
+                                CR
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">
                               {formatDateTime(ans.created_at)}
                             </span>
                           </div>
-                          <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+                          <p className="text-slate-300 whitespace-pre-line leading-relaxed text-xs">
                             {ans.answer}
                           </p>
                         </div>

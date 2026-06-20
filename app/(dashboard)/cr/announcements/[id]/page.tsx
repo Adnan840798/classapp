@@ -70,12 +70,12 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
       </div>
 
       {/* Announcement Details Card */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden">
+      <div className="glass-card p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl shadow-xl border border-white/[0.06] bg-slate-900/40">
         {/* Card Glow Effect */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-emerald-500 to-teal-500" />
         
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <UserAvatar
               profile={{
@@ -88,8 +88,8 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
               <p className="text-sm font-bold text-white leading-none">
                 {announcement.creator?.full_name || 'Class Representative'}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 font-medium">
-                <Calendar className="w-3.5 h-3.5" />
+              <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                 {formatDateTime(announcement.created_at)}
               </p>
             </div>
@@ -100,12 +100,12 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                 <button
                   title="View Attachment"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                 >
                   {announcement.attachment_type === 'image' ? (
-                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
                   ) : (
-                    <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
                   )}
                   <span>Attachment</span>
                 </button>
@@ -117,22 +117,30 @@ export default async function CRAnnouncementDetailPage({ params }: CRAnnouncemen
         </div>
 
         {/* Content Section */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
             {announcement.title}
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed whitespace-pre-line">
+          <div className="bg-white/[0.02] border-l-3 border-emerald-500/40 p-4 rounded-r-xl text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line shadow-inner">
             {announcement.body}
-          </p>
+          </div>
         </div>
       </div>
 
-      {/* Q&A Section Title */}
-      <div className="border-t border-border pt-6 mt-2">
-        <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
-          <HelpCircle className="w-5 h-5 text-primary" />
-          Questions from Students ({questions.length})
-        </h3>
+      <div className="border-t border-white/[0.08] pt-6 mt-4">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
+            <HelpCircle className="w-5.5 h-5.5 text-emerald-400" />
+            <span>
+              Questions
+              {questions.length > 0 && (
+                <span className="text-slate-400 font-normal text-sm ml-2">
+                  • {questions.length}
+                </span>
+              )}
+            </span>
+          </h3>
+        </div>
 
         {questions.length === 0 ? (
           <div className="glass-card p-10 text-center flex flex-col items-center justify-center gap-2">

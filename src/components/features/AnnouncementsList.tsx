@@ -242,11 +242,6 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             <h3 className="text-sm font-extrabold text-white break-words leading-snug">
                               {announcement.title}
                             </h3>
-                            {announcement.telegram_posted && (
-                              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] uppercase tracking-wider">
-                                Telegram
-                              </span>
-                            )}
                           </div>
                           <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
                             {announcement.body}
@@ -374,11 +369,6 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             <h3 className="text-sm font-bold text-slate-300 break-words leading-snug">
                               {announcement.title}
                             </h3>
-                            {announcement.telegram_posted && (
-                              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/60 text-slate-400 uppercase tracking-wider">
-                                Telegram
-                              </span>
-                            )}
                           </div>
                           <p className="text-xs text-slate-500 whitespace-pre-line leading-relaxed break-words">
                             {announcement.body}

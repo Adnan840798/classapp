@@ -127,7 +127,11 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
   }
 
   return (
-    <div className={`glass-card p-5 flex flex-col gap-4 border ${question.is_resolved ? 'border-emerald-500/30 bg-emerald-500/5' : ''}`}>
+    <div className={`glass-card p-5.5 flex flex-col gap-4 rounded-2xl border transition-all duration-200 hover:border-white/[0.12] ${
+      question.is_resolved 
+        ? 'border-emerald-500/30 bg-emerald-500/[0.03] shadow-md shadow-emerald-950/20' 
+        : 'border-white/[0.06] bg-slate-900/30'
+    }`}>
       {/* Question Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -140,9 +144,9 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
           />
           <div>
             <div className="flex items-center gap-2.5">
-              <p className="text-xs font-semibold text-foreground">
+              <span className="text-xs font-semibold text-slate-200">
                 {question.asker?.full_name || 'Student'}
-              </p>
+              </span>
               {currentUserId === question.asked_by && !question.is_resolved && !editingQuestion && (
                 <button
                   type="button"
@@ -150,21 +154,21 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
                     setEditingQuestion(true);
                     setEditedQuestionText(question.question);
                   }}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer touch-compact"
                   title="Edit Question"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] text-slate-400 mt-0.5">
               {formatDateTime(question.created_at)}
             </p>
           </div>
         </div>
 
         {question.is_resolved ? (
-          <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold flex items-center gap-1">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-400 shadow-sm">
             <Check className="w-3.5 h-3.5" />
             Resolved
           </span>
@@ -172,7 +176,7 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
           <button
             onClick={handleResolve}
             disabled={isResolving}
-            className="text-[10px] uppercase font-bold px-3 py-1.5 rounded-lg border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-50 transition-colors flex items-center gap-1"
+            className="text-[10px] uppercase font-bold px-3 py-1.5 rounded-lg border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center gap-1 cursor-pointer touch-compact"
           >
             {isResolving ? (
               <Loader2 className="w-3 h-3 animate-spin" />
@@ -185,7 +189,7 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
       </div>
 
       {/* Question Text */}
-      <div className="text-sm font-medium text-foreground pl-1">
+      <div className="text-sm font-medium text-white pl-1 leading-relaxed">
         {editingQuestion ? (
           <form onSubmit={handleEditQuestionSubmit} className="flex flex-col gap-2 w-full mt-1">
             <textarea
@@ -195,14 +199,14 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
               value={editedQuestionText}
               onChange={(e) => setEditedQuestionText(e.target.value)}
               disabled={isSaving}
-              className="form-input text-xs w-full py-1.5 px-3"
+              className="form-input text-xs w-full py-2 px-3 rounded-lg"
             />
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setEditingQuestion(false)}
                 disabled={isSaving}
-                className="px-3 py-1 rounded-lg text-[10px] font-semibold border border-white/[0.08] hover:bg-white/[0.04] text-slate-400"
+                className="px-3 py-1 rounded-lg text-[10px] font-semibold border border-white/[0.08] hover:bg-white/[0.04] text-slate-400 transition-colors"
               >
                 Cancel
               </button>
@@ -222,18 +226,18 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
 
       {/* Answers Section */}
       {question.answers && question.answers.length > 0 && (
-        <div className="flex flex-col gap-3 pl-4 border-l border-border mt-2">
+        <div className="flex flex-col gap-3 pl-4 border-l border-white/10 mt-2">
           {question.answers.map((ans) => (
             <div key={ans.id} className="flex items-start gap-3 text-xs leading-relaxed">
-              <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground mt-1 flex-shrink-0" />
-              <div className="flex-1 bg-accent/20 border border-border/30 rounded-xl p-3">
-                <div className="flex items-center justify-between mb-1 gap-2">
+              <CornerDownRight className="w-3.5 h-3.5 text-emerald-400 mt-1.5 flex-shrink-0" />
+              <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-1.5 gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-slate-200">
                       {ans.answerer?.full_name || 'CR'}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatDateTime(ans.created_at)}
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold uppercase tracking-widest scale-90">
+                      CR
                     </span>
                   </div>
                   {currentUserId === ans.answered_by && !question.is_resolved && editingAnswerId !== ans.id && (
@@ -243,7 +247,7 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
                         setEditingAnswerId(ans.id);
                         setEditedAnswerText(ans.answer);
                       }}
-                      className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      className="text-slate-400 hover:text-white transition-colors cursor-pointer touch-compact"
                       title="Edit Answer"
                     >
                       <Pencil className="w-3 h-3" />
@@ -259,14 +263,14 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
                       value={editedAnswerText}
                       onChange={(e) => setEditedAnswerText(e.target.value)}
                       disabled={isSaving}
-                      className="form-input text-xs w-full py-1.5 px-3"
+                      className="form-input text-xs w-full py-2 px-3 rounded-lg"
                     />
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => setEditingAnswerId(null)}
                         disabled={isSaving}
-                        className="px-3 py-1 rounded-lg text-[10px] font-semibold border border-white/[0.08] hover:bg-white/[0.04] text-slate-400"
+                        className="px-3 py-1 rounded-lg text-[10px] font-semibold border border-white/[0.08] hover:bg-white/[0.04] text-slate-400 transition-colors"
                       >
                         Cancel
                       </button>
@@ -280,7 +284,7 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
                     </div>
                   </form>
                 ) : (
-                  <p className="text-muted-foreground whitespace-pre-line">
+                  <p className="text-slate-300 whitespace-pre-line text-xs">
                     {ans.answer}
                   </p>
                 )}
@@ -292,7 +296,7 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
 
       {/* Answer Form */}
       {!question.is_resolved && (
-        <form onSubmit={handleAnswerSubmit} className="flex gap-2 pl-4 border-l border-border mt-1">
+        <form onSubmit={handleAnswerSubmit} className="flex gap-2 pl-4 border-l border-white/10 mt-1">
           <input
             type="text"
             required
@@ -301,12 +305,12 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
             value={answerText}
             onChange={(e) => setAnswerText(e.target.value)}
             disabled={isAnswering}
-            className="form-input flex-1 py-1.5 text-xs"
+            className="form-input flex-1 py-2 text-xs rounded-xl"
           />
           <button
             type="submit"
             disabled={isAnswering || !answerText.trim()}
-            className="btn-primary py-1.5 px-3 flex-shrink-0"
+            className="btn-primary py-2 px-4 flex-shrink-0 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
           >
             {isAnswering ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

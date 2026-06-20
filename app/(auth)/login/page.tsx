@@ -158,11 +158,46 @@ export default function LoginPage() {
       }
 
       const role = profileData?.role;
-      const redirectTo = role === 'cr' || role === 'admin'
+      const defaultRedirect = role === 'cr' || role === 'admin'
         ? '/cr/timeline'
         : '/student/timeline';
 
-      window.location.href = redirectTo;
+      let finalRedirect = defaultRedirect;
+      const searchParams = new URLSearchParams(window.location.search);
+      const nextParam = searchParams.get('next');
+
+      if (
+        nextParam &&
+        nextParam.startsWith('/') &&
+        !nextParam.startsWith('//') &&
+        !nextParam.startsWith('/\\') &&
+        !nextParam.includes('://') &&
+        !nextParam.includes('\\\\') &&
+        !nextParam.includes('//')
+      ) {
+        // Enforce role authorization boundaries
+        const isStudentRoute = nextParam.startsWith('/student/');
+        const isCrRoute = nextParam.startsWith('/cr/');
+        const isResetPassword = nextParam.startsWith('/reset-password');
+
+        if (role === 'cr' || role === 'admin') {
+          if (isCrRoute || isResetPassword) {
+            finalRedirect = nextParam;
+          } else if (isStudentRoute) {
+            // Remap student path to CR path for Class Representative/Admin
+            finalRedirect = nextParam.replace(/^\/student\//, '/cr/');
+          }
+        } else if (role === 'student') {
+          if (isStudentRoute || isResetPassword) {
+            finalRedirect = nextParam;
+          } else if (isCrRoute) {
+            // Remap CR path to Student path for Students
+            finalRedirect = nextParam.replace(/^\/cr\//, '/student/');
+          }
+        }
+      }
+
+      window.location.href = finalRedirect;
 
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';

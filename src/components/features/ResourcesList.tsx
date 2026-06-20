@@ -109,18 +109,18 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
       <div className="flex flex-col gap-5 w-full">
       {/* Filter tabs + Select button */}
       <div className="flex items-center justify-between gap-4 w-full">
-        <div className="flex items-center gap-2 p-1 rounded-xl border border-white/[0.06] bg-white/[0.03] overflow-x-auto scrollbar-none scroll-smooth-ios">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl border border-white/[0.06] bg-white/[0.03] w-full sm:w-auto">
           {(['all', 'private', 'public'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer flex-shrink-0 ${
+              className={`flex-1 sm:flex-none text-center px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer whitespace-nowrap ${
                 filter === type
                   ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              {type === 'all' ? 'All Resources' : type === 'private' ? 'Private' : 'Public'}
+              {type === 'all' ? 'All' : type === 'private' ? 'Private' : 'Public'}
             </button>
           ))}
         </div>
@@ -128,7 +128,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
         {isCR && (
           <button
             onClick={toggleSelectMode}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
+            className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
               selectMode
                 ? 'bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-950/60'
                 : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'

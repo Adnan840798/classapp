@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { headers } from 'next/headers';
 
 /**
  * Student layout — guards student routes.
@@ -28,6 +29,12 @@ export default async function StudentLayout({
   }
 
   if (profile.role === 'cr' || profile.role === 'admin') {
+    const headerStore = await headers();
+    const activePath = headerStore.get('x-pathname') || '';
+    if (activePath.startsWith('/student/')) {
+      const redirectPath = activePath.replace(/^\/student\//, '/cr/');
+      redirect(redirectPath);
+    }
     redirect('/cr/timeline');
   }
 

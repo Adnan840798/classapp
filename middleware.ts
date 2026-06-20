@@ -82,14 +82,18 @@ export async function middleware(request: NextRequest) {
   // ── 2. No tenant config → redirect auth-required routes to /login ─────────
   if (!tenantUrl && needsAuth) {
     const url = request.nextUrl.clone();
+    const nextParam = pathname + request.nextUrl.search;
     url.pathname = '/login';
+    url.searchParams.set('next', nextParam);
     return NextResponse.redirect(url);
   }
 
   // ── 3. Fast-path: no session cookie → skip DB call ────────────────────────
   if (!hasSessionCookie && needsAuth) {
     const url = request.nextUrl.clone();
+    const nextParam = pathname + request.nextUrl.search;
     url.pathname = '/login';
+    url.searchParams.set('next', nextParam);
     return NextResponse.redirect(url);
   }
 
@@ -193,7 +197,9 @@ export async function middleware(request: NextRequest) {
       // same class; they just need to re-authenticate with their password.
       // Wiping tenant cookies would force them to re-enter their join code.
       const url = request.nextUrl.clone();
+      const nextParam = pathname + request.nextUrl.search;
       url.pathname = '/login';
+      url.searchParams.set('next', nextParam);
       return NextResponse.redirect(url);
     }
 

@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'ClassApp — Academic Management Platform',
+  title: 'ClassApp',
   description:
     'ClassApp is a role-based academic management platform for university classes. Manage announcements, deadlines, exam results, and more.',
   keywords: ['classapp', 'academic', 'university', 'management', 'student'],

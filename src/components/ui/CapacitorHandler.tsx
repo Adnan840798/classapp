@@ -76,9 +76,40 @@ export default function CapacitorHandler() {
 
     const navigateToUrl = (url: string | null | undefined) => {
       if (!url) return;
-      // Ensure relative paths stay inside the app
-      const target = url.startsWith('http') ? new URL(url).pathname + new URL(url).search : url;
-      console.log('[CapacitorHandler] Navigating to notification URL:', target);
+      
+      let target = url;
+      // If it contains a protocol/scheme (e.g., http://, https://, classapp://)
+      if (url.includes('://')) {
+        try {
+          const parsed = new URL(url);
+          if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+            target = parsed.pathname + parsed.search;
+          } else {
+            // Reconstruct path for custom schemes like classapp://student/announcements/123
+            const path = parsed.pathname;
+            const host = parsed.host;
+            target = '/' + (host ? host + path : path.replace(/^\/+/, '')) + parsed.search;
+          }
+        } catch (err) {
+          console.error('[CapacitorHandler] Failed to parse absolute notification URL:', err, url);
+        }
+      }
+
+      // Safe check: prevent open redirects or protocol-relative paths
+      target = target.replace(/^\/+/g, '/');
+      if (
+        !target.startsWith('/') ||
+        target.startsWith('//') ||
+        target.startsWith('/\\') ||
+        target.includes('://') ||
+        target.includes('\\\\') ||
+        target.includes('//')
+      ) {
+        console.warn('[CapacitorHandler] Ignored unsafe or invalid redirect path:', target);
+        return;
+      }
+
+      console.log('[CapacitorHandler] Navigating to normalized URL:', target);
       window.location.href = target;
     };
 
