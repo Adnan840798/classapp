@@ -427,6 +427,17 @@ export async function changePassword(currentPassword: string, newPassword: strin
       return { error: updateError.message };
     }
 
+    // Automatically re-authenticate with the new password to refresh the session cookies in the browser
+    const { error: reSignInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: newPassword,
+    });
+
+    if (reSignInError) {
+      console.error('Failed to automatically refresh session after password change:', reSignInError);
+      return { error: 'Password updated, but failed to refresh session. Please log in again.' };
+    }
+
     return { success: true };
   } catch (err: any) {
     console.error('changePassword error:', err);
