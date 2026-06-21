@@ -132,6 +132,13 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   // Download handler
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Check if running inside Capacitor native webview container
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+      window.open(resolvedUrl, '_system');
+      return;
+    }
+
     try {
       // If we already have the blob URL (PDF was loaded), reuse it
       if (pdfBlobUrl) {
@@ -227,15 +234,19 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               <Download className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline ml-1.5">Download</span>
             </button>
-            <a
-              href={resolvedUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined' && (window as any).Capacitor) {
+                  window.open(resolvedUrl, '_system');
+                } else {
+                  window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+                }
+              }}
               title="Open in browser"
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
-            </a>
+            </button>
             <button
               onClick={() => setOpen(false)}
               title="Close (Esc)"
@@ -307,16 +318,20 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
                       <Download className="w-4 h-4" />
                       Download
                     </button>
-                    <a
-                      href={resolvedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-colors active:scale-95"
+                    <button
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && (window as any).Capacitor) {
+                          window.open(resolvedUrl, '_system');
+                        } else {
+                          window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-colors active:scale-95 cursor-pointer"
                       style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
                     >
                       <ExternalLink className="w-4 h-4" />
                       Open
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}

@@ -69,6 +69,13 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
   // Handle download of the routine image
   async function handleDownload() {
     if (!resolvedImageUrl) return;
+
+    // Check if running inside Capacitor native webview container
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+      window.open(resolvedImageUrl, '_system');
+      return;
+    }
+
     try {
       const response = await fetch(resolvedImageUrl);
       const blob = await response.blob();
