@@ -344,15 +344,9 @@ export async function resetFirstTimePassword(newPassword: string) {
       return { error: authError.message };
     }
 
-    // Step 2: Use the admin (service role) client to mark password_reset_required = false.
-    // We bypass the anon client here so RLS can never block this critical update.
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    const { error: dbError } = await supabaseAdmin
+    // Step 2: Use the authenticated user client to mark password_reset_required = false.
+    // Since the user is authenticated and updating their own row, RLS allows this update.
+    const { error: dbError } = await supabase
       .from('profiles')
       .update({ password_reset_required: false })
       .eq('id', user.id);
