@@ -24,17 +24,19 @@ export async function verifyAndConnectClass(joinCode: string) {
 
   const tenantData = data.tenants as any;
 
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_APP_URL?.startsWith('https');
+
   const cookieStore = await cookies();
   cookieStore.set('tenant_supabase_url', tenantData.supabase_url, {
     httpOnly: false,
-    secure: true,
+    secure: isSecure,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days — persist across browser restarts
   });
   cookieStore.set('tenant_supabase_anon_key', tenantData.supabase_anon_key, {
     httpOnly: false,
-    secure: true,
+    secure: isSecure,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days

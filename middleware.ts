@@ -11,6 +11,7 @@ import { rateLimit, rateLimitResponse } from '@/lib/rateLimit';
 const LIMITS = {
   auth:    { limit: 10,  windowMs: 60_000 },
   webhook: { limit: 30,  windowMs: 60_000 },
+  proxy:   { limit: 300, windowMs: 60_000 },
   api:     { limit: 60,  windowMs: 60_000 },
   page:    { limit: 200, windowMs: 60_000 },
 } as const;
@@ -51,6 +52,8 @@ export async function middleware(request: NextRequest) {
     bucket = 'auth';
   } else if (pathname.startsWith('/api/telegram')) {
     bucket = 'webhook';
+  } else if (pathname.startsWith('/api/supabase-proxy')) {
+    bucket = 'proxy';
   } else if (pathname.startsWith('/api/')) {
     bucket = 'api';
   }
@@ -125,6 +128,9 @@ export async function middleware(request: NextRequest) {
     // Only do the auth-redirect on fresh/external loads
     if (!isInternalNavigation && tenantUrl && tenantAnonKey && hasSessionCookie) {
       const supabase = createServerClient(tenantUrl, tenantAnonKey, {
+        cookieOptions: {
+          name: 'sb-classapp-auth-token',
+        },
         cookies: {
           getAll() { return request.cookies.getAll(); },
           setAll(cookiesToSet) {
@@ -175,6 +181,9 @@ export async function middleware(request: NextRequest) {
   // ── 6. Auth-required routes (dashboard + /reset-password) ─────────────────
   if (tenantUrl && tenantAnonKey) {
     const supabase = createServerClient(tenantUrl, tenantAnonKey, {
+      cookieOptions: {
+        name: 'sb-classapp-auth-token',
+      },
       cookies: {
         getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {

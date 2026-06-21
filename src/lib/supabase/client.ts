@@ -23,7 +23,11 @@ export function getSupabaseBrowserClient() {
   const targetKey = tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
   if (!client || cachedUrl !== targetUrl || cachedKey !== targetKey) {
-    client = createBrowserClient(targetUrl, targetKey);
+    client = createBrowserClient(targetUrl, targetKey, {
+      cookieOptions: {
+        name: 'sb-classapp-auth-token',
+      },
+    });
     cachedUrl = targetUrl;
     cachedKey = targetKey;
   }

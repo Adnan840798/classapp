@@ -69,8 +69,11 @@ async function handleProxy(request: NextRequest) {
   } catch (err: any) {
     console.error(`Supabase Proxy failed to connect to ${targetUrl}:`, err);
     return NextResponse.json(
-      { error: `Connection to database server failed: ${err.message}` },
-      { status: 502 }
+      { 
+        error: 'connection_failed',
+        error_description: `Connection to database server failed: ${err.message}`
+      },
+      { status: 400 }
     );
   }
 }

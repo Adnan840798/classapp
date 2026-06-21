@@ -40,6 +40,9 @@ export async function getCachedAnnouncements(): Promise<Announcement[]> {
         tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
         tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+          cookieOptions: {
+            name: 'sb-classapp-auth-token',
+          },
           cookies: {
             getAll() {
               return allCookies;
@@ -85,6 +88,9 @@ export async function getCachedDeadlines(): Promise<Deadline[]> {
         tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
         tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+          cookieOptions: {
+            name: 'sb-classapp-auth-token',
+          },
           cookies: {
             getAll() {
               return allCookies;
@@ -128,6 +134,9 @@ export async function getCachedResults(): Promise<ExamResult[]> {
         tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
         tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+          cookieOptions: {
+            name: 'sb-classapp-auth-token',
+          },
           cookies: {
             getAll() {
               return allCookies;
