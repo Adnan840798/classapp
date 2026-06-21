@@ -22,8 +22,10 @@ export default async function CRProfilePage() {
   // Fetch all profiles if the user is CR or Admin
   let allProfiles: any[] = [];
   let semesterConfig = null;
+  let telegramConfig = null;
+
   if (profile.role === 'cr' || profile.role === 'admin') {
-    const [profilesRes, configRes] = await Promise.all([
+    const [profilesRes, configRes, telegramRes] = await Promise.all([
       supabase
         .from('profiles')
         .select('id, full_name, university_id, email, phone, role, password_reset_required')
@@ -32,10 +34,29 @@ export default async function CRProfilePage() {
         .from('semester_config')
         .select('id, total_weeks, start_date')
         .eq('id', 1)
-        .maybeSingle()
+        .maybeSingle(),
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from('telegram_config')
+            .select('bot_token, channel_id, is_enabled')
+            .eq('id', 1)
+            .maybeSingle();
+
+          if (error) {
+            console.error('Failed to query telegram_config table:', error);
+            return null;
+          }
+          return data;
+        } catch (err) {
+          console.error('Exception querying telegram_config:', err);
+          return null;
+        }
+      })()
     ]);
     allProfiles = profilesRes.data || [];
     semesterConfig = configRes.data;
+    telegramConfig = telegramRes;
   }
 
   return (
@@ -45,7 +66,13 @@ export default async function CRProfilePage() {
         <p className="page-subtitle">Manage your personal details, contact links, and notification settings</p>
       </div>
 
-      <ProfileForm profile={profile} allProfiles={allProfiles} semesterConfig={semesterConfig ?? undefined} />
+      <ProfileForm 
+        profile={profile} 
+        allProfiles={allProfiles} 
+        semesterConfig={semesterConfig ?? undefined} 
+        telegramConfig={telegramConfig ?? undefined}
+      />
     </div>
   );
 }
+

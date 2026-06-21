@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown } from 'lucide-react';
+import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown, Send } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar, updateNotifEnabled } from '@/lib/actions/profile';
+import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar, updateNotifEnabled, updateTelegramConfig } from '@/lib/actions/profile';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -37,9 +37,15 @@ interface ProfileFormProps {
   profile: Profile;
   allProfiles?: Pick<Profile, 'id' | 'full_name' | 'university_id' | 'email' | 'phone' | 'role' | 'password_reset_required'>[];
   semesterConfig?: { total_weeks: number; start_date: string };
+  telegramConfig?: { bot_token: string | null; channel_id: string | null; is_enabled: boolean };
 }
 
-export function ProfileForm({ profile: initialProfile, allProfiles = [], semesterConfig }: ProfileFormProps) {
+export function ProfileForm({ 
+  profile: initialProfile, 
+  allProfiles = [], 
+  semesterConfig,
+  telegramConfig
+}: ProfileFormProps) {
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,9 +107,18 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   const [configError, setConfigError] = useState<string | null>(null);
   const [configSuccess, setConfigSuccess] = useState(false);
 
+  // Telegram settings states
+  const [telegramToken, setTelegramToken] = useState(telegramConfig?.bot_token || '');
+  const [telegramChannel, setTelegramChannel] = useState(telegramConfig?.channel_id || '');
+  const [telegramEnabled, setTelegramEnabled] = useState(telegramConfig?.is_enabled || false);
+  const [isTelegramPending, setIsTelegramPending] = useState(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
+  const [telegramSuccess, setTelegramSuccess] = useState(false);
+
   // Accordion open/close states
   const [isClassAdminOpen, setIsClassAdminOpen] = useState(false);
   const [isSemesterSettingsOpen, setIsSemesterSettingsOpen] = useState(false);
+  const [isTelegramSettingsOpen, setIsTelegramSettingsOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(true);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
@@ -131,6 +146,29 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
       setConfigError(err.message || 'An unexpected error occurred.');
     } finally {
       setIsConfigPending(false);
+    }
+  }
+
+  async function handleSaveTelegramConfig() {
+    setIsTelegramPending(true);
+    setTelegramError(null);
+    setTelegramSuccess(false);
+    try {
+      const fd = new FormData();
+      fd.set('bot_token', telegramToken);
+      fd.set('channel_id', telegramChannel);
+      fd.set('is_enabled', String(telegramEnabled));
+      
+      const res = await updateTelegramConfig(fd);
+      if (res.error) {
+        setTelegramError(res.error);
+      } else {
+        setTelegramSuccess(true);
+      }
+    } catch (err: any) {
+      setTelegramError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setIsTelegramPending(false);
     }
   }
 
@@ -976,6 +1014,142 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
                         className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
                         {isConfigPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Save Settings
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Telegram Settings Card (CR/Admin only) */}
+        {(profile.role === 'cr' || profile.role === 'admin') && (
+          <div className={`glass-card flex flex-col transition-all duration-200 ${
+            isTelegramSettingsOpen ? 'p-4 sm:p-6 gap-4' : 'py-3.5 px-4 sm:px-5 gap-0'
+          }`}>
+            <button
+              type="button"
+              onClick={() => setIsTelegramSettingsOpen(!isTelegramSettingsOpen)}
+              className={`w-full flex items-center justify-between cursor-pointer select-none text-left focus:outline-none group ${
+                isTelegramSettingsOpen ? 'border-b border-border pb-2' : ''
+              }`}
+            >
+              <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Send className="w-4 h-4 text-sky-400" />
+                Telegram Announcements Mirroring
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 ${
+                  isTelegramSettingsOpen ? 'rotate-180 text-primary' : ''
+                }`}
+              />
+            </button>
+            
+            {isTelegramSettingsOpen && (
+              <div className="animate-fade-in flex flex-col gap-4">
+                {telegramConfig === undefined ? (
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-lg flex flex-col gap-2 text-xs leading-relaxed text-left">
+                    <div className="flex items-center gap-2 font-bold">
+                      <AlertTriangle className="w-4 h-4" />
+                      Database Migration Required
+                    </div>
+                    <p>
+                      The Telegram settings option is unavailable because the `telegram_config` table does not exist in your database yet.
+                    </p>
+                    <p className="font-mono text-[10px] mt-1 bg-black/30 p-2 rounded">
+                      Please run the SQL statements from your setup file in your Supabase SQL Editor.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Mirror all class announcements and files automatically to a custom Telegram channel.
+                    </p>
+                    
+                    <div className="flex flex-col gap-3 mt-2">
+                      {telegramError && (
+                        <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                          {telegramError}
+                        </div>
+                      )}
+                      {telegramSuccess && (
+                        <div className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                          Telegram settings saved successfully!
+                        </div>
+                      )}
+
+                      {/* Enable/Disable Toggle */}
+                      <div className="flex items-center justify-between gap-4 bg-muted/10 p-3 rounded-xl border border-border/40">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-foreground">Mirror to Telegram</span>
+                          <span className="text-[10px] text-muted-foreground">Toggle mirroring on or off</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTelegramEnabled(!telegramEnabled)}
+                          disabled={isTelegramPending}
+                          className={`touch-compact relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            telegramEnabled ? 'bg-primary' : 'bg-muted'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              telegramEnabled ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Bot Token Input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="telegram_bot_token" className="text-xs font-semibold text-foreground">
+                          Telegram Bot Token
+                        </label>
+                        <input
+                          id="telegram_bot_token"
+                          type="password"
+                          placeholder="8630296780:AAG..."
+                          value={telegramToken}
+                          onChange={(e) => setTelegramToken(e.target.value)}
+                          className="form-input text-xs font-mono"
+                          disabled={isTelegramPending}
+                        />
+                      </div>
+
+                      {/* Channel ID Input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="telegram_channel_id" className="text-xs font-semibold text-foreground">
+                          Telegram Channel ID (e.g. @mychannel or -100xxx)
+                        </label>
+                        <input
+                          id="telegram_channel_id"
+                          type="text"
+                          placeholder="@classapp_announcements"
+                          value={telegramChannel}
+                          onChange={(e) => setTelegramChannel(e.target.value)}
+                          className="form-input text-xs font-mono"
+                          disabled={isTelegramPending}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveTelegramConfig}
+                        disabled={isTelegramPending}
+                        className="w-full flex items-center justify-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:opacity-90 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isTelegramPending ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
                             Saving...

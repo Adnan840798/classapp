@@ -1,8 +1,4 @@
-/**
- * Telegram Bot API helper.
- * Called from server-side API routes and server actions only.
- * Never import this in client components.
- */
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
 
@@ -23,18 +19,60 @@ export function escapeHTML(text: string): string {
 }
 
 /**
+ * Helper to get Telegram configuration dynamically.
+ * Queries `telegram_config` table from the active tenant database.
+ * Falls back to environment variables if the database config is missing or incomplete.
+ */
+async function getTelegramConfig(): Promise<{
+  botToken: string | null;
+  channelId: string | null;
+  isEnabled: boolean;
+}> {
+  let botToken: string | null = null;
+  let channelId: string | null = null;
+  let isEnabled = false;
+  let dbConfigured = false;
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data, error } = await supabase
+      .from('telegram_config')
+      .select('bot_token, channel_id, is_enabled')
+      .maybeSingle();
+
+    if (!error && data) {
+      dbConfigured = true;
+      botToken = data.bot_token;
+      channelId = data.channel_id;
+      isEnabled = data.is_enabled;
+    }
+  } catch (err) {
+    console.warn('Failed to query telegram_config from database, falling back to environment variables:', err);
+  }
+
+  // Fallback to process.env if DB not configured or tokens are unset
+  if (!dbConfigured || !botToken || !channelId) {
+    botToken = process.env.TELEGRAM_BOT_TOKEN || null;
+    channelId = process.env.TELEGRAM_CHANNEL_ID || null;
+    // For environment variables, we default to enabled if both are present
+    isEnabled = !!(botToken && channelId);
+  }
+
+  return { botToken, channelId, isEnabled };
+}
+
+/**
  * Sends a formatted HTML message to the class Telegram channel.
  */
 export async function sendTelegramMessage(
   title: string,
   body: string
 ): Promise<SendMessageResult> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+  const { botToken, channelId, isEnabled } = await getTelegramConfig();
 
-  if (!botToken || !channelId) {
-    console.warn('Telegram credentials not configured. Skipping Telegram post.');
-    return { success: false, error: 'Telegram not configured' };
+  if (!isEnabled || !botToken || !channelId) {
+    console.warn('Telegram not configured or disabled. Skipping Telegram post.');
+    return { success: false, error: 'Telegram not configured or disabled' };
   }
 
   // Format message with HTML tags
@@ -80,12 +118,11 @@ export async function sendTelegramFile(
   file: File,
   caption: string
 ): Promise<SendMessageResult> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+  const { botToken, channelId, isEnabled } = await getTelegramConfig();
 
-  if (!botToken || !channelId) {
-    console.warn('Telegram credentials not configured. Skipping Telegram file post.');
-    return { success: false, error: 'Telegram not configured' };
+  if (!isEnabled || !botToken || !channelId) {
+    console.warn('Telegram not configured or disabled. Skipping Telegram file post.');
+    return { success: false, error: 'Telegram not configured or disabled' };
   }
 
   const isImage = file.type.startsWith('image/');
@@ -123,3 +160,4 @@ export async function sendTelegramFile(
     return { success: false, error: 'Network error sending Telegram file' };
   }
 }
+

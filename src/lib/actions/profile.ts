@@ -674,4 +674,63 @@ export async function updateNotifEnabled(enabled: boolean) {
   }
 }
 
+/**
+ * Update the dynamic Telegram channel config (bot token, channel id, active toggle). CR/Admin only.
+ */
+export async function updateTelegramConfig(formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can update Telegram configuration.' };
+    }
+
+    const botTokenRaw = formData.get('bot_token') as string;
+    const channelIdRaw = formData.get('channel_id') as string;
+    const isEnabledRaw = formData.get('is_enabled') === 'true';
+
+    const bot_token = botTokenRaw?.trim() || null;
+    const channel_id = channelIdRaw?.trim() || null;
+
+    // Check if the table exists or if there are any other errors
+    const { error } = await supabase
+      .from('telegram_config')
+      .upsert({
+        id: 1,
+        bot_token,
+        channel_id,
+        is_enabled: isEnabledRaw,
+        updated_at: new Date().toISOString(),
+        updated_by: user.id
+      });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/cr/profile');
+    revalidatePath('/student/profile');
+
+    return { success: true };
+  } catch (err: any) {
+    if (
+      err instanceof Error &&
+      (err.message === 'NEXT_REDIRECT' || (err as any).digest?.startsWith('NEXT_REDIRECT'))
+    ) {
+      throw err;
+    }
+    console.error('updateTelegramConfig error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+
 

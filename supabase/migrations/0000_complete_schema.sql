@@ -919,6 +919,39 @@ CREATE POLICY "notices_cr_admin_delete"
   ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'notices' AND public.get_my_role() IN ('cr', 'admin'));
 
+-- ── telegram_config ───────────────────────────────────────
+-- Singleton row: stores the Telegram bot token and channel ID for this class.
+CREATE TABLE IF NOT EXISTS public.telegram_config (
+  id           int PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- singleton row
+  bot_token    text,
+  channel_id   text,
+  is_enabled   boolean DEFAULT false,
+  updated_at   timestamptz DEFAULT now(),
+  updated_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+-- Seed default singleton row
+INSERT INTO public.telegram_config (id, bot_token, channel_id, is_enabled)
+VALUES (1, NULL, NULL, false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Enable RLS
+ALTER TABLE public.telegram_config ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "telegram_config_cr_admin_all"
+  ON public.telegram_config FOR ALL
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'))
+  WITH CHECK (public.get_my_role() IN ('cr', 'admin'));
+
+
+-- Trigger
+DROP TRIGGER IF EXISTS telegram_config_updated_at ON public.telegram_config;
+CREATE TRIGGER telegram_config_updated_at
+  BEFORE UPDATE ON public.telegram_config
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
 
 -- ============================================================
 -- SECTION 6: Realtime
