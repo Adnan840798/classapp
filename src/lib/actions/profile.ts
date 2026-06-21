@@ -217,21 +217,17 @@ export async function deleteUserAccount(targetUserId: string) {
       return { error: 'You cannot delete your own account.' };
     }
 
-    // Initialize admin client to delete user from auth
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
+    // Invoke the tenant's administrative Edge Function to delete the student
+    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      body: {
+        action: 'delete-student',
+        studentId: targetUserId
       }
-    );
+    });
 
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
-    if (authError) {
-      return { error: authError.message };
+    if (edgeError || (edgeData && edgeData.error)) {
+      console.error('deleteUserAccount edge error:', edgeError || edgeData?.error);
+      return { error: edgeError?.message || edgeData?.error || 'Failed to delete student account.' };
     }
 
     revalidatePath('/student/profile');
@@ -287,38 +283,27 @@ export async function createStudentAccount(input: {
       return { error: `University ID "${university_id}" is already registered to another account.` };
     }
 
-    // Admin client uses service role — bypasses RLS and email confirmation
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    // Create the auth.users record.
-    // The handle_new_user database trigger will automatically INSERT a matching
-    // row in public.profiles (with password_reset_required = true) from the
-    // user_metadata we pass here. No manual upsert needed.
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: input.password,
-      email_confirm: true,
-      user_metadata: {
-        full_name,
-        university_id,
-        role: 'student',
+    // Invoke the tenant's administrative Edge Function to create the student account
+    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      body: {
+        action: 'create-student',
+        email,
+        password: input.password,
+        fullName: full_name,
+        universityId: university_id,
         batch: input.batch?.trim() || 'N/A',
         department: input.department?.trim() || 'N/A',
-      },
+      }
     });
 
-    if (createError || !newUser?.user) {
-      console.error('createStudentAccount auth error:', createError);
-      return { error: createError?.message || 'Failed to create auth account.' };
+    if (edgeError || (edgeData && edgeData.error)) {
+      console.error('createStudentAccount edge error:', edgeError || edgeData?.error);
+      return { error: edgeError?.message || edgeData?.error || 'Failed to create student account.' };
     }
 
     revalidatePath('/student/profile');
     revalidatePath('/cr/profile');
-    return { success: true, userId: newUser.user.id };
+    return { success: true, userId: edgeData.userId };
   } catch (err: any) {
     console.error('createStudentAccount error:', err);
     return { error: err.message || 'An unexpected error occurred.' };
