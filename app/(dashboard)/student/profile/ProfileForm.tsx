@@ -54,7 +54,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('tenant_class_name');
-      if (stored) setClassName(stored);
+      if (stored) setClassName(stored.trim());
       
       if ('Notification' in window) {
         setBrowserPermission(Notification.permission);
@@ -408,7 +408,7 @@ export function ProfileForm({ profile: initialProfile, allProfiles = [], semeste
               </span>
             </div>
             {className && (
-              <span className="text-xs font-bold text-slate-100 mt-1 select-none">
+              <span className="text-xs font-bold text-slate-100 mt-1 select-none text-center block w-full">
                 {className}
               </span>
             )}

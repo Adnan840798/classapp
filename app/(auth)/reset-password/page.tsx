@@ -202,6 +202,23 @@ export default function ResetPasswordPage() {
                 isRecovery ? 'Set New Password' : 'Activate Account'
               )}
             </button>
+
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={async () => {
+                try {
+                  const supabase = getSupabaseBrowserClient();
+                  await supabase.auth.signOut();
+                  window.location.href = '/login';
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] text-xs font-bold text-slate-300 hover:text-white hover:bg-white/[0.06] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              Cancel & Sign Out
+            </button>
           </form>
         )}
       </div>
