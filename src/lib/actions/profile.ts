@@ -232,20 +232,22 @@ export async function deleteUserAccount(targetUserId: string) {
     if (edgeError || (edgeData && edgeData.error)) {
       console.error('deleteUserAccount edge error:', edgeError || edgeData?.error);
       let errorMsg = 'Failed to delete student account.';
-      if (edgeError instanceof FunctionsHttpError) {
-        try {
-          const errorBody = await edgeError.context.json();
-          errorMsg = errorBody.error || errorBody.message || errorMsg;
-        } catch {
+      if (edgeError) {
+        errorMsg = `[EdgeError] name: ${edgeError.name}, message: ${edgeError.message}`;
+        if (edgeError instanceof FunctionsHttpError) {
+          errorMsg += `, status: ${edgeError.context.status}`;
           try {
-            const errorText = await edgeError.context.text();
-            errorMsg = errorText || errorMsg;
-          } catch {}
+            const errorBody = await edgeError.context.json();
+            errorMsg += `, body: ${JSON.stringify(errorBody)}`;
+          } catch {
+            try {
+              const errorText = await edgeError.context.text();
+              errorMsg += `, bodyText: ${errorText}`;
+            } catch {}
+          }
         }
-      } else if (edgeError) {
-        errorMsg = edgeError.message;
       } else if (edgeData?.error) {
-        errorMsg = edgeData.error;
+        errorMsg = typeof edgeData.error === 'object' ? JSON.stringify(edgeData.error) : String(edgeData.error);
       }
       return { error: errorMsg };
     }
@@ -323,20 +325,22 @@ export async function createStudentAccount(input: {
     if (edgeError || (edgeData && edgeData.error)) {
       console.error('createStudentAccount edge error:', edgeError || edgeData?.error);
       let errorMsg = 'Failed to create student account.';
-      if (edgeError instanceof FunctionsHttpError) {
-        try {
-          const errorBody = await edgeError.context.json();
-          errorMsg = errorBody.error || errorBody.message || errorMsg;
-        } catch {
+      if (edgeError) {
+        errorMsg = `[EdgeError] name: ${edgeError.name}, message: ${edgeError.message}`;
+        if (edgeError instanceof FunctionsHttpError) {
+          errorMsg += `, status: ${edgeError.context.status}`;
           try {
-            const errorText = await edgeError.context.text();
-            errorMsg = errorText || errorMsg;
-          } catch {}
+            const errorBody = await edgeError.context.json();
+            errorMsg += `, body: ${JSON.stringify(errorBody)}`;
+          } catch {
+            try {
+              const errorText = await edgeError.context.text();
+              errorMsg += `, bodyText: ${errorText}`;
+            } catch {}
+          }
         }
-      } else if (edgeError) {
-        errorMsg = edgeError.message;
       } else if (edgeData?.error) {
-        errorMsg = edgeData.error;
+        errorMsg = typeof edgeData.error === 'object' ? JSON.stringify(edgeData.error) : String(edgeData.error);
       }
       return { error: errorMsg };
     }
