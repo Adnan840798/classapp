@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, FunctionsHttpError } from '@supabase/supabase-js';
 
 function normalizeBdNumber(num: string | null | undefined): string | null {
   if (!num) return null;
@@ -199,8 +199,9 @@ export async function updateUserRole(targetUserId: string, newRole: 'student' | 
 export async function deleteUserAccount(targetUserId: string) {
   try {
     const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user || !session) return { error: 'Unauthorized' };
 
     const { data: callerProfile } = await supabase
       .from('profiles')
@@ -219,6 +220,9 @@ export async function deleteUserAccount(targetUserId: string) {
 
     // Invoke the tenant's administrative Edge Function to delete the student
     const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      },
       body: {
         action: 'delete-student',
         studentId: targetUserId
@@ -227,7 +231,23 @@ export async function deleteUserAccount(targetUserId: string) {
 
     if (edgeError || (edgeData && edgeData.error)) {
       console.error('deleteUserAccount edge error:', edgeError || edgeData?.error);
-      return { error: edgeError?.message || edgeData?.error || 'Failed to delete student account.' };
+      let errorMsg = 'Failed to delete student account.';
+      if (edgeError instanceof FunctionsHttpError) {
+        try {
+          const errorBody = await edgeError.context.json();
+          errorMsg = errorBody.error || errorBody.message || errorMsg;
+        } catch {
+          try {
+            const errorText = await edgeError.context.text();
+            errorMsg = errorText || errorMsg;
+          } catch {}
+        }
+      } else if (edgeError) {
+        errorMsg = edgeError.message;
+      } else if (edgeData?.error) {
+        errorMsg = edgeData.error;
+      }
+      return { error: errorMsg };
     }
 
     revalidatePath('/student/profile');
@@ -249,8 +269,9 @@ export async function createStudentAccount(input: {
 }) {
   try {
     const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user || !session) return { error: 'Unauthorized' };
 
     const { data: callerProfile } = await supabase
       .from('profiles')
@@ -285,6 +306,9 @@ export async function createStudentAccount(input: {
 
     // Invoke the tenant's administrative Edge Function to create the student account
     const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      },
       body: {
         action: 'create-student',
         email,
@@ -298,7 +322,23 @@ export async function createStudentAccount(input: {
 
     if (edgeError || (edgeData && edgeData.error)) {
       console.error('createStudentAccount edge error:', edgeError || edgeData?.error);
-      return { error: edgeError?.message || edgeData?.error || 'Failed to create student account.' };
+      let errorMsg = 'Failed to create student account.';
+      if (edgeError instanceof FunctionsHttpError) {
+        try {
+          const errorBody = await edgeError.context.json();
+          errorMsg = errorBody.error || errorBody.message || errorMsg;
+        } catch {
+          try {
+            const errorText = await edgeError.context.text();
+            errorMsg = errorText || errorMsg;
+          } catch {}
+        }
+      } else if (edgeError) {
+        errorMsg = edgeError.message;
+      } else if (edgeData?.error) {
+        errorMsg = edgeData.error;
+      }
+      return { error: errorMsg };
     }
 
     revalidatePath('/student/profile');
