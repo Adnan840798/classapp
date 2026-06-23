@@ -472,7 +472,7 @@ export async function requestPasswordReset(email: string) {
     }
 
     // Send the Supabase password reset email
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://classapp.vercel.app';
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://classapp0.vercel.app';
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${siteUrl}/reset-password?type=recovery`,
     });
