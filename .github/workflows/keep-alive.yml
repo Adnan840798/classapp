@@ -1,0 +1,27 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run every 3 days at 00:00 UTC (well within the 7-day inactivity limit)
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+    # Allow manual execution from the GitHub Actions tab
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run keep-alive script
+        env:
+          MASTER_SUPABASE_URL: ${{ secrets.MASTER_SUPABASE_URL }}
+          MASTER_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.MASTER_SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/keep-alive.js
