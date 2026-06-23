@@ -191,10 +191,10 @@ function NotifItem({
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
       className={cn(
-        'flex gap-3.5 px-4.5 py-4 transition-all duration-300 relative border-b border-[#23262D]/40 last:border-b-0 group cursor-pointer items-start',
+        'flex gap-3.5 px-4.5 py-4 transition-all duration-300 relative border-b border-border last:border-b-0 group cursor-pointer items-start',
         !notif.is_read && !selectMode
-          ? 'bg-[#34D399]/[0.02] border-l-[3px] border-l-[#34D399] pl-[15px]'
-          : 'border-l-[3px] border-l-transparent hover:bg-white/[0.02] active:bg-white/[0.04]'
+          ? 'bg-[#34D399]/[0.04] border-l-[3px] border-l-[#34D399] pl-[15px]'
+          : 'border-l-[3px] border-l-transparent hover:bg-accent active:bg-accent/80'
       )}
     >
       {/* Checkbox for selection */}
@@ -205,7 +205,7 @@ function NotifItem({
               <Check className="w-3.5 h-3.5 stroke-[3.5]" />
             </div>
           ) : (
-            <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+            <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-slate-500 transition-colors flex items-center justify-center" />
           )}
         </div>
       )}
@@ -213,7 +213,7 @@ function NotifItem({
       {/* Locked icon for non-deletable items in selection mode */}
       {selectMode && !isDeletable && (
         <div className="flex-shrink-0 mr-1 mt-2.5 w-5 h-5 opacity-25 flex items-center justify-center">
-          <Lock className="w-3.5 h-3.5 text-slate-500" />
+          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
       )}
 
@@ -229,13 +229,13 @@ function NotifItem({
       <div className="min-w-0 flex-1">
         <p className={cn(
           'text-sm leading-snug truncate transition-colors duration-200',
-          !notif.is_read ? 'font-extrabold text-white' : 'font-semibold text-slate-200'
+          !notif.is_read ? 'font-extrabold text-foreground' : 'font-semibold text-muted-foreground'
         )}>
           {notif.title}
         </p>
-        <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">{notif.message}</p>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-2 font-medium">
-          <Clock className="w-3 h-3 text-slate-600" />
+        <p className="text-xs text-muted-foreground/80 mt-1 leading-relaxed line-clamp-2">{notif.message}</p>
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-2 font-medium">
+          <Clock className="w-3 h-3 text-muted-foreground" />
           <span>{timeAgo(notif.created_at)}</span>
         </div>
       </div>
@@ -434,7 +434,7 @@ export function NotificationBell() {
     <button
       onClick={handleLoadMore}
       onTouchEnd={handleLoadMore}
-      className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] uppercase tracking-wider transition-all hover:bg-[#34D399]/5 border-t border-[#23262D]/50 cursor-pointer"
+      className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-[11px] font-bold text-primary uppercase tracking-wider transition-all hover:bg-primary/5 border-t border-border cursor-pointer"
     >
       <ChevronDown className="w-3.5 h-3.5" />
       Show {hiddenCount} more notification{hiddenCount !== 1 ? 's' : ''}
@@ -464,10 +464,10 @@ export function NotificationBell() {
   const panelContent = (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#23262D] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-border shrink-0">
         <div className="flex items-center gap-2.5">
           <Bell className="w-4 h-4 text-[#34D399]" />
-          <h3 className="font-bold text-sm text-white">Notifications</h3>
+          <h3 className="font-bold text-sm text-foreground">Notifications</h3>
           {unreadCount > 0 && !selectMode && (
             <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5 animate-pulse">
               {unreadCount}
@@ -483,7 +483,7 @@ export function NotificationBell() {
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
                 selectMode
                   ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
-                  : "border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04]"
+                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
               )}
             >
               {selectMode ? (
@@ -511,7 +511,7 @@ export function NotificationBell() {
           )}
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
             aria-label="Close notifications"
           >
             <X className="w-4 h-4" />
@@ -523,11 +523,11 @@ export function NotificationBell() {
       <div className="flex-1 overflow-y-auto overscroll-contain">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-14 px-6 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700/40 flex items-center justify-center">
-              <Bell className="w-6 h-6 text-slate-600" />
+            <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center">
+              <Bell className="w-6 h-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-semibold text-slate-400">All caught up</p>
-            <p className="text-xs text-slate-600">No new notifications right now.</p>
+            <p className="text-sm font-semibold text-muted-foreground">All caught up</p>
+            <p className="text-xs text-muted-foreground/80">No new notifications right now.</p>
           </div>
         ) : (
           <>
@@ -570,11 +570,11 @@ export function NotificationBell() {
           !dragging && "transition-transform duration-[240ms] ease-out"
         )}
         style={{
-          background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
           borderBottom: 'none',
           maxHeight: '72dvh',
-          boxShadow: '0 -20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.06)',
+          boxShadow: '0 -20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(52,211,153,0.03)',
           transform: `translateY(${translateY}px)`,
           willChange: 'transform',
           animation: translateY === 0 && !dragging ? 'sheet-up 0.32s cubic-bezier(0.16,1,0.3,1) both' : undefined,
@@ -597,10 +597,10 @@ export function NotificationBell() {
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 pb-3 border-b border-[#23262D]">
+          <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
             <div className="flex items-center gap-2.5">
               <Bell className="w-4 h-4 text-[#34D399]" />
-              <h3 className="font-bold text-sm text-white">Notifications</h3>
+              <h3 className="font-bold text-sm text-foreground">Notifications</h3>
               {unreadCount > 0 && !selectMode && (
                 <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
                   {unreadCount}
@@ -616,7 +616,7 @@ export function NotificationBell() {
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 cursor-pointer shadow-sm active:scale-95",
                     selectMode
                       ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
-                      : "border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04]"
+                      : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
                 >
                   {selectMode ? (
@@ -650,11 +650,11 @@ export function NotificationBell() {
         <div ref={listRef} className="flex-1 overflow-y-auto overscroll-contain">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-14 px-6 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700/40 flex items-center justify-center">
-                <Bell className="w-6 h-6 text-slate-600" />
+              <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center">
+                <Bell className="w-6 h-6 text-muted-foreground" />
               </div>
-              <p className="text-sm font-semibold text-slate-400">All caught up</p>
-              <p className="text-xs text-slate-600">No new notifications right now.</p>
+              <p className="text-sm font-semibold text-muted-foreground">All caught up</p>
+              <p className="text-xs text-muted-foreground/80">No new notifications right now.</p>
             </div>
           ) : (
             <>
@@ -697,7 +697,7 @@ export function NotificationBell() {
       <button
         id="notification-bell-btn"
         onClick={handleToggle}
-        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-xl border border-slate-800/80 bg-slate-900/45 hover:bg-[#34D399]/10 hover:border-[#34D399]/30 hover:text-[#34D399] transition-all duration-300 text-slate-400 cursor-pointer flex-shrink-0 shadow-lg shadow-black/20"
+        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/35 hover:text-primary transition-all duration-300 text-muted-foreground cursor-pointer flex-shrink-0 shadow-lg shadow-black/5 dark:shadow-black/20"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
         <Bell className="w-4 h-4 transition-transform duration-300" />
@@ -715,9 +715,9 @@ export function NotificationBell() {
           ref={dropdownRef}
           className="hidden lg:flex lg:flex-col absolute right-0 top-12 w-[360px] max-h-[540px] rounded-2xl overflow-hidden z-50"
           style={{
-            background: 'linear-gradient(180deg, #1A1D24 0%, #0E0F11 100%)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.6), 0 0 40px -10px rgba(52,211,153,0.12)',
+            background: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.15), 0 0 40px -10px rgba(52,211,153,0.06)',
             animation: 'notif-dropdown 0.2s cubic-bezier(0.16,1,0.3,1) both',
           }}
           role="dialog"

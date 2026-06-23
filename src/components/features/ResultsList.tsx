@@ -113,8 +113,8 @@ export function ResultsList({ results }: { results: Result[] }) {
             onClick={toggleSelectMode}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
               selectMode
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-                : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
             }`}
           >
             {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
@@ -143,9 +143,9 @@ export function ResultsList({ results }: { results: Result[] }) {
                 }`}
                 style={{
                   background: isSelected
-                    ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
-                    : '#1A1D24',
-                  border: isSelected ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid #23262D',
+                    ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
+                    : 'hsl(var(--card))',
+                  border: isSelected ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid hsl(var(--border))',
                   boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                 }}
               >
@@ -167,7 +167,7 @@ export function ResultsList({ results }: { results: Result[] }) {
                             <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                           </div>
                         ) : (
-                          <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                          <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/50 transition-colors flex items-center justify-center" />
                         )}
                       </div>
                     )}
@@ -181,16 +181,16 @@ export function ResultsList({ results }: { results: Result[] }) {
                       <Award className={`w-4 h-4 ${isSelected ? 'text-rose-400' : 'text-brand-cyan'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-extrabold text-white break-words leading-snug">{res.exam_name}</h3>
-                    <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                    <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">{res.exam_name}</h3>
+                    <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5 mt-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground/80" />
                       <span>Published: {formatDateTime(res.published_at)}</span>
                     </span>
                   </div>
                 </div>
 
                 {!selectMode && (
-                  <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                  <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-border/50 sm:border-0">
                     <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
                       {res.result_sheet_url ? (
                         <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
@@ -202,7 +202,7 @@ export function ResultsList({ results }: { results: Result[] }) {
                           </button>
                         </AttachmentViewer>
                       ) : (
-                        <span className="text-[10px] text-slate-600 italic">No attachment</span>
+                        <span className="text-[10px] text-muted-foreground/60 italic">No attachment</span>
                       )}
                       <EditResultModal result={res} />
                       <DeleteButton id={res.id} onDelete={deleteResult} confirmMessage="Are you sure you want to delete this result?" />

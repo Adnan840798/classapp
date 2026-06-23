@@ -137,8 +137,8 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
           <button
             onClick={toggleSelectMode}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${selectMode
-              ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-              : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+              : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
               }`}
           >
             {selectMode ? (
@@ -162,7 +162,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
 
 
           {upcomingAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-500 italic pl-1 py-1">
+            <p className="text-xs text-muted-foreground italic pl-1 py-1">
               No active or upcoming announcements.
             </p>
           ) : (
@@ -182,15 +182,15 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                       } animate-fade-in`}
                     style={{
                       background: isSelected
-                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
+                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
                         : isImportant
-                          ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
-                          : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
+                          ? 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, hsl(var(--card)) 100%)'
+                          : 'linear-gradient(90deg, hsl(var(--muted)/0.15) 0%, hsl(var(--card)) 100%)',
                       border: isSelected
                         ? '1px solid rgba(244, 63, 94, 0.4)'
                         : isImportant
-                          ? '1px solid rgba(52,211,153,0.28)'
-                          : '1px solid rgba(148,163,184,0.15)',
+                          ? '1px solid hsl(var(--primary) / 0.3)'
+                          : '1px solid hsl(var(--border))',
                       boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
                   >
@@ -202,7 +202,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                           ? 'linear-gradient(180deg, #f43f5e, #be123c)'
                           : isImportant
                             ? 'linear-gradient(180deg, #34D399, #059669)'
-                            : 'linear-gradient(180deg, #475569, #1e293b)',
+                            : 'linear-gradient(180deg, #71717a, #3f3f46)',
                       }}
                     />
 
@@ -216,7 +216,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                                 <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                               </div>
                             ) : (
-                              <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                              <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/50 transition-colors flex items-center justify-center" />
                             )}
                           </div>
                         )}
@@ -226,24 +226,24 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             background: isSelected
                               ? 'rgba(244, 63, 94, 0.12)'
                               : isImportant
-                                ? 'rgba(52,211,153,0.12)'
-                                : 'rgba(148,163,184,0.08)',
+                                ? 'rgba(16,185,129,0.1)'
+                                : 'hsl(var(--muted) / 0.3)',
                             border: isSelected
                               ? '1px solid rgba(244, 63, 94, 0.25)'
                               : isImportant
-                                ? '1px solid rgba(52,211,153,0.25)'
-                                : '1px solid rgba(148,163,184,0.15)',
+                                ? '1px solid hsl(var(--primary) / 0.25)'
+                                : '1px solid hsl(var(--border))',
                           }}
                         >
-                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : isImportant ? 'text-emerald-400' : 'text-slate-400'}`} />
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isImportant ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                            <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                            <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
                               {announcement.title}
                             </h3>
                           </div>
-                          <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
+                          <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">
                             {announcement.body}
                           </p>
                         </div>
@@ -251,12 +251,12 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
 
                       {/* Right: author/date + actions (hidden in select mode) */}
                       {!selectMode && (
-                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
                           <div className="flex flex-col items-start sm:items-end">
-                            <span className="text-[10px] text-slate-400 font-bold leading-none">
+                            <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
                             </span>
-                            <span className="text-[9px] text-slate-500 font-medium mt-1">
+                            <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
@@ -275,7 +275,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             )}
                             <Link
                               href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
@@ -301,7 +301,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         {pastAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5 animate-fade-in">
             <div className="flex items-center gap-2 px-1">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Past Announcements</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Past Announcements</h2>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -319,11 +319,11 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                       } animate-fade-in`}
                     style={{
                       background: isSelected
-                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)'
-                        : 'linear-gradient(90deg, rgba(148,163,184,0.02) 0%, rgba(20,22,28,0.4) 100%)',
+                        ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
+                        : 'linear-gradient(90deg, hsl(var(--muted)/0.08) 0%, hsl(var(--card)) 100%)',
                       border: isSelected
                         ? '1px solid rgba(244, 63, 94, 0.4)'
-                        : '1px solid rgba(148,163,184,0.08)',
+                        : '1px solid hsl(var(--border))',
                       boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
                   >
@@ -333,7 +333,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                       style={{
                         background: isSelected
                           ? 'linear-gradient(180deg, #f43f5e, #be123c)'
-                          : 'linear-gradient(180deg, #475569, #1e293b)',
+                          : 'linear-gradient(180deg, #71717a, #3f3f46)',
                       }}
                     />
 
@@ -347,7 +347,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                                 <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                               </div>
                             ) : (
-                              <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                              <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/50 transition-colors flex items-center justify-center" />
                             )}
                           </div>
                         )}
@@ -356,21 +356,21 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                           style={{
                             background: isSelected
                               ? 'rgba(244, 63, 94, 0.12)'
-                              : 'rgba(148,163,184,0.04)',
+                              : 'hsl(var(--muted) / 0.15)',
                             border: isSelected
                               ? '1px solid rgba(244, 63, 94, 0.25)'
-                              : '1px solid rgba(148,163,184,0.08)',
+                              : '1px solid hsl(var(--border))',
                           }}
                         >
-                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-400' : 'text-slate-500'}`} />
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                            <h3 className="text-sm font-bold text-slate-300 break-words leading-snug">
+                            <h3 className="text-sm font-bold text-foreground break-words leading-snug">
                               {announcement.title}
                             </h3>
                           </div>
-                          <p className="text-xs text-slate-500 whitespace-pre-line leading-relaxed break-words">
+                          <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">
                             {announcement.body}
                           </p>
                         </div>
@@ -378,12 +378,12 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
 
                       {/* Right: author/date + actions (hidden in select mode) */}
                       {!selectMode && (
-                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.02] sm:border-0 sm:items-end">
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
                           <div className="flex flex-col items-start sm:items-end">
-                            <span className="text-[10px] text-slate-500 font-bold leading-none">
+                            <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
                             </span>
-                            <span className="text-[9px] text-slate-600 font-medium mt-1">
+                            <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
@@ -393,16 +393,16 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                                 <button
                                   title="View Attachment"
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-400 border border-slate-700 bg-slate-800/40 hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
                                 >
-                                  <FileText className="w-3 h-3 flex-shrink-0 text-slate-400" />
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
                                   <span>Attachment</span>
                                 </button>
                               </AttachmentViewer>
                             )}
                             <Link
                               href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-slate-400 border border-slate-700 bg-slate-800/20 hover:bg-slate-800/40 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />

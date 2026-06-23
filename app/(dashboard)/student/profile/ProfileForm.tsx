@@ -380,7 +380,7 @@ export function ProfileForm({
         <div className="glass-card p-4 sm:p-6 flex flex-col items-center justify-center gap-4 text-center hover:scale-[1.01]">
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden border border-white/[0.08] bg-[#121316]/50 transition-colors shadow-inner flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full overflow-hidden border border-border bg-muted/30 transition-colors shadow-inner flex items-center justify-center">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
@@ -388,7 +388,7 @@ export function ProfileForm({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-2xl font-extrabold text-slate-400 uppercase">
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-extrabold text-muted-foreground uppercase">
                     {profile.full_name.slice(0, 2)}
                   </div>
                 )}
@@ -406,7 +406,7 @@ export function ProfileForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isPending || isAvatarUploading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-white/[0.08] bg-white/[0.02] text-slate-300 hover:text-white hover:bg-white/[0.06] active:scale-95 transition-all cursor-pointer disabled:opacity-40"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-border bg-muted/20 text-muted-foreground hover:text-foreground hover:bg-muted/40 active:scale-95 transition-all cursor-pointer disabled:opacity-40"
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>Change</span>
@@ -446,7 +446,7 @@ export function ProfileForm({
               </span>
             </div>
             {className && (
-              <span className="text-xs font-bold text-slate-100 mt-1 select-none text-center block w-full">
+              <span className="text-xs font-bold text-muted-foreground mt-1 select-none text-center block w-full">
                 {className}
               </span>
             )}

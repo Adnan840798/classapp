@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'Sign In — ClassApp',
@@ -35,6 +36,11 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Background decoration */}
       <div
         className="absolute inset-0 pointer-events-none"

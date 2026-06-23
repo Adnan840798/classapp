@@ -9,6 +9,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { NotificationBell } from '@/components/ui/NotificationBell';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function Header() {
   const pathname = usePathname();
@@ -97,7 +98,7 @@ export function Header() {
   const initials = profile ? getInitials(profile.full_name) : 'U';
 
   return (
-    <header className="w-full border-b border-[#23262D] bg-[#0E0F11] flex-shrink-0 z-40 sticky top-0 pt-[env(safe-area-inset-top,0px)]">
+    <header className="w-full border-b border-border bg-card flex-shrink-0 z-40 sticky top-0 pt-[env(safe-area-inset-top,0px)]">
       <div className="w-full h-16 flex items-center justify-between px-4 lg:px-8">
       
       {/* Left section: Logo + badge */}
@@ -105,7 +106,7 @@ export function Header() {
         {/* Mobile menu trigger */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer active:bg-slate-800/60 flex-shrink-0"
+          className="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer active:bg-accent flex-shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -120,7 +121,7 @@ export function Header() {
           >
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">
+          <span className="text-xl font-bold tracking-tight text-foreground">
             Class<span className="text-[#34D399]">App</span>
           </span>
         </Link>
@@ -140,7 +141,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={`relative flex items-center h-full text-sm font-semibold transition-all px-1 cursor-pointer ${
-                  isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {item.label}
@@ -154,6 +155,9 @@ export function Header() {
 
         {/* Bell notification + Avatar */}
         <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Notification Bell */}
           <NotificationBell />
 
@@ -162,7 +166,7 @@ export function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleProfileClick}
-                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-white flex items-center justify-center text-sm lg:text-xs font-bold border border-white/[0.08] transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-foreground flex items-center justify-center text-sm lg:text-xs font-bold border border-border transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
                 style={{
                   background: '#4A5B66',
                 }}
@@ -184,33 +188,33 @@ export function Header() {
                 <div
                   className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50 animate-fade-in"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(26,29,36,0.95) 0%, rgba(18,18,20,0.95) 100%)',
-                    border: '1px solid rgba(52,211,153,0.2)',
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
                     backdropFilter: 'blur(12px)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(52,211,153,0.08)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15), 0 0 20px rgba(52,211,153,0.04)',
                   }}
                 >
                   {/* User Details */}
                   <div className="px-3.5 py-2.5 border-b border-border/85 mb-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-black text-white truncate">{profile.full_name}</p>
+                      <p className="text-xs font-black text-foreground truncate">{profile.full_name}</p>
                       {isCR && (
-                        <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                        <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300">
                           <Shield className="w-2 h-2" />
                           {profile.role}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-400 truncate mt-0.5">{profile.email}</p>
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">{profile.email}</p>
                   </div>
 
                   {/* Navigation Items */}
                   <Link
                     href={`${prefix}/profile`}
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-emerald-500/10 rounded-xl transition-all"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all"
                   >
-                    <User className="w-3.5 h-3.5 text-emerald-400" />
+                    <User className="w-3.5 h-3.5 text-emerald-500" />
                     My Profile
                   </Link>
 
@@ -240,7 +244,7 @@ export function Header() {
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-[#121214]/80 backdrop-blur-xs transition-opacity"
+            className="absolute inset-0 bg-background/85 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{
               opacity: isSwiping ? Math.max(0, 1 - swipeTranslation / 220) : undefined,
@@ -257,7 +261,7 @@ export function Header() {
               transform: isSwiping ? `translateX(-${swipeTranslation}px)` : undefined,
               transition: isSwiping ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
-            className="absolute left-0 top-0 bottom-0 w-64 bg-[#121214] border-r border-[#23262D] p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] flex flex-col justify-between slide-in-left-animation"
+            className="absolute left-0 top-0 bottom-0 w-64 bg-card border-r border-border p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] flex flex-col justify-between slide-in-left-animation"
           >
             <style jsx>{`
               .slide-in-left-animation {
@@ -271,13 +275,13 @@ export function Header() {
             
             <div className="space-y-6">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-[#23262D] pb-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 {/* Mobile drawer logo → landing page (marketing) */}
                 <Link
                   href="/"
                   prefetch={false}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 text-lg font-bold text-white cursor-pointer"
+                  className="flex items-center gap-2.5 text-lg font-bold text-foreground cursor-pointer"
                 >
                   <div
                     className="flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
@@ -293,7 +297,7 @@ export function Header() {
                 </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -309,10 +313,10 @@ export function Header() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                      className={`px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all border cursor-pointer ${
                         isActive
-                          ? 'bg-[#34D399]/10 text-white border border-[#34D399]/20'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                          ? 'bg-zinc-100 dark:bg-zinc-800/60 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent border-transparent'
                       }`}
                     >
                       {item.label}
@@ -323,7 +327,7 @@ export function Header() {
             </div>
 
             {/* Footer with manual + signout */}
-            <div className="border-t border-[#23262D] pt-4 flex flex-col gap-1">
+            <div className="border-t border-border pt-4 flex flex-col gap-1">
               <button
                 onClick={handleSignOut}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"

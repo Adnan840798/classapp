@@ -13,39 +13,59 @@ import type { Deadline } from '@/types';
 
 const colorThemes = {
   red: {
-    bg: 'linear-gradient(90deg, rgba(239,68,68,0.09) 0%, rgba(26,29,36,0.65) 100%)',
-    border: '1px solid rgba(239,68,68,0.28)',
-    accent: 'linear-gradient(180deg, #ef4444, #f87171)',
-    badgeBg: 'rgba(239,68,68,0.15)', badgeBorder: '1px solid rgba(239,68,68,0.3)', badgeText: '#f87171',
-    iconColor: 'text-red-400', iconBg: 'rgba(239,68,68,0.12)', iconBorder: '1px solid rgba(239,68,68,0.2)',
+    cardBgClass: 'bg-gradient-to-r from-red-500/[0.18] to-card border-red-500/60 dark:from-red-500/[0.22] dark:to-card/40 dark:border-red-500/55',
+    accent: 'linear-gradient(180deg, #ef4444, #be123c)',
+    subjectBadgeClass: 'bg-red-500/[0.03] dark:bg-red-500/25 border border-red-500/10 text-rose-950 dark:text-rose-300 font-bold',
+    subjectIconColor: 'text-zinc-555 dark:text-rose-400',
+    iconBgClass: 'bg-red-500/[0.03] dark:bg-red-500/20 border border-red-500/10',
+    iconColorClass: 'text-zinc-700 dark:text-red-400',
+    badgeBgClass: 'bg-red-500/[0.03] dark:bg-red-500/25 border border-red-500/10',
+    badgeTextColor: 'text-rose-950 dark:text-rose-300',
+    btnClass: 'text-rose-950 dark:text-rose-300 border border-red-500/15 bg-red-500/[0.01] dark:bg-red-950/15 hover:bg-red-500/10',
   },
   yellow: {
-    bg: 'linear-gradient(90deg, rgba(245,158,11,0.07) 0%, rgba(26,29,36,0.65) 100%)',
-    border: '1px solid rgba(245,158,11,0.22)',
-    accent: 'linear-gradient(180deg, #f59e0b, #fbbf24)',
-    badgeBg: 'rgba(245,158,11,0.12)', badgeBorder: '1px solid rgba(245,158,11,0.25)', badgeText: '#fbbf24',
-    iconColor: 'text-amber-400', iconBg: 'rgba(245,158,11,0.1)', iconBorder: '1px solid rgba(245,158,11,0.18)',
+    cardBgClass: 'bg-gradient-to-r from-amber-500/[0.18] to-card border-amber-500/60 dark:from-amber-500/[0.22] dark:to-card/40 dark:border-amber-500/55',
+    accent: 'linear-gradient(180deg, #f59e0b, #d97706)',
+    subjectBadgeClass: 'bg-amber-500/[0.03] dark:bg-amber-500/25 border border-amber-500/10 text-amber-950 dark:text-amber-300 font-bold',
+    subjectIconColor: 'text-zinc-555 dark:text-amber-400',
+    iconBgClass: 'bg-amber-500/[0.03] dark:bg-amber-500/20 border border-amber-500/10',
+    iconColorClass: 'text-zinc-700 dark:text-amber-400',
+    badgeBgClass: 'bg-amber-500/[0.03] dark:bg-amber-500/25 border border-amber-500/10',
+    badgeTextColor: 'text-amber-950 dark:text-amber-300',
+    btnClass: 'text-amber-950 dark:text-amber-300 border border-amber-500/15 bg-amber-500/[0.01] dark:bg-amber-950/15 hover:bg-amber-500/10',
   },
   green: {
-    bg: 'linear-gradient(90deg, rgba(16,185,129,0.06) 0%, rgba(26,29,36,0.65) 100%)',
-    border: '1px solid rgba(16,185,129,0.2)',
-    accent: 'linear-gradient(180deg, #10b981, #34d399)',
-    badgeBg: 'rgba(16,185,129,0.1)', badgeBorder: '1px solid rgba(16,185,129,0.22)', badgeText: '#34d399',
-    iconColor: 'text-emerald-400', iconBg: 'rgba(16,185,129,0.08)', iconBorder: '1px solid rgba(16,185,129,0.18)',
+    cardBgClass: 'bg-gradient-to-r from-emerald-500/[0.18] to-card border-emerald-500/60 dark:from-emerald-500/[0.22] dark:to-card/40 dark:border-emerald-500/55',
+    accent: 'linear-gradient(180deg, #10b981, #059669)',
+    subjectBadgeClass: 'bg-emerald-500/[0.03] dark:bg-emerald-500/25 border border-emerald-500/10 text-emerald-950 dark:text-emerald-300 font-bold',
+    subjectIconColor: 'text-zinc-555 dark:text-emerald-400',
+    iconBgClass: 'bg-emerald-500/[0.03] dark:bg-emerald-500/20 border border-emerald-500/10',
+    iconColorClass: 'text-zinc-700 dark:text-emerald-400',
+    badgeBgClass: 'bg-emerald-500/[0.03] dark:bg-emerald-500/25 border border-emerald-500/10',
+    badgeTextColor: 'text-emerald-950 dark:text-emerald-300',
+    btnClass: 'text-emerald-950 dark:text-emerald-300 border border-emerald-500/15 bg-emerald-500/[0.01] dark:bg-emerald-950/15 hover:bg-emerald-500/10',
   },
   gray: {
-    bg: 'rgba(26,29,36,0.4)',
-    border: '1px solid rgba(148,163,184,0.12)',
-    accent: 'linear-gradient(180deg, #64748b, #94a3b8)',
-    badgeBg: 'rgba(148,163,184,0.08)', badgeBorder: '1px solid rgba(148,163,184,0.15)', badgeText: '#94a3b8',
-    iconColor: 'text-slate-400', iconBg: 'rgba(148,163,184,0.06)', iconBorder: '1px solid rgba(148,163,184,0.12)',
+    cardBgClass: 'bg-gradient-to-r from-muted/30 to-card border-border dark:from-muted/10 dark:to-card/40',
+    accent: 'linear-gradient(180deg, #71717a, #3f3f46)',
+    subjectBadgeClass: 'bg-muted border border-border text-zinc-800 dark:text-zinc-300 font-bold',
+    subjectIconColor: 'text-zinc-500 dark:text-zinc-400',
+    iconBgClass: 'bg-muted border border-border',
+    iconColorClass: 'text-zinc-700 dark:text-zinc-400',
+    badgeBgClass: 'bg-muted border border-border',
+    badgeTextColor: 'text-zinc-800 dark:text-zinc-300',
+    btnClass: 'text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40',
   },
   selected: {
-    bg: 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, rgba(26,29,36,0.65) 100%)',
-    border: '1px solid rgba(244, 63, 94, 0.4)',
+    cardBgClass: 'bg-gradient-to-r from-rose-500/[0.04] to-card border-rose-500/30 dark:from-rose-500/[0.08] dark:to-card/40 dark:border-rose-500/40',
     accent: 'linear-gradient(180deg, #f43f5e, #be123c)',
-    badgeBg: 'rgba(244,63,94,0.15)', badgeBorder: '1px solid rgba(244,63,94,0.3)', badgeText: '#f43f5e',
-    iconColor: 'text-rose-400', iconBg: 'rgba(244,63,94,0.12)', iconBorder: '1px solid rgba(244, 63, 94, 0.25)',
+    subjectBadgeClass: 'bg-rose-500/[0.03] dark:bg-rose-500/25 border border-rose-500/10 text-rose-950 dark:text-rose-300 font-bold',
+    subjectIconColor: 'text-zinc-555 dark:text-rose-400',
+    iconBgClass: 'bg-rose-500/[0.03] dark:bg-rose-500/20 border border-rose-500/10',
+    iconColorClass: 'text-zinc-700 dark:text-rose-400',
+    badgeBgClass: 'bg-rose-500/[0.03] dark:bg-rose-500/25 border border-rose-500/10',
+    badgeTextColor: 'text-rose-950 dark:text-rose-300',
+    btnClass: 'text-rose-950 dark:text-rose-300 border border-rose-500/15 bg-rose-50/10 dark:bg-rose-950/15 hover:bg-rose-500/10',
   },
 };
 
@@ -149,8 +169,8 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
             onClick={toggleSelectMode}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
               selectMode
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-                : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
             }`}
           >
             {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
@@ -177,10 +197,8 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
               onTouchEnd={handleTouchEnd}
               className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
                 selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-              }`}
+              } ${theme.cardBgClass} border`}
               style={{
-                background: theme.bg,
-                border: theme.border,
                 boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
               }}
             >
@@ -195,39 +213,39 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
                           <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                        <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/50 transition-colors flex items-center justify-center" />
                       )}
                     </div>
                   )}
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: theme.iconBg, border: theme.iconBorder }}>
-                    <Clock className={`w-5 h-5 ${theme.iconColor}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${theme.iconBgClass}`}>
+                    <Clock className={`w-5 h-5 ${theme.iconColorClass}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                      <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-slate-800/40 border border-slate-700/50 text-[#94a3b8] flex items-center gap-1">
-                        <BookOpen className="w-2.5 h-2.5 text-emerald-400" />{deadline.subject}
+                      <span className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1 ${theme.subjectBadgeClass}`}>
+                        <BookOpen className={`w-2.5 h-2.5 ${theme.subjectIconColor}`} />{deadline.subject}
                       </span>
-                      <h3 className="text-sm font-extrabold text-white break-words leading-snug">{deadline.title}</h3>
+                      <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">{deadline.title}</h3>
                     </div>
                     {deadline.description && (
-                      <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">{deadline.description}</p>
+                      <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">{deadline.description}</p>
                     )}
                   </div>
                 </div>
 
                 {!selectMode && (
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
                     <div className="flex flex-col items-start sm:items-end gap-1.5">
-                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5 whitespace-nowrap">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold flex items-center gap-1.5 whitespace-nowrap">
+                        <Calendar className="w-3.5 h-3.5 text-muted-foreground/80 flex-shrink-0" />
                         <span>Due: {formatDateTime(deadline.due_date)}</span>
                       </p>
-                      <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded leading-none w-fit" style={{ background: theme.badgeBg, border: theme.badgeBorder, color: theme.badgeText }}>
+                      <span className={`text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full leading-none w-fit ${theme.badgeBgClass} ${theme.badgeTextColor}`}>
                         {formatDaysRemaining(deadline.daysRemaining)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Link href={`/cr/deadlines/${deadline.id}`} className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap">
+                      <Link href={`/cr/deadlines/${deadline.id}`} className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${theme.btnClass}`}>
                         Question &amp; Answer<ArrowRight className="w-3 h-3 flex-shrink-0" />
                       </Link>
                       <EditDeadlineModal deadline={deadline} />

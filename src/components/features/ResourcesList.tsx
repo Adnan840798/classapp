@@ -109,7 +109,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
       <div className="flex flex-col gap-5 w-full">
       {/* Filter tabs + Select button */}
       <div className="flex items-center justify-between gap-4 w-full">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl border border-white/[0.06] bg-white/[0.03] w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-muted/40 w-full sm:w-auto">
           {(['all', 'private', 'public'] as const).map((type) => (
             <button
               key={type}
@@ -117,7 +117,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
               className={`flex-1 sm:flex-none text-center px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer whitespace-nowrap ${
                 filter === type
                   ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
               }`}
             >
               {type === 'all' ? 'All' : type === 'private' ? 'Private' : 'Public'}
@@ -130,8 +130,8 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
             onClick={toggleSelectMode}
             className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
               selectMode
-                ? 'bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-950/60'
-                : 'border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
             }`}
           >
             {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
@@ -167,16 +167,16 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                 }`}
                 style={{
                   background: isSelected
-                    ? 'linear-gradient(90deg, rgba(127,29,29,0.08) 0%, rgba(26,29,36,0.65) 100%)'
+                    ? 'linear-gradient(90deg, rgba(239,68,68,0.06) 0%, hsl(var(--card)) 100%)'
                     : isPublic
-                      ? 'linear-gradient(90deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.65) 100%)'
-                      : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
+                      ? 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, hsl(var(--card)) 100%)'
+                      : 'linear-gradient(90deg, hsl(var(--muted)/0.15) 0%, hsl(var(--card)) 100%)',
                   border: isSelected
-                    ? '1px solid rgba(127, 29, 29, 0.35)'
+                    ? '1px solid rgba(239, 68, 68, 0.3)'
                     : isPublic
-                      ? '1px solid rgba(52,211,153,0.25)'
-                      : '1px solid rgba(148,163,184,0.13)',
-                  boxShadow: isSelected ? '0 0 14px rgba(127, 29, 29, 0.08)' : undefined,
+                      ? '1px solid hsl(var(--primary) / 0.28)'
+                      : '1px solid hsl(var(--border))',
+                  boxShadow: isSelected ? '0 0 14px rgba(239, 68, 68, 0.08)' : undefined,
                 }}
               >
                 {/* Left accent bar */}
@@ -184,10 +184,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background: isSelected
-                      ? 'linear-gradient(180deg, #7f1d1d, #3f0505)'
+                      ? 'linear-gradient(180deg, #ef4444, #be123c)'
                       : isPublic
                         ? 'linear-gradient(180deg, #34D399, #059669)'
-                        : 'linear-gradient(180deg, #475569, #1e293b)',
+                        : 'linear-gradient(180deg, #71717a, #3f3f46)',
                   }}
                 />
 
@@ -198,11 +198,11 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                     {selectMode && (
                       <div className="flex-shrink-0 mt-2.5">
                         {isSelected ? (
-                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-red-700 to-red-950 flex items-center justify-center text-white shadow-[0_0_10px_rgba(127,29,29,0.35)] border border-red-900/20">
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-400/20">
                             <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                           </div>
                         ) : (
-                          <div className="w-5 h-5 rounded-md border border-slate-700 bg-white/[0.02] hover:border-slate-500 transition-colors flex items-center justify-center" />
+                          <div className="w-5 h-5 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/50 transition-colors flex items-center justify-center" />
                         )}
                       </div>
                     )}
@@ -211,55 +211,55 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{
                         background: isSelected
-                          ? 'rgba(127, 29, 29, 0.12)'
+                          ? 'rgba(239, 68, 68, 0.1)'
                           : isPublic
-                            ? 'rgba(52,211,153,0.12)'
-                            : 'rgba(148,163,184,0.08)',
+                            ? 'rgba(16,185,129,0.1)'
+                            : 'hsl(var(--muted) / 0.3)',
                         border: isSelected
-                          ? '1px solid rgba(127, 29, 29, 0.25)'
+                          ? '1px solid rgba(239, 68, 68, 0.25)'
                           : isPublic
-                            ? '1px solid rgba(52,211,153,0.25)'
-                            : '1px solid rgba(148,163,184,0.15)',
+                            ? '1px solid hsl(var(--primary) / 0.25)'
+                            : '1px solid hsl(var(--border))',
                       }}
                     >
-                      <FileText className={`w-4 h-4 ${isSelected ? 'text-red-400' : isPublic ? 'text-emerald-400' : 'text-slate-400'}`} />
+                      <FileText className={`w-4 h-4 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isPublic ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                      <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
                         {note.title}
                       </h3>
                       {note.content && (
-                        <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words line-clamp-3 mt-1">
+                        <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed break-words line-clamp-3 mt-1">
                           {note.content}
                         </p>
                       )}
 
                       {/* Metadata: badge + creator + timestamp */}
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2 text-[10px] text-slate-500 font-medium">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2 text-[10px] text-muted-foreground font-medium">
                         {isOwner ? (
                           note.is_pending ? (
-                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-zinc-800 dark:text-zinc-300">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                               Pending Approval
                             </span>
                           ) : isPublic ? (
-                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-zinc-800 dark:text-zinc-300">
                               <Globe className="w-2.5 h-2.5" />
                               Public
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-500/10 border border-slate-500/20 text-slate-400">
+                            <span className="inline-flex items-center gap-1 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted border border-border text-muted-foreground">
                               <Lock className="w-2.5 h-2.5" />
                               Private
                             </span>
                           )
                         ) : (
-                          <span className="text-[10px] text-slate-400 font-bold">
+                          <span className="text-[10px] text-muted-foreground font-bold">
                             {note.creator?.full_name || 'Classmate'}
                           </span>
                         )}
-                        <span className="text-slate-700">•</span>
+                        <span className="text-muted-foreground/45">•</span>
                         <span>{formatDateTime(note.updated_at)}</span>
                       </div>
                     </div>
@@ -267,7 +267,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
 
                   {/* ── Right section: drive + edit/delete ── */}
                   {!selectMode && (
-                    <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                    <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-border/50 sm:border-0">
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         {/* Drive link — always shown when present */}
@@ -277,7 +277,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                             target="_blank"
                             rel="noopener noreferrer"
                             title="Open Google Drive"
-                            className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-sky-400 border border-sky-400/25 bg-sky-400/8 hover:bg-sky-400/15 transition-all cursor-pointer"
+                            className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-sky-600 dark:text-sky-400 border border-sky-400/20 dark:border-sky-400/25 bg-sky-500/5 hover:bg-sky-500/10 transition-all cursor-pointer"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span className="ml-1">View</span>
@@ -290,7 +290,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                             <Link
                               href={`${notesPath}/${note.id}`}
                               title="Edit Resource"
-                              className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:text-white border border-white/[0.08] hover:bg-white/[0.04] transition-all"
+                              className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                               <span className="hidden sm:inline ml-1">Edit</span>

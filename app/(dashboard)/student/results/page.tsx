@@ -41,8 +41,8 @@ export default async function StudentResultsPage() {
               key={res.id}
               className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
               style={{
-                background: '#1A1D24',
-                border: '1px solid #23262D',
+                background: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
               }}
             >
               <div
@@ -57,18 +57,18 @@ export default async function StudentResultsPage() {
                     <Award className="w-4 h-4 text-brand-cyan" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                    <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
                       {res.exam_name}
                     </h3>
-                    <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                    <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5 mt-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground/80" />
                       <span>Published: {formatDateTime(res.published_at)}</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Right section: Attachment Link */}
-                <div className="flex items-center justify-end gap-4 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-white/[0.04] sm:border-0">
+                <div className="flex items-center justify-end gap-4 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-border/50 sm:border-0">
                   <div className="flex items-center gap-2 sm:min-w-[140px] sm:justify-end w-full sm:w-auto justify-end">
                     {res.result_sheet_url ? (
                       <AttachmentViewer url={res.result_sheet_url} fileName={`${res.exam_name}_results`}>
@@ -82,7 +82,7 @@ export default async function StudentResultsPage() {
                         </button>
                       </AttachmentViewer>
                     ) : (
-                      <span className="text-[10px] text-slate-600 italic">No attachment</span>
+                      <span className="text-[10px] text-muted-foreground/60 italic">No attachment</span>
                     )}
                   </div>
                 </div>

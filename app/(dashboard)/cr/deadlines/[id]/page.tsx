@@ -72,7 +72,7 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
       </div>
 
       {/* Deadline Details Card */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl shadow-xl border border-white/[0.06] bg-slate-900/40">
+      <div className="glass-card p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl shadow-xl border border-border bg-card">
         {/* Card Accent Line */}
         <div className="absolute top-0 left-0 w-full h-[4px]" style={{
           background: enriched.color === 'red' ? 'linear-gradient(90deg, #ef4444, #f87171)' : 
@@ -81,17 +81,17 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
         }} />
 
         {/* Header section with course and remaining text */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border">
           <div className="flex items-center flex-wrap">
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-sky-400 tracking-wider">
-              <BookOpen className="w-3.5 h-3.5 text-sky-400" />
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 tracking-wider">
+              <BookOpen className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               {enriched.subject}
             </span>
-            <span className="text-slate-600 mx-2 select-none">•</span>
+            <span className="text-muted-foreground/60 mx-2 select-none">•</span>
             <span className={`text-[11px] font-semibold ${
-              enriched.color === 'red' ? 'text-red-400' :
-              enriched.color === 'yellow' ? 'text-amber-400' :
-              enriched.color === 'green' ? 'text-emerald-400' : 'text-zinc-400'
+              enriched.color === 'red' ? 'text-zinc-800 dark:text-rose-300' :
+              enriched.color === 'yellow' ? 'text-zinc-800 dark:text-amber-300' :
+              enriched.color === 'green' ? 'text-zinc-800 dark:text-emerald-300' : 'text-zinc-500 dark:text-zinc-400'
             }`}>
               {formatDaysRemaining(enriched.daysRemaining)}
             </span>
@@ -104,37 +104,37 @@ export default async function CRDeadlineDetailPage({ params }: CRDeadlineDetailP
 
         {/* Content section */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">
             {enriched.title}
           </h2>
           {enriched.description ? (
-            <div className="bg-white/[0.02] border-l-3 border-emerald-500/40 p-4 rounded-r-xl text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line shadow-inner">
+            <div className="bg-muted/10 border-l-3 border-emerald-500/40 p-4 rounded-r-xl text-zinc-800 dark:text-zinc-200 text-sm sm:text-base leading-relaxed whitespace-pre-line shadow-inner">
               {enriched.description}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground italic bg-white/[0.01] p-3 rounded-lg border border-white/[0.04]">
+            <p className="text-xs text-muted-foreground italic bg-muted/5 p-3 rounded-lg border border-border">
               No additional description provided.
             </p>
           )}
         </div>
 
         {/* Footer info: Due Date */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-4 border-t border-white/[0.06]">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300 font-medium">
-            <Calendar className="w-4.5 h-4.5 text-rose-400" />
-            <span>Due Date: <strong className="text-white font-semibold">{formatDateTime(enriched.due_date)}</strong></span>
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-2 pt-4 border-t border-border">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground font-medium">
+            <Calendar className="w-4.5 h-4.5 text-rose-500" />
+            <span>Due Date: <strong className="text-foreground font-semibold">{formatDateTime(enriched.due_date)}</strong></span>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-white/[0.08] pt-6 mt-4">
+      <div className="border-t border-border pt-6 mt-4">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
-            <HelpCircle className="w-5.5 h-5.5 text-emerald-400" />
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2.5">
+            <HelpCircle className="w-5.5 h-5.5 text-zinc-500 dark:text-zinc-400" />
             <span>
               Questions
               {questions.length > 0 && (
-                <span className="text-slate-400 font-normal text-sm ml-2">
+                <span className="text-muted-foreground font-normal text-sm ml-2">
                   • {questions.length}
                 </span>
               )}

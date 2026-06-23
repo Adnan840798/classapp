@@ -103,7 +103,7 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
               setError(null);
               setIsUploadOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 border border-[#23262D] text-slate-300 hover:text-white bg-[#1A1D24] hover:bg-[#23262D] font-semibold rounded-xl transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 border border-border text-muted-foreground hover:text-foreground bg-card hover:bg-accent font-semibold rounded-xl transition-all cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             Add Routine
@@ -180,7 +180,7 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
       return (
         <button
           disabled
-          className="flex items-center gap-2 px-4 py-2 border border-[#23262D] text-slate-500 bg-[#121214] font-semibold rounded-xl cursor-not-allowed opacity-60"
+          className="flex items-center gap-2 px-4 py-2 border border-border text-muted-foreground/60 bg-muted/50 font-semibold rounded-xl cursor-not-allowed opacity-60"
         >
           <CalendarDays className="w-4 h-4" />
           Routine Unavailable
@@ -196,9 +196,9 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
           setError(null);
           setIsModalOpen(true);
         }}
-        className="group flex items-center gap-2.5 pl-2 pr-4 py-1.5 border border-brand-cyan/30 hover:border-brand-cyan/50 bg-brand-cyan/10 hover:bg-brand-cyan/20 rounded-xl transition-all cursor-pointer select-none active:scale-98"
+        className="group flex items-center gap-2.5 pl-2 pr-4 py-1.5 border border-sky-500/30 hover:border-sky-500/50 bg-sky-500/10 hover:bg-sky-500/20 rounded-xl transition-all cursor-pointer select-none active:scale-98"
       >
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-brand-cyan/20 bg-[#121214] flex-shrink-0">
+        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-sky-500/20 bg-background flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={resolvedImageUrl || undefined}
@@ -206,7 +206,7 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
             className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200"
           />
         </div>
-        <span className="text-brand-cyan group-hover:text-white font-semibold text-sm transition-colors">
+        <span className="text-sky-700 dark:text-brand-cyan group-hover:text-sky-850 dark:group-hover:text-white font-semibold text-sm transition-colors">
           Class Routine
         </span>
       </button>

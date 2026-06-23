@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ProfileProvider } from '@/context/ProfileContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { InAppNotificationStack } from '@/components/ui/InAppNotificationStack';
@@ -145,11 +146,12 @@ export default async function RootPage() {
           >
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-lg text-white">
+          <span className="font-bold text-lg text-foreground">
             Class<span className="text-[#34D399]">App</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <LandingHeaderActions profile={profile} dashboardUrl={dashboardUrl} />
         </div>
       </header>
@@ -157,7 +159,7 @@ export default async function RootPage() {
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="flex flex-col items-center justify-center text-center py-14 sm:py-20 md:py-24 px-5 max-w-4xl mx-auto w-full">
 
-        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-white">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-foreground">
           Everything your class needs.{' '}
           <span
             style={{
@@ -169,7 +171,7 @@ export default async function RootPage() {
             In one place.
           </span>
         </h1>
-        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl leading-relaxed px-2">
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed px-2">
           A private academic management portal built for university classes and giving
           students real-time access to their schedule, deadlines, results, announcements and more.
         </p>
@@ -187,7 +189,7 @@ export default async function RootPage() {
           </Link>
           <a
             href="#get-classapp"
-            className="text-xs font-medium text-slate-500 hover:text-slate-300 transition-colors underline underline-offset-4 decoration-slate-700 hover:decoration-slate-400"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-muted hover:decoration-foreground/60"
           >
             Get ClassApp for your class &rarr;
           </a>
@@ -197,10 +199,10 @@ export default async function RootPage() {
       {/* ── Feature Grid ────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-14 pb-16 sm:pb-24">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground">
             Built for the way your class actually works
           </h2>
-          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto px-4">
+          <p className="text-sm text-muted-foreground mt-2 max-w-xl mx-auto px-4">
             Every feature is purpose-built for academic class management — nothing generic, nothing bloated.
           </p>
         </div>
@@ -221,8 +223,8 @@ export default async function RootPage() {
                   <Icon className="w-5 h-5" style={{ color: f.color }} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">{f.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-sm font-bold text-foreground">{f.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             );
@@ -233,10 +235,10 @@ export default async function RootPage() {
       {/* ── User Manuals ──────────────────────────────────── */}
       <section className="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-14 pb-16 sm:pb-24">
         <div className="text-center mb-8">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-foreground">
             Learn how to use ClassApp
           </h2>
-          <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto">
+          <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
             Comprehensive guides for both students and class representatives.
           </p>
         </div>
@@ -244,28 +246,23 @@ export default async function RootPage() {
           {/* Student Guide */}
           <Link
             href="/manual/student"
-            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.12)]"
-            style={{
-              background: 'linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.7) 100%)',
-              border: '1px solid rgba(52,211,153,0.22)',
-            }}
+            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.08)] bg-gradient-to-br from-emerald-500/[0.04] to-card dark:from-emerald-500/[0.08] dark:to-card/40 border border-emerald-500/15 dark:border-emerald-500/25"
           >
             <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
               style={{ background: 'rgba(52,211,153,0.12)' }} />
             <div className="flex items-center gap-3 relative">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.3)' }}>
-                <BookOpen className="w-5 h-5 text-emerald-400" />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30">
+                <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Student Guide</p>
-                <p className="text-xs text-slate-400 mt-0.5">Everything you can do as a student</p>
+                <p className="text-sm font-bold text-foreground">Student Guide</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Everything you can do as a student</p>
               </div>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed relative">
+            <p className="text-xs text-muted-foreground/80 leading-relaxed relative">
               Timelines, deadlines, announcements, Q&amp;A threads, results, and resource downloads — all explained.
             </p>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors relative">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors relative">
               View Student Manual <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -273,28 +270,23 @@ export default async function RootPage() {
           {/* CR Guide */}
           <Link
             href="/manual/cr"
-            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.12)]"
-            style={{
-              background: 'linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(26,29,36,0.7) 100%)',
-              border: '1px solid rgba(52,211,153,0.22)',
-            }}
+            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.08)] bg-gradient-to-br from-emerald-500/[0.04] to-card dark:from-emerald-500/[0.08] dark:to-card/40 border border-emerald-500/15 dark:border-emerald-500/25"
           >
             <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
               style={{ background: 'rgba(52,211,153,0.12)' }} />
             <div className="flex items-center gap-3 relative">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.28)' }}>
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">CR Guide</p>
-                <p className="text-xs text-slate-400 mt-0.5">Full control as a Class Representative</p>
+                <p className="text-sm font-bold text-foreground">CR Guide</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Full control as a Class Representative</p>
               </div>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed relative">
+            <p className="text-xs text-muted-foreground/80 leading-relaxed relative">
               Managing timelines, posting announcements, publishing results, and administering student accounts — fully documented.
             </p>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors relative">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors relative">
               View CR Manual <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -307,13 +299,7 @@ export default async function RootPage() {
         className="max-w-4xl mx-auto w-full px-6 lg:px-14 pb-28"
       >
         <div
-          className="relative rounded-3xl overflow-hidden p-8 md:p-12 flex flex-col md:flex-row gap-10 md:gap-16 items-start"
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(26,29,36,0.9) 0%, rgba(18,20,28,0.95) 100%)',
-            border: '1px solid rgba(52,211,153,0.18)',
-            boxShadow: '0 0 80px rgba(52,211,153,0.05), 0 20px 60px rgba(0,0,0,0.4)',
-          }}
+          className="relative rounded-3xl overflow-hidden p-8 md:p-12 flex flex-col md:flex-row gap-10 md:gap-16 items-start bg-gradient-to-br from-zinc-900 to-zinc-950 border border-emerald-500/20 shadow-2xl"
         >
           {/* Glow */}
           <div
@@ -356,11 +342,7 @@ export default async function RootPage() {
 
           {/* Right: Contact Card */}
           <div
-            className="relative w-full md:w-72 flex-shrink-0 rounded-2xl p-6 flex flex-col gap-5"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
-            }}
+            className="relative w-full md:w-72 flex-shrink-0 rounded-2xl p-6 flex flex-col gap-5 bg-white/5 border border-white/10"
           >
             <div className="flex flex-col gap-1">
               <p className="text-sm font-extrabold text-white">Send a request</p>
@@ -404,17 +386,16 @@ export default async function RootPage() {
 
       {/* ── Footer ─────────────────────────────────────── */}
       <footer
-        className="w-full border-t flex-shrink-0 mt-auto"
-        style={{ background: '#0e1012', borderColor: '#1a1d24' }}
+        className="w-full border-t border-border flex-shrink-0 mt-auto bg-muted/20 dark:bg-[#0e1012]"
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/" className="flex items-center gap-2">
-            <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-[11px] font-bold text-slate-500">
-              Class<span className="text-emerald-500">App</span>
+            <GraduationCap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Class<span className="text-emerald-600 dark:text-emerald-400">App</span>
             </span>
           </Link>
-          <span className="text-[10px] font-medium text-slate-700">
+          <span className="text-[10px] font-medium text-muted-foreground/75">
             &copy; {new Date().getFullYear()} ClassApp. All rights reserved.
           </span>
         </div>

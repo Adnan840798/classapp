@@ -191,10 +191,10 @@ export function UserManual({ role }: { role: Role }) {
             <BookOpen className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-white">
+            <h1 className="text-xl font-black text-foreground">
               {role === 'cr' ? 'ClassApp for Representatives' : 'ClassApp for Students'}
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {role === 'cr'
                 ? 'Everything you can do as a Class Representative — and what the app does automatically.'
                 : 'A complete guide to features built to keep you informed and on top of your academics.'}
@@ -213,7 +213,7 @@ export function UserManual({ role }: { role: Role }) {
           return (
             <div
               key={idx}
-              className="relative glass-card overflow-hidden flex flex-col gap-4 p-5 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+              className="relative glass-card overflow-hidden flex flex-col gap-4 p-5 border border-border hover:border-border/80 transition-all duration-200"
             >
               {/* Subtle gradient overlay */}
               <div
@@ -224,18 +224,21 @@ export function UserManual({ role }: { role: Role }) {
               <div className="relative flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: `${card.color}18`, border: `1px solid ${card.color}35` }}
+                  style={{
+                    background: `color-mix(in srgb, ${card.color} 10%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${card.color} 25%, transparent)`
+                  }}
                 >
                   <Icon className="w-5 h-5" style={{ color: card.color }} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white leading-snug">{card.title}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{card.subtitle}</p>
+                  <h3 className="text-sm font-bold text-foreground leading-snug">{card.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{card.subtitle}</p>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="relative h-px bg-white/5" />
+              <div className="relative h-px bg-border/60" />
 
               {/* Feature bullets */}
               <div className="relative flex flex-col gap-3">
@@ -246,8 +249,8 @@ export function UserManual({ role }: { role: Role }) {
                       style={{ color: card.color }}
                     />
                     <div>
-                      <span className="text-xs font-semibold text-white">{feature.label} — </span>
-                      <span className="text-xs text-slate-400 leading-relaxed">{feature.description}</span>
+                      <span className="text-xs font-semibold text-foreground">{feature.label} — </span>
+                      <span className="text-xs text-muted-foreground leading-relaxed">{feature.description}</span>
                     </div>
                   </div>
                 ))}
@@ -260,21 +263,16 @@ export function UserManual({ role }: { role: Role }) {
       {/* Telegram callout (only for CR) */}
       {role === 'cr' && (
         <div
-          className="flex items-start gap-3 px-5 py-4 rounded-2xl border"
-          style={{
-            background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(29,78,216,0.04))',
-            borderColor: 'rgba(59,130,246,0.2)'
-          }}
+          className="flex items-start gap-3 px-5 py-4 rounded-2xl border bg-gradient-to-br from-blue-500/[0.04] to-card border-blue-500/15 dark:border-blue-500/25"
         >
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 dark:border-blue-500/30"
           >
-            <Send className="w-4 h-4 text-blue-400" />
+            <Send className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">Telegram Channel Integration</p>
-            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+            <p className="text-sm font-bold text-foreground">Telegram Channel Integration</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
               Connect your class Telegram channel once from settings, and every announcement you post inside ClassApp will automatically be forwarded to the channel — keeping students notified whether they check the app or Telegram first.
             </p>
           </div>
@@ -282,9 +280,9 @@ export function UserManual({ role }: { role: Role }) {
       )}
 
       {/* Footer */}
-      <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl border border-white/5 bg-white/[0.01]">
-        <Smartphone className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-slate-500 leading-relaxed">
+      <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl border border-border/60 bg-muted/20">
+        <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
           ClassApp is fully optimized for Android smartphones and runs as a native installed app. Install the APK provided by your class administrator for the best experience and instant push notifications.
         </p>
       </div>

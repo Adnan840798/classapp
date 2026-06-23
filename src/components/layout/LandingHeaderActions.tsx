@@ -47,7 +47,7 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     return (
       <Link
         href="/login"
-        className="text-xs sm:text-sm font-semibold bg-[#23262D]/40 hover:bg-[#23262D]/80 border border-[#23262D] text-slate-300 hover:text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
+        className="text-xs sm:text-sm font-semibold bg-muted/45 hover:bg-muted/80 border border-border text-muted-foreground hover:text-foreground px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
       >
         Sign In
       </Link>
@@ -81,40 +81,34 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50 animate-fade-in"
-          style={{
-            background: 'linear-gradient(135deg, rgba(26,29,36,0.95) 0%, rgba(18,18,20,0.95) 100%)',
-            border: '1px solid rgba(52,211,153,0.2)',
-            backdropFilter: 'blur(12px)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(52,211,153,0.08)',
-          }}
+          className="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 z-50 animate-fade-in bg-card/95 border border-border text-foreground backdrop-blur-md shadow-lg"
         >
           {/* User Details */}
-          <div className="px-3.5 py-2.5 border-b border-border/85 mb-1.5">
+          <div className="px-3.5 py-2.5 border-b border-border mb-1.5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-black text-white truncate">{profile.full_name}</p>
+              <p className="text-xs font-black text-foreground truncate">{profile.full_name}</p>
               {isCROrAdmin && (
-                <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-300">
                   <Shield className="w-2 h-2" />
                   {profile.role}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-400 truncate mt-0.5">{profile.email}</p>
+            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{profile.email}</p>
           </div>
 
           {/* Navigation Items */}
           <Link
             href={`${prefix}/profile`}
             onClick={() => setIsOpen(false)}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-emerald-500/10 rounded-xl transition-all"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-emerald-500/10 rounded-xl transition-all"
           >
-            <User className="w-3.5 h-3.5 text-emerald-400" />
+            <User className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
             My Profile
           </Link>
 
           {/* Divider */}
-          <div className="h-[1px] bg-border/85 my-1" />
+          <div className="h-[1px] bg-border my-1" />
 
           {/* Sign Out Button */}
           <button
@@ -122,7 +116,7 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
               setIsOpen(false);
               handleSignOut();
             }}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/15 rounded-xl transition-all cursor-pointer"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/15 rounded-xl transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sign Out

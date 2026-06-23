@@ -20,7 +20,7 @@ export function EditAnnouncementModal({ announcement }: EditAnnouncementModalPro
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white border border-white/[0.08] hover:bg-white/[0.04] transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground border border-border hover:bg-muted/50 transition-all cursor-pointer"
         aria-label="Edit Announcement"
       >
         <Pencil className="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ function EditAnnouncementForm({ announcement, onClose }: EditAnnouncementFormPro
         </button>
 
         <div>
-          <h3 className="text-lg font-bold text-white tracking-tight">Edit Announcement</h3>
+          <h3 className="text-lg font-bold text-foreground tracking-tight">Edit Announcement</h3>
           <p className="text-xs text-muted-foreground mt-1">Update the announcement details below.</p>
         </div>
 
@@ -97,7 +97,7 @@ function EditAnnouncementForm({ announcement, onClose }: EditAnnouncementFormPro
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-title" className="text-xs font-semibold text-slate-300">
+            <label htmlFor="edit-title" className="text-xs font-semibold text-muted-foreground">
               Announcement Title
             </label>
             <input
@@ -112,7 +112,7 @@ function EditAnnouncementForm({ announcement, onClose }: EditAnnouncementFormPro
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-body" className="text-xs font-semibold text-slate-300">
+            <label htmlFor="edit-body" className="text-xs font-semibold text-muted-foreground">
               Content Body
             </label>
             <textarea
@@ -131,7 +131,7 @@ function EditAnnouncementForm({ announcement, onClose }: EditAnnouncementFormPro
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="px-4 py-2 rounded-lg text-xs font-semibold border border-white/[0.08] hover:bg-white/[0.04] text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="px-4 py-2 rounded-lg text-xs font-semibold border border-border hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             >
               Cancel
             </button>

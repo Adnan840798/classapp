@@ -56,11 +56,11 @@ export default async function StudentAnnouncementsPage() {
           {/* Current & Upcoming Section */}
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center gap-2 px-1">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-400">Announcements</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-primary">Announcements</h2>
             </div>
 
             {upcomingAnnouncements.length === 0 ? (
-              <p className="text-xs text-slate-500 italic pl-1 py-1">
+              <p className="text-xs text-muted-foreground italic pl-1 py-1">
                 No active or upcoming announcements.
               </p>
             ) : (
@@ -73,9 +73,9 @@ export default async function StudentAnnouncementsPage() {
                       className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5 animate-fade-in"
                       style={{
                         background: isImportant
-                          ? 'linear-gradient(90deg, rgba(52,211,153,0.09) 0%, rgba(26,29,36,0.65) 100%)'
-                          : 'linear-gradient(90deg, rgba(148,163,184,0.04) 0%, rgba(26,29,36,0.45) 100%)',
-                        border: isImportant ? '1px solid rgba(52,211,153,0.28)' : '1px solid rgba(148,163,184,0.15)',
+                          ? 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, hsl(var(--card)) 100%)'
+                          : 'linear-gradient(90deg, hsl(var(--muted)/0.15) 0%, hsl(var(--card)) 100%)',
+                        border: isImportant ? '1px solid hsl(var(--primary) / 0.3)' : '1px solid hsl(var(--border))',
                       }}
                     >
                       {/* Left accent bar */}
@@ -84,7 +84,7 @@ export default async function StudentAnnouncementsPage() {
                         style={{
                           background: isImportant
                             ? 'linear-gradient(180deg, #34D399, #059669)'
-                            : 'linear-gradient(180deg, #475569, #1e293b)',
+                            : 'linear-gradient(180deg, #71717a, #3f3f46)',
                         }}
                       />
 
@@ -94,31 +94,31 @@ export default async function StudentAnnouncementsPage() {
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{
-                              background: 'rgba(52,211,153,0.12)',
-                              border: '1px solid rgba(52,211,153,0.25)',
+                              background: 'rgba(16,185,129,0.1)',
+                              border: '1px solid hsl(var(--primary) / 0.25)',
                             }}
                           >
-                            <Megaphone className="w-5 h-5 text-emerald-400" />
+                            <Megaphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                              <h3 className="text-sm font-extrabold text-white break-words leading-snug">
+                              <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
                                 {announcement.title}
                               </h3>
                             </div>
-                            <p className="text-xs text-slate-400 whitespace-pre-line leading-relaxed break-words">
+                            <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">
                               {announcement.body}
                             </p>
                           </div>
                         </div>
 
                         {/* Right section: Author/Date + Actions */}
-                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.04] sm:border-0 sm:items-end">
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
                           <div className="flex flex-col items-start sm:items-end">
-                            <span className="text-[10px] text-slate-400 font-bold leading-none">
+                            <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
                             </span>
-                            <span className="text-[9px] text-slate-500 font-medium mt-1">
+                            <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
@@ -137,7 +137,7 @@ export default async function StudentAnnouncementsPage() {
                             )}
                             <Link
                               href={`/student/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
@@ -156,7 +156,7 @@ export default async function StudentAnnouncementsPage() {
           {pastAnnouncements.length > 0 && (
             <div className="flex flex-col gap-3.5">
               <div className="flex items-center gap-2 px-1">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Past Announcements</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Past Announcements</h2>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -166,13 +166,13 @@ export default async function StudentAnnouncementsPage() {
                       key={announcement.id}
                       className="relative rounded-xl overflow-hidden transition-all duration-150 opacity-75 hover:opacity-100 animate-fade-in"
                       style={{
-                        background: 'linear-gradient(90deg, rgba(148,163,184,0.02) 0%, rgba(20,22,28,0.4) 100%)',
-                        border: '1px solid rgba(148,163,184,0.08)',
+                        background: 'linear-gradient(90deg, hsl(var(--muted)/0.08) 0%, hsl(var(--card)) 100%)',
+                        border: '1px solid hsl(var(--border))',
                       }}
                     >
                       {/* Left accent bar (slate) */}
                       <div
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-slate-700 to-slate-800"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-zinc-500 to-zinc-700"
                       />
 
                       <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -181,31 +181,31 @@ export default async function StudentAnnouncementsPage() {
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{
-                              background: 'rgba(148,163,184,0.04)',
-                              border: '1px solid rgba(148,163,184,0.08)',
+                              background: 'hsl(var(--muted) / 0.15)',
+                              border: '1px solid hsl(var(--border))',
                             }}
                           >
-                            <Megaphone className="w-5 h-5 text-slate-500" />
+                            <Megaphone className="w-5 h-5 text-muted-foreground" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                              <h3 className="text-sm font-bold text-slate-300 break-words leading-snug">
+                              <h3 className="text-sm font-bold text-foreground break-words leading-snug">
                                 {announcement.title}
                               </h3>
                             </div>
-                            <p className="text-xs text-slate-500 whitespace-pre-line leading-relaxed break-words">
+                            <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed break-words">
                               {announcement.body}
                             </p>
                           </div>
                         </div>
 
                         {/* Right section: Author/Date + Actions */}
-                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.02] sm:border-0 sm:items-end">
+                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
                           <div className="flex flex-col items-start sm:items-end">
-                            <span className="text-[10px] text-slate-500 font-bold leading-none">
+                            <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
                             </span>
-                            <span className="text-[9px] text-slate-600 font-medium mt-1">
+                            <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
@@ -215,16 +215,16 @@ export default async function StudentAnnouncementsPage() {
                               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                                 <button
                                   title="View Attachment"
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-400 border border-slate-700 bg-slate-800/40 hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
                                 >
-                                  <FileText className="w-3 h-3 flex-shrink-0 text-slate-400" />
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
                                   <span>Attachment</span>
                                 </button>
                               </AttachmentViewer>
                             )}
                             <Link
                               href={`/student/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-slate-400 border border-slate-700 bg-slate-800/20 hover:bg-slate-800/40 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />

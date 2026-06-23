@@ -474,85 +474,107 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
         .tl-scroll::-webkit-scrollbar { display: none; }
         .tl-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .week-glow {
-          border-color: #34D399 !important;
+          border-color: hsl(var(--primary)) !important;
           animation: week-glow-breathing 3s ease-in-out infinite;
         }
-        .dot-glow { box-shadow: 0 0 0 4px rgba(52,211,153,0.22), 0 0 14px 3px rgba(52,211,153,0.5); }
+        .dot-glow { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.22), 0 0 14px 3px hsl(var(--primary) / 0.5); }
         .row-glow {
-          border-color: #34D399 !important;
+          border-color: hsl(var(--primary)) !important;
           animation: row-glow-breathing 3s ease-in-out infinite;
         }
-        .info-pill { background: rgba(26,29,36,0.95); border: 1px solid #23262D; }
-        .holiday-row-glow { box-shadow: 0 0 0 1px #23262D; }
+        .info-pill {
+          background: hsl(var(--card) / 0.95);
+          border: 1px solid hsl(var(--border));
+        }
+        .holiday-row-glow { box-shadow: 0 0 0 1px hsl(var(--border)); }
         @keyframes shimmer { 0%,100% { opacity: 0.75; } 50% { opacity: 0.45; } }
         .holiday-shimmer { animation: shimmer 3s ease-in-out infinite; }
         @keyframes week-glow-breathing {
           0%, 100% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 11px 1px rgba(52,211,153,0.12), inset 0 0 10px 0 rgba(52,211,153,0.02);
+            box-shadow: 0 0 0 1.5px hsl(var(--primary)), 0 0 11px 1px hsl(var(--primary) / 0.12), inset 0 0 10px 0 hsl(var(--primary) / 0.02);
           }
           50% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 22px 2px rgba(52,211,153,0.28), inset 0 0 16px 0 rgba(52,211,153,0.06);
+            box-shadow: 0 0 0 1.5px hsl(var(--primary)), 0 0 22px 2px hsl(var(--primary) / 0.28), inset 0 0 16px 0 hsl(var(--primary) / 0.06);
           }
         }
         @keyframes row-glow-breathing {
           0%, 100% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 12px 1px rgba(52,211,153,0.12);
+            box-shadow: 0 0 0 1.5px hsl(var(--primary)), 0 0 12px 1px hsl(var(--primary) / 0.12);
           }
           50% {
-            box-shadow: 0 0 0 1.5px #34D399, 0 0 24px 3px rgba(52,211,153,0.25);
+            box-shadow: 0 0 0 1.5px hsl(var(--primary)), 0 0 24px 3px hsl(var(--primary) / 0.25);
           }
         }
         @keyframes current-glow-pulse {
           0%, 100% {
-            border-color: rgba(52, 211, 153, 0.25);
-            box-shadow: 0 0 8px 0 rgba(52, 211, 153, 0.08);
+            border-color: hsl(var(--primary) / 0.25);
+            box-shadow: 0 0 8px 0 hsl(var(--primary) / 0.08);
           }
           50% {
-            border-color: rgba(52, 211, 153, 0.6);
-            box-shadow: 0 0 16px 2px rgba(52, 211, 153, 0.2);
+            border-color: hsl(var(--primary) / 0.6);
+            box-shadow: 0 0 16px 2px hsl(var(--primary) / 0.2);
           }
         }
         .current-week-card-pulse {
           animation: current-glow-pulse 3s ease-in-out infinite;
         }
         .btn-mark-week-holiday {
-          background: rgba(245, 158, 11, 0.08);
-          border: 1px solid rgba(245, 158, 11, 0.35);
-          color: #fbbf24;
+          background: rgba(217, 119, 6, 0.08);
+          border: 1px solid rgba(217, 119, 6, 0.35);
+          color: #27272a; /* zinc-800 */
           transition: all 0.2s ease;
         }
         .btn-mark-week-holiday:hover:not(:disabled) {
+          background: rgba(217, 119, 6, 0.16);
+          border-color: rgba(217, 119, 6, 0.65);
+          box-shadow: 0 0 12px 1px rgba(217, 119, 6, 0.15);
+        }
+        .dark .btn-mark-week-holiday {
+          background: rgba(245, 158, 11, 0.08);
+          border: 1px solid rgba(245, 158, 11, 0.35);
+          color: #ffffff;
+        }
+        .dark .btn-mark-week-holiday:hover:not(:disabled) {
           background: rgba(245, 158, 11, 0.16);
           border-color: rgba(245, 158, 11, 0.65);
           box-shadow: 0 0 12px 1px rgba(245, 158, 11, 0.15);
         }
         .btn-unmark-week-holiday {
-          background: rgba(75, 85, 99, 0.12);
-          border: 1px solid rgba(75, 85, 99, 0.35);
-          color: #e5e7eb;
+          background: rgba(100, 116, 139, 0.08);
+          border: 1px solid rgba(100, 116, 139, 0.35);
+          color: #475569; /* slate-600 */
           transition: all 0.2s ease;
         }
         .btn-unmark-week-holiday:hover:not(:disabled) {
+          background: rgba(100, 116, 139, 0.16);
+          border-color: rgba(100, 116, 139, 0.55);
+          color: #1e293b;
+        }
+        .dark .btn-unmark-week-holiday {
+          background: rgba(75, 85, 99, 0.12);
+          border: 1px solid rgba(75, 85, 99, 0.35);
+          color: #e5e7eb;
+        }
+        .dark .btn-unmark-week-holiday:hover:not(:disabled) {
           background: rgba(75, 85, 99, 0.22);
           border-color: rgba(75, 85, 99, 0.65);
           color: #ffffff;
         }
         .btn-inline-mark-holiday {
-          background: #1A1D24;
-          border: 1px solid #23262D;
-          color: #94a3b8;
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
+          color: hsl(var(--muted-foreground));
           transition: all 0.2s ease;
         }
         .btn-inline-mark-holiday:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.04);
-          border-color: rgba(255, 255, 255, 0.15);
-          color: #ffffff;
+          background: hsl(var(--accent));
+          border-color: hsl(var(--border));
+          color: hsl(var(--foreground));
         }
       `}</style>
 
       <div
-        className="w-full min-h-[calc(100vh-4rem)] text-white font-sans"
-        style={{ background: '#121214' }}
+        className="w-full min-h-[calc(100vh-4rem)] text-foreground bg-background font-sans"
       >
         {/* ── Inner container ── */}
         <div className="max-w-7xl mx-auto px-0 py-2 flex flex-col gap-5">
@@ -560,12 +582,12 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
           {/* ── Page header ── */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-[22px] font-bold tracking-tight text-white">Semester Timeline</h1>
-              <p className="text-[13px] text-slate-400 mt-1">
+              <h1 className="text-[22px] font-bold tracking-tight text-foreground">Semester Timeline</h1>
+              <p className="text-[13px] text-muted-foreground mt-1">
                 {totalClassDays} class days · {totalWeeks} weeks in semester
               </p>
             </div>
-            <div className="flex-shrink-0 mt-0.5">
+            <div className="flex items-center gap-3 flex-shrink-0 mt-0.5">
               <RoutineButton initialImageUrl={initialRoutineUrl} isCR={isCR} />
             </div>
           </div>
@@ -579,8 +601,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 onClick={() => scrollWeeks('left')}
                 disabled={currentGroupIndex <= 0}
                 aria-label="Scroll left"
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                style={{ background: '#1A1D24', border: '1px solid #23262D' }}
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -613,22 +635,19 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           minWidth: 145,
                           height: 115,
                           padding: '0 12px',
-                          background: '#1A1D24',
-                          border: isSelected ? '1px solid #34D399' : '1px dashed #23262D',
+                          background: 'hsl(var(--card))',
+                          border: isSelected ? '1px solid hsl(var(--primary))' : '1px dashed hsl(var(--border))',
                           marginTop: 0,
-                          opacity: isSelected ? 1 : 0.65,
+                          opacity: 1,
                         }}
                       >
                         {/* Collapsed holiday badge */}
                         <span
-                           className="absolute text-[7px] font-black tracking-[0.15em] uppercase"
+                          className="absolute text-[7px] font-black tracking-[0.15em] uppercase bg-amber-500/10 dark:bg-amber-500/12 border border-amber-500/35 dark:border-amber-500/30 text-zinc-800 dark:text-[#fbbf24]"
                           style={{
                             top: -18,
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            background: 'rgba(245,158,11,0.12)',
-                            border: '1px solid rgba(245,158,11,0.3)',
-                            color: '#fbbf24',
                             padding: '2px 8px',
                             borderRadius: 4,
                             whiteSpace: 'nowrap',
@@ -642,7 +661,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           className="font-bold tracking-tight text-center leading-tight"
                           style={{ 
                             fontSize: 14,
-                            color: isSelected ? '#ffffff' : '#cbd5e1'
+                            color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'
                           }}
                         >
                           Holiday Break
@@ -651,8 +670,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           className="font-medium tracking-normal block mt-1"
                           style={{ 
                             fontSize: 12,
-                            color: isSelected ? '#fde68a' : '#64748b',
-                            opacity: isSelected ? 0.95 : 0.8
+                            color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                            opacity: 1
                           }}
                         >
                           {rangeLabel}
@@ -685,27 +704,24 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         minWidth: 145,
                         height: 115,
                         padding: '0 12px',
-                        background: isSelected ? 'rgba(52,211,153,0.08)' : '#1A1D24',
+                        background: isSelected ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--card))',
                         border: isSelected 
-                          ? '1px solid #34D399' 
+                          ? '1px solid hsl(var(--primary))' 
                           : isCurrent 
-                            ? '1px solid rgba(52,211,153,0.3)' 
-                            : '1px solid #23262D',
+                            ? '1px solid hsl(var(--primary) / 0.3)' 
+                            : '1px solid hsl(var(--border))',
                         marginTop: 0,
-                        opacity: isSelected ? 1 : 0.6,
+                        opacity: 1,
                       }}
                     >
                       {/* CURRENT badge */}
                       {isCurrent && (
                         <span
-                          className="absolute text-[7px] font-black tracking-[0.15em] uppercase"
+                          className="absolute text-[7px] font-black tracking-[0.15em] uppercase bg-emerald-500/10 dark:bg-emerald-500/12 border border-emerald-500/35 dark:border-emerald-500/35 text-zinc-800 dark:text-[#10B981]"
                           style={{
                             top: -18,
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            background: 'rgba(52,211,153,0.18)',
-                            border: '1px solid rgba(52,211,153,0.35)',
-                            color: '#6EE7B7',
                             padding: '2px 8px',
                             borderRadius: 4,
                             whiteSpace: 'nowrap',
@@ -720,7 +736,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         className="font-bold tracking-tight leading-none block"
                         style={{
                           fontSize: 19,
-                          color: isSelected ? '#ffffff' : '#94a3b8',
+                          color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
                           marginBottom: 8,
                         }}
                       >
@@ -732,8 +748,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         className="block font-medium tracking-normal leading-none"
                         style={{
                           fontSize: 13,
-                          color: isSelected ? '#a7f3d0' : '#64748b',
-                          opacity: isSelected ? 0.95 : 0.8,
+                          color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                          opacity: 1,
                         }}
                       >
                         {rangeLabel.line1} - {rangeLabel.line2}
@@ -751,7 +767,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             height: 0,
                             borderLeft: '7px solid transparent',
                             borderRight: '7px solid transparent',
-                            borderTop: '7px solid #34D399',
+                            borderTop: '7px solid hsl(var(--primary))',
                           }}
                         />
                       )}
@@ -793,8 +809,8 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 onClick={() => scrollWeeks('right')}
                 disabled={currentGroupIndex >= displayGroups.length - 1}
                 aria-label="Scroll right"
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                style={{ background: '#1A1D24', border: '1px solid #23262D' }}
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -811,39 +827,39 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                     key={i}
                     className="w-full flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl border"
                     style={{
-                      background: '#1A1D24',
-                      borderColor: '#23262D',
+                      background: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
                       borderWidth: '1px',
                     }}
                   >
                     <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                      <div className="h-4 w-8 rounded bg-slate-800/60 animate-pulse" />
-                      <div className="h-3 w-6 rounded bg-slate-800/40 animate-pulse mt-2" />
+                      <div className="h-4 w-8 rounded bg-muted animate-pulse" />
+                      <div className="h-3 w-6 rounded bg-muted/80 animate-pulse mt-2" />
                     </div>
-                    <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
+                    <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
                     
                     {/* Day Count skeleton */}
                     <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-2 sm:mr-4 lg:mr-6">
-                      <div className="hidden sm:block h-2.5 w-6 rounded bg-slate-800/40 animate-pulse mb-1.5" />
-                      <div className="h-3.5 w-5 rounded bg-slate-800/60 animate-pulse" />
+                      <div className="hidden sm:block h-2.5 w-6 rounded bg-muted/80 animate-pulse mb-1.5" />
+                      <div className="h-3.5 w-5 rounded bg-muted animate-pulse" />
                     </div>
 
-                    <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                    <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
                     
                     <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
                       <div className="w-full max-w-md lg:max-w-lg flex items-center justify-between">
                         {[0, 1, 2].map((j) => (
                           <div key={j} className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-slate-800/60 animate-pulse flex-shrink-0" />
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-muted animate-pulse flex-shrink-0" />
                             <div className="flex flex-col items-center text-center">
-                              <div className="hidden sm:block h-2 w-10 rounded bg-slate-800/40 animate-pulse mb-1.5" />
-                              <div className="h-3 w-4 rounded bg-slate-800/60 animate-pulse" />
+                              <div className="hidden sm:block h-2 w-10 rounded bg-muted/80 animate-pulse mb-1.5" />
+                              <div className="h-3 w-4 rounded bg-muted animate-pulse" />
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className="w-4 h-4 rounded bg-slate-800/40 animate-pulse flex-shrink-0" />
+                    <div className="w-4 h-4 rounded bg-muted/80 animate-pulse flex-shrink-0" />
                   </div>
                 ))}
               </div>
@@ -891,10 +907,10 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                       <div key={day.dateStr} className="flex items-center gap-2">
                         <button
                           onClick={() => setSelectedDayIndex(index)}
-                          className="flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border text-left cursor-pointer hover:bg-white/[0.01]"
+                          className="flex-1 flex items-center px-3 sm:px-6 py-3 lg:py-4 rounded-2xl relative border text-left cursor-pointer hover:bg-accent/20"
                           style={{
-                            background: '#121214',
-                            borderColor: '#23262D',
+                            background: 'hsl(var(--background))',
+                            borderColor: 'hsl(var(--border))',
                             borderWidth: '1px',
                             borderStyle: 'dashed',
                             opacity: 0.7,
@@ -902,10 +918,10 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         >
                           {/* Left side: Day name + Date */}
                           <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                            <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase text-muted-foreground/60 tracking-wider">
+                            <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase text-muted-foreground tracking-wider">
                               {day.dayName}
                             </span>
-                            <span className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5 text-muted-foreground/40">
+                            <span className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5 text-muted-foreground/80">
                               {day.dateLabel}
                             </span>
                           </div>
@@ -914,7 +930,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           <div className="w-px h-8 bg-border/40 flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                           {/* Holiday center content */}
-                          <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-amber-500/80">
+                          <div className="flex-1 flex items-center justify-center gap-2 mr-2 sm:mr-4 lg:mr-8 text-zinc-800 dark:text-amber-400">
                             <Umbrella className="w-4 h-4 flex-shrink-0" />
                             <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.15em]">
                               Holiday Break
@@ -923,7 +939,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
 
                           {/* Right chevron */}
                           <ChevronRight
-                            className="w-4 h-4 flex-shrink-0 transition-colors text-slate-600"
+                            className="w-4 h-4 flex-shrink-0 transition-colors text-muted-foreground"
                           />
                         </button>
 
@@ -933,7 +949,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             onClick={() => handleToggleHoliday(selectedWeek, index)}
                             disabled={isTogglingHoliday}
                             title="Remove Holiday"
-                            className="flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-amber-500/35 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                            className="flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-amber-500/35 dark:border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
                           >
                             <Umbrella className="w-4 h-4" />
                           </button>
@@ -950,38 +966,38 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         className={`flex-1 flex items-center py-3 lg:py-4 rounded-2xl transition-all duration-150 relative border cursor-pointer ${
                           isActive 
                             ? 'px-4 sm:px-7 z-10' 
-                            : 'px-3 sm:px-6 hover:bg-white/[0.02]'
+                            : 'px-3 sm:px-6 hover:bg-accent/20'
                         }`}
                         style={{
-                          background: isActive ? 'rgba(52,211,153,0.08)' : '#1A1D24',
-                          borderColor: isActive ? '#34D399' : '#23262D',
+                          background: isActive ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--card))',
+                          borderColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--border))',
                           borderWidth: isActive ? '1.5px' : '1px',
                         }}
                       >
                         {/* Left side: Day name + Date */}
                         <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-white leading-none uppercase" style={{ letterSpacing: '0.05em' }}>
+                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-foreground leading-none uppercase" style={{ letterSpacing: '0.05em' }}>
                             {day.dayName}
                           </span>
                           <span
                             className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5"
-                            style={{ color: '#6EE7B7' }}
+                            style={{ color: 'hsl(var(--primary))' }}
                           >
                             {day.dateLabel}
                           </span>
                         </div>
 
                         {/* Vertical Divider */}
-                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
+                        <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
 
                         {/* Day Count Column (shifted left, close to the day text) */}
                         <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-2 sm:mr-4 lg:mr-6">
-                          <span className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Day</span>
-                          <span className="text-[13px] sm:text-[15px] font-black text-white leading-none sm:mt-1">{classDayNum}</span>
+                          <span className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Day</span>
+                          <span className="text-[13px] sm:text-[15px] font-black text-foreground leading-none sm:mt-1">{classDayNum}</span>
                         </div>
 
                         {/* Second Vertical Divider */}
-                        <div className="w-px h-8 bg-[#23262D] flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                        <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
 
                         {/* Three count columns */}
                         <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
@@ -990,30 +1006,30 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
                               <CalendarGridIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
-                                <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Deadlines</div>
-                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.deadlines.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.deadlines.length}</div>
+                                <div className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Deadlines</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.deadlines.length === 0 ? 'text-muted-foreground' : 'text-foreground'}`}>{day.deadlines.length}</div>
                               </div>
                             </div>
 
-                            <div className="w-px h-6 sm:h-8 bg-[#23262D] flex-shrink-0" />
+                            <div className="w-px h-6 sm:h-8 bg-border flex-shrink-0" />
 
                             {/* Announcements */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
                               <MegaphoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-purple flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
-                                <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Announcements</div>
-                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.announcements.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.announcements.length}</div>
+                                <div className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Announcements</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.announcements.length === 0 ? 'text-muted-foreground' : 'text-foreground'}`}>{day.announcements.length}</div>
                               </div>
                             </div>
 
-                            <div className="w-px h-6 sm:h-8 bg-[#23262D] flex-shrink-0" />
+                            <div className="w-px h-6 sm:h-8 bg-border flex-shrink-0" />
 
                             {/* Results */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
                               <SquarePlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-brand-cyan flex-shrink-0" />
                               <div className="flex flex-col items-center text-center">
-                                <div className="hidden sm:block text-[10px] text-slate-400 font-semibold leading-tight">Results</div>
-                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.results.length === 0 ? 'text-slate-600' : 'text-white'}`}>{day.results.length}</div>
+                                <div className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Results</div>
+                                <div className={`text-[13px] sm:text-[15px] font-black leading-none sm:mt-1 ${day.results.length === 0 ? 'text-muted-foreground' : 'text-foreground'}`}>{day.results.length}</div>
                               </div>
                             </div>
                           </div>
@@ -1022,7 +1038,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         {/* Right chevron */}
                         <ChevronRight
                           className="w-4 h-4 flex-shrink-0 transition-colors"
-                          style={{ color: isActive ? '#38BDF8' : '#4b5563' }}
+                          style={{ color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
                         />
                       </button>
 
@@ -1049,13 +1065,13 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
               <div className="info-pill flex items-center gap-2.5 rounded-full px-5 py-2">
                 <Info
                   className="w-4 h-4 flex-shrink-0"
-                  style={{ color: '#34D399' }}
+                  style={{ color: 'hsl(var(--primary))' }}
                 />
-                <span className="text-[12px] font-medium text-slate-400 flex items-center gap-1.5 flex-wrap justify-center">
+                <span className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 flex-wrap justify-center">
                   {isCR ? (
                     <>
                       Click a day to view details or use
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1A1D24] border border-[#23262D] text-amber-500">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted border border-border text-amber-500">
                         <Umbrella className="w-3 h-3" />
                       </span>
                       to activate when holiday
