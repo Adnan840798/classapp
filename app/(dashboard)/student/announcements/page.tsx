@@ -25,11 +25,11 @@ export default async function StudentAnnouncementsPage() {
     : startOfToday;
 
   const upcomingAnnouncements = (announcements || [])
-    .filter((a) => new Date(a.created_at) >= activeThreshold)
+    .filter((a) => !a.is_important && new Date(a.created_at) >= activeThreshold)
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   const pastAnnouncements = (announcements || [])
-    .filter((a) => new Date(a.created_at) < activeThreshold)
+    .filter((a) => !a.is_important && new Date(a.created_at) < activeThreshold)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const pinnedAnnouncements = (announcements || [])
