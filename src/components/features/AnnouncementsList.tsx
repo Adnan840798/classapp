@@ -34,6 +34,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const [mounted, setMounted] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'pinned' | 'current' | 'past'>('all');
 
   useEffect(() => {
     setMounted(true);
@@ -160,6 +161,12 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
     .filter((a) => a.is_important)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+  const hasAnyMatches =
+    (filter === 'all' && announcements.length > 0) ||
+    (filter === 'pinned' && pinnedAnnouncements.length > 0) ||
+    (filter === 'current' && upcomingAnnouncements.length > 0) ||
+    (filter === 'past' && pastAnnouncements.length > 0);
+
   return (
     <>
       {/* Page header */}
@@ -191,13 +198,39 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         </div>
       </div>
 
-      <div className="flex flex-col gap-8">
-        {/* Pinned Section */}
-        {pinnedAnnouncements.length > 0 && (
+      {/* Filter tabs */}
+      <div className="flex items-center gap-1 p-1 rounded-full border border-border bg-muted/30 w-full sm:w-auto self-start">
+        {(['all', 'pinned', 'current', 'past'] as const).map((type) => (
+          <button
+            key={type}
+            onClick={() => setFilter(type)}
+            className={`flex-1 sm:flex-none text-center px-3.5 py-2 sm:px-5 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all duration-200 uppercase tracking-wider cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+              filter === type
+                ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(16,185,129,0.35)] dark:shadow-[0_4px_12px_rgba(16,185,129,0.2)]'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            }`}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
+      {!hasAnyMatches ? (
+        <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
+          <Megaphone className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
+          <h2 className="text-lg font-semibold">No announcements found</h2>
+          <p className="text-sm text-muted-foreground max-w-md">
+            No announcements match the selected filter. Try changing the filter.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {/* Pinned Section */}
+          {(filter === 'all' || filter === 'pinned') && pinnedAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center gap-2 px-1">
               <Pin className="w-4 h-4 text-cyan-500" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned Notices</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned</h2>
             </div>
             <div className="flex flex-col gap-3">
               {pinnedAnnouncements.map((announcement) => {
@@ -272,7 +305,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             )}
                             <Link
                               href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
@@ -296,7 +329,8 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         )}
 
         {/* Announcements Section (Current & Upcoming) */}
-        <div className="flex flex-col gap-3.5">
+        {(filter === 'all' || filter === 'current') && (
+          <div className="flex flex-col gap-3.5">
           <div className="flex items-center gap-2 px-1">
             <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Current Announcements</h2>
           </div>
@@ -415,7 +449,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             )}
                             <Link
                               href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
@@ -447,9 +481,10 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
             </div>
           )}
         </div>
+        )}
 
         {/* Past Section */}
-        {pastAnnouncements.length > 0 && (
+        {(filter === 'all' || filter === 'past') && pastAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5 animate-fade-in">
             <div className="flex items-center gap-2 px-1">
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Past Announcements</h2>
@@ -553,7 +588,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             )}
                             <Link
                               href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-700 dark:text-zinc-300 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
                             >
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
@@ -586,6 +621,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
           </div>
         )}
       </div>
+      )}
 
       {mounted && selectMode && selectedIds.size > 0 && createPortal(
         <div
