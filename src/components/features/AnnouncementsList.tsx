@@ -196,8 +196,8 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         {pinnedAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center gap-2 px-1">
-              <Pin className="w-4 h-4 text-amber-500" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pinned Notices</h2>
+              <Pin className="w-4 h-4 text-cyan-500" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned Notices</h2>
             </div>
             <div className="flex flex-col gap-3">
               {pinnedAnnouncements.map((announcement) => {
@@ -211,14 +211,14 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                     style={{
                       background: isSelected
                         ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
-                        : 'linear-gradient(90deg, rgba(245,158,11,0.06) 0%, hsl(var(--card)) 100%)',
+                        : 'linear-gradient(90deg, rgba(6,182,212,0.06) 0%, hsl(var(--card)) 100%)',
                       border: isSelected
                         ? '1px solid rgba(244, 63, 94, 0.4)'
-                        : '1px solid rgba(245, 158, 11, 0.3)',
+                        : '1px solid rgba(6, 182, 212, 0.35)',
                       boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
                   >
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-cyan-600" />
                     
                     <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       {/* Left section: Icon + Title */}
@@ -234,8 +234,8 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             )}
                           </div>
                         )}
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
-                          <Pin className="w-5 h-5 text-amber-500" />
+                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0">
+                          <Pin className="w-5 h-5 text-cyan-500" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
@@ -280,7 +280,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             <button
                               onClick={() => handleTogglePin(announcement.id, false)}
                               title="Unpin from top"
-                              className="flex items-center justify-center p-2 rounded-lg border border-amber-500/30 dark:border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer"
+                              className="flex items-center justify-center p-2 rounded-lg border border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 cursor-pointer"
                             >
                               <Pin className="w-3.5 h-3.5" />
                             </button>
@@ -321,12 +321,12 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                       background: isSelected
                         ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
                         : isImportant
-                          ? 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, hsl(var(--card)) 100%)'
+                          ? 'linear-gradient(90deg, rgba(6,182,212,0.08) 0%, hsl(var(--card)) 100%)'
                           : 'linear-gradient(90deg, hsl(var(--muted)/0.15) 0%, hsl(var(--card)) 100%)',
                       border: isSelected
                         ? '1px solid rgba(244, 63, 94, 0.4)'
                         : isImportant
-                          ? '1px solid hsl(var(--primary) / 0.3)'
+                          ? '1px solid rgba(6, 182, 212, 0.35)'
                           : '1px solid hsl(var(--border))',
                       boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
@@ -338,7 +338,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                         background: isSelected
                           ? 'linear-gradient(180deg, #f43f5e, #be123c)'
                           : isImportant
-                            ? 'linear-gradient(180deg, #34D399, #059669)'
+                            ? 'linear-gradient(180deg, #22d3ee, #0891b2)'
                             : 'linear-gradient(180deg, #71717a, #3f3f46)',
                       }}
                     />
@@ -363,16 +363,16 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                             background: isSelected
                               ? 'rgba(244, 63, 94, 0.12)'
                               : isImportant
-                                ? 'rgba(16,185,129,0.1)'
+                                ? 'rgba(6, 182, 212, 0.1)'
                                 : 'hsl(var(--muted) / 0.3)',
                             border: isSelected
                               ? '1px solid rgba(244, 63, 94, 0.25)'
                               : isImportant
-                                ? '1px solid hsl(var(--primary) / 0.25)'
+                                ? '1px solid rgba(6, 182, 212, 0.25)'
                                 : '1px solid hsl(var(--border))',
                           }}
                         >
-                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isImportant ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isImportant ? 'text-cyan-600 dark:text-cyan-400' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
@@ -422,7 +422,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               title={announcement.is_important ? "Unpin from top" : "Pin to top"}
                               className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
                                 announcement.is_important
-                                  ? 'border-amber-500/30 dark:border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
+                                  ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
                                   : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
                               }`}
                             >
@@ -560,7 +560,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               title={announcement.is_important ? "Unpin from top" : "Pin to top"}
                               className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
                                 announcement.is_important
-                                  ? 'border-amber-500/30 dark:border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
+                                  ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
                                   : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
                               }`}
                             >
