@@ -300,4 +300,31 @@ export async function togglePinAnnouncement(id: string, isPinned: boolean) {
   }
 }
 
+export async function bulkTogglePinAnnouncements(ids: string[], isPinned: boolean) {
+  try {
+    if (!ids || ids.length === 0) return { error: 'No items selected.' };
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('announcements')
+      .update({ is_important: isPinned })
+      .in('id', ids);
+
+    if (error) return { error: error.message };
+
+    revalidateTag('announcements', { expire: 0 });
+    revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('bulkTogglePinAnnouncements error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
 
