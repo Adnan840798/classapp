@@ -44,25 +44,25 @@ export function Topbar() {
           <button
             id="mobile-menu-btn"
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-border hover:bg-accent transition-colors"
+            className="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-border hover:bg-accent transition-colors flex-shrink-0 cursor-pointer"
             aria-label="Open navigation menu"
           >
-            <Menu className="w-4 h-4" />
+            <Menu className="w-5 h-5" />
           </button>
           <h1 className="font-semibold text-base hidden sm:block">{pageTitle}</h1>
         </div>
 
         {/* Right: actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <NotificationBell />
           {profile && (
             <Link
               href={profileHref}
-              className="hover:opacity-80 transition-opacity"
+              className="hover:opacity-80 transition-opacity flex-shrink-0"
               aria-label="View profile"
             >
-              <UserAvatar profile={profile} size="sm" />
+              <UserAvatar profile={profile} size="sm" className="w-11 h-11 lg:w-9 lg:h-9" />
             </Link>
           )}
         </div>

@@ -207,9 +207,8 @@ export function DayDetailPanel({
 
         {/* Panel */}
         <div
-          className={`detail-panel absolute right-0 top-0 bottom-0 flex flex-col ${isDragging ? '' : 'transition-transform duration-200'}`}
+          className={`detail-panel absolute right-0 top-0 bottom-0 flex flex-col bg-card dark:bg-background ${isDragging ? '' : 'transition-transform duration-200'}`}
           style={{
-            background: 'hsl(var(--card))',
             borderLeft: '1px solid hsl(var(--border))',
             transform: `translateX(${translationX}px)`,
             touchAction: 'pan-y',
@@ -220,8 +219,8 @@ export function DayDetailPanel({
         >
           {/* Header */}
           <div
-            className="flex items-start justify-between px-6 pt-7 pb-5 flex-shrink-0"
-            style={{ borderBottom: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+            className="flex items-start justify-between px-6 pt-7 pb-5 flex-shrink-0 bg-card dark:bg-background"
+            style={{ borderBottom: '1px solid hsl(var(--border))' }}
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -273,8 +272,8 @@ export function DayDetailPanel({
 
           {/* Tabs */}
           <div
-            className="flex flex-shrink-0 overflow-x-auto scrollbar-none scroll-smooth-ios"
-            style={{ borderBottom: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+            className="flex flex-shrink-0 overflow-x-auto scrollbar-none scroll-smooth-ios bg-card dark:bg-background"
+            style={{ borderBottom: '1px solid hsl(var(--border))' }}
           >
             {TABS.map((tab) => (
               <button

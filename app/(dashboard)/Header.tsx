@@ -166,7 +166,7 @@ export function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleProfileClick}
-                className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-foreground flex items-center justify-center text-sm lg:text-xs font-bold border border-border transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+                className="w-11 h-11 lg:w-9 lg:h-9 rounded-full text-foreground flex items-center justify-center text-sm lg:text-xs font-bold border border-border transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
                 style={{
                   background: '#4A5B66',
                 }}

@@ -28,59 +28,47 @@ const FEATURES = [
   {
     icon: CalendarDays,
     color: 'hsl(160 84% 45%)',
-    bg: 'rgba(52,211,153,0.08)',
-    border: 'rgba(52,211,153,0.2)',
     title: 'Live Class Timeline',
-    desc: 'Real-time daily schedule with instant updates when anything changes.',
+    desc: 'Daily routine with real-time room, schedule, and teacher updates.',
   },
   {
     icon: Bell,
     color: 'hsl(38 90% 55%)',
-    bg: 'rgba(245,158,11,0.08)',
-    border: 'rgba(245,158,11,0.2)',
-    title: 'Smart Deadline Alerts',
-    desc: 'Automatic push notifications as assignment and exam deadlines approach.',
+    title: 'Deadline Priority Feed',
+    desc: 'Color-coded feed to track urgent tasks and upcoming submissions.',
   },
   {
     icon: MessageSquare,
     color: 'hsl(280 70% 60%)',
-    bg: 'rgba(139,92,246,0.08)',
-    border: 'rgba(139,92,246,0.2)',
     title: 'Announcements & Telegram',
-    desc: 'Instant class announcements mirrored to your Telegram channel automatically.',
+    desc: 'Instant notice broadcasts mirrored directly to your Telegram channel.',
   },
   {
     icon: BookMarked,
     color: 'hsl(210 80% 60%)',
-    bg: 'rgba(59,130,246,0.08)',
-    border: 'rgba(59,130,246,0.2)',
-    title: 'Course Resource Library',
-    desc: 'All lecture slides, lab sheets, and past papers — organized and always accessible.',
+    title: 'Organized Study Vault',
+    desc: 'Slides, lab manuals, and past papers structured by subject.',
   },
   {
     icon: Award,
     color: 'hsl(340 80% 58%)',
-    bg: 'rgba(244,63,94,0.08)',
-    border: 'rgba(244,63,94,0.2)',
-    title: 'Results & Grade Publishing',
-    desc: 'CRs publish marks with class averages. Students see results the moment they\'re live.',
+    title: 'Gradeboards & Stats',
+    desc: 'CRs publish grades with automatic class average analytics.',
   },
   {
     icon: Users,
     color: 'hsl(190 75% 50%)',
-    bg: 'rgba(6,182,212,0.08)',
-    border: 'rgba(6,182,212,0.2)',
-    title: 'Full Student Management',
-    desc: 'CRs create, verify, and manage student accounts. Roles update in real time.',
+    title: 'Role-Based Accounts',
+    desc: 'Secure student onboarding, verification, and CR controls.',
   },
 ];
 
 const WHAT_YOU_GET = [
-  'A private, fully managed platform for your class',
+  'A private, distraction-free portal for your batch',
   'Android APK installable on every student\'s phone',
-  'Push notifications via app and Telegram',
-  'Lifetime updates and ongoing support',
-  'Complete setup handled for you',
+  'Push notifications on lockscreen and Telegram',
+  'Lifetime updates with zero hosting configuration',
+  'Complete database & domain setup handled for you',
 ];
 
 export default async function RootPage() {
@@ -125,6 +113,16 @@ export default async function RootPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-x-hidden">
+      <style>{`
+        :root {
+          --feat-bg-ratio: 10%;
+          --feat-border-ratio: 42%;
+        }
+        .dark {
+          --feat-bg-ratio: 7%;
+          --feat-border-ratio: 15%;
+        }
+      `}</style>
 
       {/* Decorative Gradients */}
       <div
@@ -213,12 +211,18 @@ export default async function RootPage() {
             return (
               <div
                 key={i}
-                className="flex flex-col gap-3 p-5 rounded-2xl border transition-all duration-200 hover:translate-y-[-2px]"
-                style={{ background: f.bg, borderColor: f.border }}
+                className="flex flex-col gap-3 p-5 rounded-2xl border transition-all duration-200 hover:translate-y-[-2px] hover:shadow-sm"
+                style={{
+                  background: `color-mix(in srgb, ${f.color} var(--feat-bg-ratio), hsl(var(--card)))`,
+                  borderColor: `color-mix(in srgb, ${f.color} var(--feat-border-ratio), hsl(var(--border) / 0.5))`,
+                }}
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: f.bg, border: `1px solid ${f.border}` }}
+                  style={{
+                    background: `color-mix(in srgb, ${f.color} var(--feat-bg-ratio), hsl(var(--card)))`,
+                    border: `1px solid color-mix(in srgb, ${f.color} var(--feat-border-ratio), hsl(var(--border) / 0.5))`,
+                  }}
                 >
                   <Icon className="w-5 h-5" style={{ color: f.color }} />
                 </div>
@@ -386,7 +390,7 @@ export default async function RootPage() {
 
       {/* ── Footer ─────────────────────────────────────── */}
       <footer
-        className="w-full border-t border-border flex-shrink-0 mt-auto bg-muted/20 dark:bg-[#0e1012]"
+        className="w-full border-t border-border flex-shrink-0 mt-auto bg-muted/20 dark:bg-background"
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link href="/" className="flex items-center gap-2">

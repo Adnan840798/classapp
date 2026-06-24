@@ -25,77 +25,76 @@ interface FeatureCard {
 const STUDENT_CARDS: FeatureCard[] = [
   {
     title: 'Live Class Schedule',
-    subtitle: 'Always know what\'s next, and where to be.',
+    subtitle: 'Track your daily routine in real time.',
     icon: CalendarDays,
     color: 'hsl(160 84% 45%)',
     gradient: 'from-emerald-500/10 to-transparent',
     features: [
-      { label: 'Today\'s Routine at a Glance', description: 'Your full daily schedule — lectures, labs, and breaks — laid out in order from the moment you open the app.' },
-      { label: 'Jump to Any Day', description: 'Tap any date on the calendar to instantly pull up that day\'s class plan, even weeks ahead.' },
-      { label: 'Real-Time Updates', description: 'If your CR cancels a class or changes a room, your timeline refreshes automatically — no refresh needed.' },
-      { label: 'Class & Teacher Details', description: 'Each slot shows the subject name, room number, and teacher — everything you need in one tap.' },
+      { label: 'Check Daily Routine', description: 'View today\'s lectures, labs, and breaks organized chronologically from the moment you open the app.' },
+      { label: 'View Class Details', description: 'Tap any class slot to instantly see the room number, teacher, subject code, and exact timings.' },
+      { label: 'Navigate the Calendar', description: 'Tap any date on the calendar to pull up the schedule for future weeks and plan ahead.' },
+      { label: 'See Live Changes', description: 'View rescheduling notices, teacher swaps, and class cancellations updated on your timeline instantly.' },
     ]
   },
   {
     title: 'Assignments & Deadlines',
-    subtitle: 'Never miss a submission again.',
+    subtitle: 'Never miss a submission or test again.',
     icon: ClipboardList,
     color: 'hsl(38 90% 55%)',
     gradient: 'from-amber-500/10 to-transparent',
     features: [
-      { label: 'Colour-Coded Priority Feed', description: 'Overdue tasks glow red. Items due within 48 hours turn amber. Upcoming work stays white — so your priorities are obvious at a glance.' },
-      { label: 'Full Task Details', description: 'Each deadline card shows the due date, instructions, and any reference files uploaded by your CR.' },
-      { label: 'Automatic Reminders', description: 'The app quietly sends you a push notification as major deadlines approach, so you are never caught off guard.' },
-      { label: 'Clean Archive', description: 'Once your CR marks a task done, it moves out of your active list automatically, keeping your feed tidy.' },
+      { label: 'Track Priority Feed', description: 'Identify urgent tasks immediately with color-coding: red for overdue, orange for due within 48h, and white for upcoming.' },
+      { label: 'Access Submission Details', description: 'Open any deadline card to view instructions, syllabus topics, and reference documents uploaded by your CR.' },
+      { label: 'Auto-Archive Completed', description: 'Hide completed tasks automatically from your active list once marked as done to keep your feed clean.' },
     ]
   },
   {
     title: 'Class Announcements',
-    subtitle: 'Official class communication, always in one place.',
+    subtitle: 'Official notices, circulars, and notices in one place.',
     icon: Megaphone,
     color: 'hsl(280 70% 60%)',
     gradient: 'from-purple-500/10 to-transparent',
     features: [
-      { label: 'Push Alerts on Every Post', description: 'The moment your CR publishes a new notice, a push notification lands directly on your phone — class info first, always.' },
-      { label: 'Pinned Priority Notices', description: 'Critical announcements are pinned to the top of your feed by the CR, so urgent information is never buried.' },
-      { label: 'Telegram Mirror', description: 'If your class has a Telegram channel, every announcement posted in ClassApp automatically appears there too — no manual copy-paste needed.' },
-      { label: 'Unread Badges', description: 'Announcements you haven\'t read yet are highlighted with a clear badge so you always know what you\'ve missed.' },
+      { label: 'Lockscreen Broadcasts', description: 'Receive instant push alerts the second your CR publishes a new announcement.' },
+      { label: 'Check Pinned Notices', description: 'View critical schedules and high-priority posts kept pinned at the top of your feed.' },
+      { label: 'Telegram Integration', description: 'Read updates mirrored automatically to your class Telegram channel if you prefer checking Telegram first.' },
+      { label: 'Spot Unread Notices', description: 'Scan unread items highlighted with badges to quickly catch up on missed circulars.' },
     ]
   },
   {
     title: 'Thread Q&A',
-    subtitle: 'Ask questions where they actually belong.',
+    subtitle: 'Clarify doubts directly under context.',
     icon: HelpCircle,
     color: 'hsl(190 75% 50%)',
     gradient: 'from-cyan-500/10 to-transparent',
     features: [
-      { label: 'Questions Tied to Context', description: 'Post your question directly under a specific class event, announcement, or deadline — not in a noisy group chat.' },
-      { label: 'Classmate Replies', description: 'Anyone in the class can respond to a question thread, making it a collaborative space for quick clarifications.' },
-      { label: 'Searchable Record', description: 'Past questions and answers stay visible permanently. If a classmate had the same doubt last week, the answer is right there.' },
+      { label: 'Ask Contextual Questions', description: 'Post comments and questions directly under a specific class slot, announcement, or deadline.' },
+      { label: 'Peer Collaborations', description: 'Reply to your classmates\' questions and work together to resolve syllabus or room location doubts.' },
+      { label: 'Search Past Answers', description: 'Search a permanent record of resolved Q&As to find answers to common questions immediately.' },
     ]
   },
   {
     title: 'Course Resources',
-    subtitle: 'Your course materials, organized and always accessible.',
+    subtitle: 'organized slide decks, notes, and past papers.',
     icon: BookMarked,
     color: 'hsl(210 80% 60%)',
     gradient: 'from-blue-500/10 to-transparent',
     features: [
-      { label: 'All Study Files in One Spot', description: 'Lecture slides, lab sheets, past papers, and reference PDFs uploaded by your CR — organized by course and topic.' },
-      { label: 'Fast Downloads', description: 'Open or download any document directly within the app with a single tap, no third-party links or Google Drive needed.' },
-      { label: 'File Previews', description: 'View PDF files directly in-app before deciding whether to download them.' },
+      { label: 'Access Study Vault', description: 'Find lecture slides, lab sheets, and past papers uploaded by your CR, organized neatly by course.' },
+      { label: 'Preview PDFs In-App', description: 'Read reference documents and syllabus guidelines directly in the app before deciding to download.' },
+      { label: 'One-Tap Downloads', description: 'Download files straight to your device storage instantly without needing external drive links.' },
     ]
   },
   {
     title: 'Results & Grades',
-    subtitle: 'Know where you stand, clearly and confidentially.',
+    subtitle: 'Confidential grade tracking with class analytics.',
     icon: Award,
     color: 'hsl(340 80% 58%)',
     gradient: 'from-rose-500/10 to-transparent',
     features: [
-      { label: 'Published by Your CR', description: 'Midterm marks, quiz scores, lab grades, and final results appear here as your CR publishes them throughout the semester.' },
-      { label: 'Class Statistics', description: 'See class averages and highest marks alongside your own score to understand your standing in context.' },
-      { label: 'Full Result Sheets', description: 'CRs can upload complete result sheets for you to view at any time from the app.' },
+      { label: 'View Confidential Marks', description: 'Check your individual quiz, midterm, or assignment grades securely (only you can see your scores).' },
+      { label: 'Check Class Averages', description: 'See the class average and highest score alongside your own grade to understand your performance.' },
+      { label: 'Open Official sheets', description: 'View or download grade distribution PDFs and result spreadsheets uploaded by your CR.' },
     ]
   },
 ];
@@ -103,75 +102,74 @@ const STUDENT_CARDS: FeatureCard[] = [
 const CR_CARDS: FeatureCard[] = [
   {
     title: 'Timeline & Routine Builder',
-    subtitle: 'Keep the whole class on the same page — literally.',
+    subtitle: 'Establish the semester schedule and handle daily edits.',
     icon: CalendarDays,
     color: 'hsl(160 84% 45%)',
     gradient: 'from-emerald-500/10 to-transparent',
     features: [
-      { label: 'Build the Semester Routine', description: 'Set up lectures, labs, and breaks with subject codes, teacher names, room numbers, and time slots. Repeat weekly with one toggle.' },
-      { label: 'Edit or Cancel Anytime', description: 'Update individual class slots, swap teachers, or cancel a single day\'s class. Students see the change instantly in their timeline.' },
-      { label: 'Smart Change Alerts', description: 'When you modify a class happening today or tomorrow, ClassApp automatically nudges all students with a push notification so nobody misses the update.' },
+      { label: 'Build Semester Routine', description: 'Set up recurring weekly time slots for lectures, labs, and breaks with rooms, subject codes, and teachers.' },
+      { label: 'Reschedule or Cancel', description: 'Modify room numbers, swap teachers, or cancel individual slots with automatic, real-time student timeline sync.' },
+      { label: 'Auto-Notify Students', description: 'Alert the entire class via push notifications automatically if you edit a class scheduled for today or tomorrow.' },
+      { label: 'Manage Holidays', description: 'Mark a day or an entire week as a holiday to temporarily suspend the routine and mark it on student feeds.' },
     ]
   },
   {
-    title: 'Deadline & Task Coordinator',
-    subtitle: 'Publish deadlines once — the app does the rest.',
+    title: 'Deadline Coordinator',
+    subtitle: 'Publish tasks, syllabus details, and files.',
     icon: ClipboardList,
     color: 'hsl(38 90% 55%)',
     gradient: 'from-amber-500/10 to-transparent',
     features: [
-      { label: 'Post Submissions & Exams', description: 'Create tasks with full details — due date, subject, description, and attached reference files or syllabi.' },
-      { label: 'Automatic Student Reminders', description: 'ClassApp fires reminder notifications to students as each deadline approaches. No manual pinging in group chats required.' },
-      { label: 'Archive Completed Work', description: 'Mark a task as done to cleanly remove it from the active student feed and keep the list focused on what\'s current.' },
+      { label: 'Post Task Details', description: 'Create class deadlines complete with times, descriptions, syllabus topics, and reference file attachments.' },
+      { label: 'Archive Finished Work', description: 'Mark active deadlines as completed to clean the active student dashboard and archive past submissions.' },
     ]
   },
   {
-    title: 'Announcements & Broadcasting',
-    subtitle: 'Reach your entire class in seconds across every channel.',
+    title: 'Announcements Broadcaster',
+    subtitle: 'Publish notices to lockscreens and channels.',
     icon: Megaphone,
     color: 'hsl(280 70% 60%)',
     gradient: 'from-purple-500/10 to-transparent',
     features: [
-      { label: 'Instant Push to All Students', description: 'Every announcement you post triggers an immediate push notification on every enrolled student\'s smartphone — no group chat needed.' },
-      { label: 'Telegram Auto-Sync', description: 'Connect your class Telegram channel once. From then on, every ClassApp announcement automatically mirrors to Telegram, reaching students on both platforms at once.' },
-      { label: 'Pin Critical Notices', description: 'Pin any announcement to the very top of every student\'s feed. Perfect for exam schedules, venue changes, or semester updates that need to stay visible.' },
-      { label: 'File Attachments', description: 'Attach images, PDFs, or notice board screenshots directly to your announcement for full context.' },
+      { label: 'Send Push Broadcasts', description: 'Publish circulars or notice board screenshots directly to students\' phone lockscreen notification feeds.' },
+      { label: 'Sync with Telegram', description: 'Mirror class announcements to your Telegram channel automatically via a one-time channel integration setup.' },
+      { label: 'Pin High Priority', description: 'Keep important updates (like exam schedules or fee deadlines) pinned to the top of every student\'s feed.' },
     ]
   },
   {
     title: 'Student Account Manager',
-    subtitle: 'Full control over who enters your class.',
+    subtitle: 'Control student registration and representative roles.',
     icon: Users,
     color: 'hsl(210 80% 60%)',
     gradient: 'from-blue-500/10 to-transparent',
     features: [
-      { label: 'Create Student Accounts', description: 'Register a new student by entering their name, university ID, and email. A temporary password is issued and students are forced to set their own on first login.' },
-      { label: 'Pending Verification List', description: 'Track all newly created accounts that haven\'t completed their first login yet in one clean view — so you know who\'s set up and who still needs to connect.' },
-      { label: 'Manage Roles', description: 'Promote a student to CR, or demote a CR to student. Role changes take effect immediately and are protected against unauthorized self-modification.' },
-      { label: 'Remove Accounts', description: 'Delete old or inactive accounts cleanly. If a student forgets their password, recreate their account — they\'ll be prompted to set a new one on login.' },
+      { label: 'Register Students', description: 'Onboard class members via name, ID, and email. Enforces password updates on their first login for security.' },
+      { label: 'Track Invitations', description: 'Monitor pending and active invitations to track which students have registered and who still needs to connect.' },
+      { label: 'Delegate CR Roles', description: 'Promote student accounts to co-representatives or demote co-CRs with changes taking effect in real time.' },
+      { label: 'Reset Profiles', description: 'Delete old student accounts or trigger password reset updates for locked out users.' },
     ]
   },
   {
     title: 'Resource Library',
-    subtitle: 'Your class study vault — organized, searchable, and permanent.',
+    subtitle: 'Keep slides, guides, and papers permanently organized.',
     icon: BookMarked,
     color: 'hsl(190 75% 50%)',
     gradient: 'from-cyan-500/10 to-transparent',
     features: [
-      { label: 'Upload Any File', description: 'Drop in lecture slides, lab manuals, project briefs, past papers, or any course-related document. Students can access and download them anytime.' },
-      { label: 'Organize by Subject', description: 'Tag uploads with course codes and subject names so students can find specific materials without scrolling endlessly.' },
+      { label: 'Upload Course Files', description: 'Host lecture slides, lab manuals, and syllabus files for direct student downloads.' },
+      { label: 'Tag by Subject', description: 'Categorize uploads with course codes and titles to keep the class study vault structured and searchable.' },
     ]
   },
   {
     title: 'Results Publisher',
-    subtitle: 'Deliver grades clearly and transparently.',
+    subtitle: 'Publish grades securely with built-in analytics.',
     icon: Award,
     color: 'hsl(340 80% 58%)',
     gradient: 'from-rose-500/10 to-transparent',
     features: [
-      { label: 'Publish Marks per Assessment', description: 'Post individual marks for quizzes, midterms, labs, and final exams. Students see their own score alongside class averages for context.' },
-      { label: 'Upload Result Sheets', description: 'Upload a full-class result PDF or spreadsheet for complete transparency after major assessments.' },
-      { label: 'Automatic Averages', description: 'Class average and highest mark calculate automatically the moment you publish — no spreadsheets needed.' },
+      { label: 'Publish Assessment Marks', description: 'Input individual student scores for quizzes, midterms, or assignments securely.' },
+      { label: 'Anonymize Class Averages', description: 'Show students their own marks alongside automated class averages and highest scores, protecting individual grades.' },
+      { label: 'Upload Grade Sheets', description: 'Attach full-class distribution sheets or spreadsheets for major examinations.' },
     ]
   },
 ];
@@ -181,6 +179,16 @@ export function UserManual({ role }: { role: Role }) {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      <style>{`
+        :root {
+          --manual-bg-ratio: 10%;
+          --manual-border-ratio: 42%;
+        }
+        .dark {
+          --manual-bg-ratio: 7%;
+          --manual-border-ratio: 15%;
+        }
+      `}</style>
       {/* Header */}
       <div className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -201,9 +209,6 @@ export function UserManual({ role }: { role: Role }) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-primary/10 border border-primary/20 text-primary flex-shrink-0">
-          {role === 'cr' ? '🛡 Representative' : '🎓 Student'} View
-        </div>
       </div>
 
       {/* Feature Cards Grid */}
@@ -213,12 +218,12 @@ export function UserManual({ role }: { role: Role }) {
           return (
             <div
               key={idx}
-              className="relative glass-card overflow-hidden flex flex-col gap-4 p-5 border border-border hover:border-border/80 transition-all duration-200"
+              className="relative overflow-hidden flex flex-col gap-4 p-5 rounded-2xl border transition-all duration-200 hover:shadow-sm"
+              style={{
+                background: `color-mix(in srgb, ${card.color} var(--manual-bg-ratio), hsl(var(--card)))`,
+                borderColor: `color-mix(in srgb, ${card.color} var(--manual-border-ratio), hsl(var(--border) / 0.5))`,
+              }}
             >
-              {/* Subtle gradient overlay */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} pointer-events-none`}
-              />
 
               {/* Card Header */}
               <div className="relative flex items-start gap-3">

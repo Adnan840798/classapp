@@ -62,7 +62,7 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-11 h-11 lg:w-8 lg:h-8 rounded-full text-white flex items-center justify-center text-sm lg:text-xs font-bold border border-white/[0.08] transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+        className="w-11 h-11 lg:w-9 lg:h-9 rounded-full text-white flex items-center justify-center text-sm lg:text-xs font-bold border border-white/[0.08] transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
         style={{
           background: '#4A5B66',
         }}
