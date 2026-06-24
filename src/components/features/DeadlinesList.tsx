@@ -248,8 +248,10 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
                       <Link href={`/cr/deadlines/${deadline.id}`} className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${theme.btnClass}`}>
                         Question &amp; Answer<ArrowRight className="w-3 h-3 flex-shrink-0" />
                       </Link>
-                      <EditDeadlineModal deadline={deadline} />
-                      <DeleteButton id={deadline.id} onDelete={deleteDeadline} confirmMessage="Are you sure you want to delete this deadline?" />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <EditDeadlineModal deadline={deadline} />
+                        <DeleteButton id={deadline.id} onDelete={deleteDeadline} confirmMessage="Are you sure you want to delete this deadline?" />
+                      </div>
                     </div>
                   </div>
                 )}

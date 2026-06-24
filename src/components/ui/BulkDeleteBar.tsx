@@ -71,7 +71,7 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer disabled:opacity-40"
           >
             <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span>Cancel</span>
+            <span className="hidden xs:inline">Cancel</span>
           </button>
           <button
             onClick={handleDelete}
@@ -88,12 +88,12 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
             {isPending ? (
               <>
                 <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
-                <span>Deleting...</span>
+                <span className="hidden xs:inline">Deleting...</span>
               </>
             ) : (
               <>
                 <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Delete {count}</span>
+                <span>Delete<span className="hidden xs:inline"> {count}</span></span>
               </>
             )}
           </button>

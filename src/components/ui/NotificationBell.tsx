@@ -697,12 +697,12 @@ export function NotificationBell() {
       <button
         id="notification-bell-btn"
         onClick={handleToggle}
-        className="relative flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/35 hover:text-primary transition-all duration-300 text-muted-foreground cursor-pointer flex-shrink-0 shadow-lg shadow-black/5 dark:shadow-black/20"
+        className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 lg:w-9 lg:h-9 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/35 hover:text-primary transition-all duration-300 text-muted-foreground cursor-pointer flex-shrink-0 shadow-lg shadow-black/5 dark:shadow-black/20"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
         <Bell className="w-4 h-4 transition-transform duration-300" />
         {unreadCount > 0 && (
-          <span className="absolute top-2.5 right-2.5 lg:top-1.5 lg:right-1.5 flex h-2 w-2">
+          <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 lg:top-1.5 lg:right-1.5 flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34D399] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#34D399] shadow-[0_0_8px_#34D399]"></span>
           </span>

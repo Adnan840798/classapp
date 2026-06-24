@@ -99,20 +99,20 @@ export function Header() {
 
   return (
     <header className="w-full border-b border-border bg-card flex-shrink-0 z-40 sticky top-0 pt-[env(safe-area-inset-top,0px)]">
-      <div className="w-full h-16 flex items-center justify-between px-4 lg:px-8">
+      <div className="w-full h-16 flex items-center justify-between px-3 sm:px-4 lg:px-8">
       
       {/* Left section: Logo + badge */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-4">
         {/* Mobile menu trigger */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer active:bg-accent flex-shrink-0"
+          className="lg:hidden flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer active:bg-accent flex-shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Logo — tapping goes to the landing page (middleware allows internal nav) */}
-        <Link href="/" prefetch={false} className="flex items-center gap-2.5 touch-compact">
+        <Link href="/" prefetch={false} className="flex items-center gap-2 sm:gap-2.5 touch-compact flex-shrink-0">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
             style={{
@@ -121,7 +121,7 @@ export function Header() {
           >
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-foreground">
+          <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
             Class<span className="text-[#34D399]">App</span>
           </span>
         </Link>
@@ -154,7 +154,7 @@ export function Header() {
         </nav>
 
         {/* Bell notification + Avatar */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-4">
           {/* Theme Toggle */}
           <ThemeToggle />
 
@@ -166,7 +166,7 @@ export function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={handleProfileClick}
-                className="w-11 h-11 lg:w-9 lg:h-9 rounded-full text-foreground flex items-center justify-center text-sm lg:text-xs font-bold border border-border transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
+                className="w-10 h-10 sm:w-11 sm:h-11 lg:w-9 lg:h-9 rounded-full text-foreground flex items-center justify-center text-sm lg:text-xs font-bold border border-border transition-transform hover:scale-105 cursor-pointer flex-shrink-0 overflow-hidden"
                 style={{
                   background: '#4A5B66',
                 }}

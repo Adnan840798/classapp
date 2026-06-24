@@ -454,23 +454,25 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
                             </Link>
-                            <button
-                              onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
-                              title={announcement.is_important ? "Unpin from top" : "Pin to top"}
-                              className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
-                                announcement.is_important
-                                  ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
-                                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
-                              }`}
-                            >
-                              <Pin className="w-3.5 h-3.5" />
-                            </button>
-                            <EditAnnouncementModal announcement={announcement} />
-                            <DeleteButton
-                              id={announcement.id}
-                              onDelete={deleteAnnouncement}
-                              confirmMessage="Are you sure you want to delete this announcement?"
-                            />
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
+                                title={announcement.is_important ? "Unpin from top" : "Pin to top"}
+                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
+                                  announcement.is_important
+                                    ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
+                                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                                }`}
+                              >
+                                <Pin className="w-3.5 h-3.5" />
+                              </button>
+                              <EditAnnouncementModal announcement={announcement} />
+                              <DeleteButton
+                                id={announcement.id}
+                                onDelete={deleteAnnouncement}
+                                confirmMessage="Are you sure you want to delete this announcement?"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -593,23 +595,25 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               Question &amp; Answer
                               <ArrowRight className="w-3 h-3 flex-shrink-0" />
                             </Link>
-                            <button
-                              onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
-                              title={announcement.is_important ? "Unpin from top" : "Pin to top"}
-                              className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
-                                announcement.is_important
-                                  ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
-                                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
-                              }`}
-                            >
-                              <Pin className="w-3.5 h-3.5" />
-                            </button>
-                            <EditAnnouncementModal announcement={announcement} />
-                            <DeleteButton
-                              id={announcement.id}
-                              onDelete={deleteAnnouncement}
-                              confirmMessage="Are you sure you want to delete this announcement?"
-                            />
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
+                                title={announcement.is_important ? "Unpin from top" : "Pin to top"}
+                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
+                                  announcement.is_important
+                                    ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
+                                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                                }`}
+                              >
+                                <Pin className="w-3.5 h-3.5" />
+                              </button>
+                              <EditAnnouncementModal announcement={announcement} />
+                              <DeleteButton
+                                id={announcement.id}
+                                onDelete={deleteAnnouncement}
+                                confirmMessage="Are you sure you want to delete this announcement?"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -658,39 +662,39 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
             <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <button
                 onClick={toggleSelectMode}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer"
               >
-                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Cancel</span>
+                <X className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Cancel</span>
               </button>
 
               <button
                 onClick={() => handleBulkPin(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-400 hover:text-amber-350 border border-amber-500/20 hover:bg-amber-500/10 transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-400 hover:text-amber-350 border border-amber-500/20 hover:bg-amber-500/10 transition-all cursor-pointer"
               >
-                <Pin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Pin</span>
+                <Pin className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Pin</span>
               </button>
 
               <button
                 onClick={() => handleBulkPin(false)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-500 hover:text-amber-400 border border-amber-500/35 hover:bg-amber-500/15 transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-500 hover:text-amber-400 border border-amber-500/35 hover:bg-amber-500/15 transition-all cursor-pointer"
               >
-                <Pin className="w-3 h-3 sm:w-3.5 sm:h-3.5 rotate-180" />
-                <span>Unpin</span>
+                <Pin className="w-3.5 h-3.5 rotate-180" />
+                <span className="hidden xs:inline">Unpin</span>
               </button>
 
               <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer active:scale-[0.97]"
+                className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer active:scale-[0.97]"
                 style={{
                   background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
                   boxShadow: '0 4px 12px rgba(244,63,94,0.25)',
                   border: '1px solid rgba(244,63,94,0.15)',
                 }}
               >
-                <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Delete</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Delete</span>
               </button>
             </div>
           </div>

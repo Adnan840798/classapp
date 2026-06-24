@@ -16,7 +16,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       id="theme-toggle-btn"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       className={cn(
-        'flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-xl border border-border',
+        'flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 lg:w-9 lg:h-9 rounded-xl border border-border',
         'bg-background hover:bg-accent transition-all duration-200',
         'text-muted-foreground hover:text-foreground flex-shrink-0 cursor-pointer shadow-lg shadow-black/5 dark:shadow-black/20',
         className

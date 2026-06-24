@@ -988,19 +988,19 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                         </div>
 
                         {/* Vertical Divider */}
-                        <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-6" />
+                        <div className="w-px h-8 bg-border flex-shrink-0 mr-1.5 sm:mr-4 lg:mr-6" />
 
                         {/* Day Count Column (shifted left, close to the day text) */}
-                        <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-2 sm:mr-4 lg:mr-6">
+                        <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-1.5 sm:mr-4 lg:mr-6">
                           <span className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Day</span>
                           <span className="text-[13px] sm:text-[15px] font-black text-foreground leading-none sm:mt-1">{classDayNum}</span>
                         </div>
 
                         {/* Second Vertical Divider */}
-                        <div className="w-px h-8 bg-border flex-shrink-0 mr-2 sm:mr-4 lg:mr-8" />
+                        <div className="w-px h-8 bg-border flex-shrink-0 mr-1.5 sm:mr-4 lg:mr-8" />
 
                         {/* Three count columns */}
-                        <div className="flex-1 flex justify-center mr-2 sm:mr-4 lg:mr-8">
+                        <div className="flex-1 flex justify-center mr-1.5 sm:mr-4 lg:mr-8">
                           <div className="w-full max-w-2xl lg:max-w-3xl flex items-center justify-between">
                             {/* Deadlines */}
                             <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-3 min-w-0 py-1">
@@ -1048,9 +1048,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                           onClick={() => handleToggleHoliday(selectedWeek, index)}
                           disabled={isTogglingHoliday}
                           title="Mark as Holiday"
-                          className="flex flex-shrink-0 w-8 h-8 rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
+                          className="flex flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl items-center justify-center transition-all cursor-pointer disabled:opacity-50 btn-inline-mark-holiday"
                         >
-                          <Umbrella className="w-4 h-4" />
+                          <Umbrella className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                       )}
                     </div>
