@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
   Plus, Megaphone, FileText, ArrowRight,
-  Square, Trash2, Check, CheckSquare, Pin, X,
+  Square, Trash2, Check, CheckSquare, Pin, X, AlertTriangle, Loader2,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import {
@@ -35,6 +35,8 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   const [, startTransition] = useTransition();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pinned' | 'current' | 'past'>('all');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -126,10 +128,16 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   }
 
   async function handleBulkDelete() {
-    const ids = Array.from(selectedIds);
-    await bulkDeleteAnnouncements(ids);
-    setSelectedIds(new Set());
-    setSelectMode(false);
+    setIsDeleting(true);
+    try {
+      const ids = Array.from(selectedIds);
+      await bulkDeleteAnnouncements(ids);
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   if (!announcements || announcements.length === 0) {
@@ -688,7 +696,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
               </button>
 
               <button
-                onClick={handleBulkDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer active:scale-[0.97]"
                 style={{
                   background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
@@ -697,6 +705,69 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                 }}
               >
                 <Trash2 className="w-3.5 h-3.5" /><span className="hidden xs:inline">Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Delete Confirmation Modal ──────────────── */}
+      {mounted && showDeleteConfirm && createPortal(
+        <div
+          className="fixed inset-0 z-[10001] flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteConfirm(false); }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5 animate-slide-up"
+            style={{
+              background: 'linear-gradient(135deg, rgba(18,18,22,0.98) 0%, rgba(26,28,36,0.98) 100%)',
+              border: '1px solid rgba(244, 63, 94, 0.35)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(244,63,94,0.08), 0 0 40px rgba(244,63,94,0.08)',
+            }}
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(244,63,94,0.15), rgba(225,29,72,0.1))',
+                  border: '1px solid rgba(244,63,94,0.3)',
+                  boxShadow: '0 0 20px rgba(244,63,94,0.15)',
+                }}
+              >
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
+              </div>
+            </div>
+            <h3 className="text-sm font-black text-white text-center mb-1.5">
+              Delete {selectedIds.size === 1 ? '1 announcement' : `${selectedIds.size} announcements`}?
+            </h3>
+            <p className="text-xs text-slate-400 text-center leading-relaxed mb-5">
+              This action is permanent and cannot be undone. {selectedIds.size === 1 ? 'This announcement' : 'These announcements'} will be permanently removed.
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white border border-white/[0.08] hover:bg-white/[0.05] transition-all cursor-pointer disabled:opacity-40"
+              >
+                Keep
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98]"
+                style={{
+                  background: isDeleting ? 'rgba(244,63,94,0.4)' : 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                  boxShadow: '0 4px 16px rgba(244,63,94,0.3)',
+                  border: '1px solid rgba(244,63,94,0.2)',
+                }}
+              >
+                {isDeleting ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting…</>
+                ) : (
+                  <><Trash2 className="w-3.5 h-3.5" /> Yes, Delete</>
+                )}
               </button>
             </div>
           </div>
