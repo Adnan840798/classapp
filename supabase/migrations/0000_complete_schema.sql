@@ -953,6 +953,51 @@ CREATE TRIGGER telegram_config_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
+-- ── absent_trackers ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.absent_trackers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  course_name text NOT NULL CHECK (char_length(course_name) <= 100),
+  count integer NOT NULL DEFAULT 0 CHECK (count >= 0),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (profile_id, course_name)
+);
+
+-- Index for optimization
+CREATE INDEX IF NOT EXISTS absent_trackers_profile_id_idx ON public.absent_trackers (profile_id);
+
+-- Enable RLS
+ALTER TABLE public.absent_trackers ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "absent_trackers_own_select"
+  ON public.absent_trackers FOR SELECT
+  TO authenticated
+  USING (auth.uid() = profile_id);
+
+CREATE POLICY "absent_trackers_own_insert"
+  ON public.absent_trackers FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = profile_id);
+
+CREATE POLICY "absent_trackers_own_update"
+  ON public.absent_trackers FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = profile_id);
+
+CREATE POLICY "absent_trackers_own_delete"
+  ON public.absent_trackers FOR DELETE
+  TO authenticated
+  USING (auth.uid() = profile_id);
+
+-- Trigger
+DROP TRIGGER IF EXISTS absent_trackers_updated_at ON public.absent_trackers;
+CREATE TRIGGER absent_trackers_updated_at
+  BEFORE UPDATE ON public.absent_trackers
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+
 -- ============================================================
 -- SECTION 6: Realtime
 -- ============================================================

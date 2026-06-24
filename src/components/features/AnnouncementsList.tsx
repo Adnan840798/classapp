@@ -253,6 +253,9 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                   <div
                     key={`pinned-${announcement.id}`}
                     onClick={(e) => handleItemClick(e, announcement.id)}
+                    onTouchStart={() => handleTouchStart(announcement.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     className={`relative rounded-xl overflow-hidden transition-all duration-150 ${selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
                       }`}
                     style={{

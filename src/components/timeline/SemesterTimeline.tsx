@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus, Umbrella, C
 import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils/timelineDates';
 import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks, getAllSemesterTimelineData } from '@/lib/actions/timeline';
 import { RoutineButton } from './RoutineButton';
+import { AbsentTrackerButton } from './AbsentTrackerButton';
 import { DayDetailPanel } from './DayDetailPanel';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -587,8 +588,9 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
                 {totalClassDays} class days · {totalWeeks} weeks in semester
               </p>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0 mt-0.5">
+            <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-0.5">
               <RoutineButton initialImageUrl={initialRoutineUrl} isCR={isCR} />
+              <AbsentTrackerButton />
             </div>
           </div>
 
