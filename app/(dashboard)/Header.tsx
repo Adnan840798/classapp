@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { overlayStack } from '@/lib/utils/overlayStack';
 
 import { Menu, X, LogOut, Bell, GraduationCap, User, Shield } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
@@ -68,6 +69,14 @@ export function Header() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close mobile menu on edge swipe gesture
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const closeFn = () => setIsMobileMenuOpen(false);
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isMobileMenuOpen]);
 
   const isCR = profile?.role === 'cr' || profile?.role === 'admin';
   const prefix = isCR ? '/cr' : '/student';

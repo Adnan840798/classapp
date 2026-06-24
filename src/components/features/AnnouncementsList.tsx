@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Plus, Megaphone, FileText, ArrowRight,
   Square, Trash2, Check, CheckSquare, Pin, X, AlertTriangle, Loader2,
@@ -37,17 +38,23 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   const [filter, setFilter] = useState<'all' | 'pinned' | 'current' | 'past'>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pinningIds, setPinningIds] = useState<Set<string>>(new Set());
+  const [qaNavigatingId, setQaNavigatingId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleTogglePin = (id: string, isPinned: boolean) => {
+    if (pinningIds.has(id)) return;
+    setPinningIds((prev) => new Set(prev).add(id));
     startTransition(async () => {
       const res = await togglePinAnnouncement(id, isPinned);
       if (res && res.error) {
         alert(res.error);
       }
+      setPinningIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
     });
   };
 
@@ -320,19 +327,25 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => { setQaNavigatingId(announcement.id); router.push(`/cr/announcements/${announcement.id}`); }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id
+                                ? <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                                : <ArrowRight className="w-3 h-3 flex-shrink-0" />}
+                            </button>
                             <button
                               onClick={() => handleTogglePin(announcement.id, false)}
                               title="Unpin from top"
-                              className="flex items-center justify-center p-2 rounded-lg border border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 cursor-pointer"
+                              disabled={pinningIds.has(announcement.id)}
+                              className="flex items-center justify-center p-2 rounded-lg border border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                             >
-                              <Pin className="w-3.5 h-3.5" />
+                              {pinningIds.has(announcement.id)
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Pin className="w-3.5 h-3.5" />}
                             </button>
                           </div>
                         </div>
@@ -464,24 +477,30 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => { setQaNavigatingId(announcement.id); router.push(`/cr/announcements/${announcement.id}`); }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id
+                                ? <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                                : <ArrowRight className="w-3 h-3 flex-shrink-0" />}
+                            </button>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               <button
                                 onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
                                 title={announcement.is_important ? "Unpin from top" : "Pin to top"}
-                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
+                                disabled={pinningIds.has(announcement.id)}
+                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
                                   announcement.is_important
                                     ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
                                     : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
                                 }`}
                               >
-                                <Pin className="w-3.5 h-3.5" />
+                                {pinningIds.has(announcement.id)
+                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  : <Pin className="w-3.5 h-3.5" />}
                               </button>
                               <EditAnnouncementModal announcement={announcement} />
                               <DeleteButton
@@ -605,24 +624,30 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/cr/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-700 dark:text-zinc-300 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => { setQaNavigatingId(announcement.id); router.push(`/cr/announcements/${announcement.id}`); }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-700 dark:text-zinc-300 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id
+                                ? <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                                : <ArrowRight className="w-3 h-3 flex-shrink-0" />}
+                            </button>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               <button
                                 onClick={() => handleTogglePin(announcement.id, !announcement.is_important)}
                                 title={announcement.is_important ? "Unpin from top" : "Pin to top"}
-                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer ${
+                                disabled={pinningIds.has(announcement.id)}
+                                className={`flex items-center justify-center p-2 rounded-lg border transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
                                   announcement.is_important
                                     ? 'border-cyan-500/30 dark:border-cyan-500/40 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20'
                                     : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
                                 }`}
                               >
-                                <Pin className="w-3.5 h-3.5" />
+                                {pinningIds.has(announcement.id)
+                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  : <Pin className="w-3.5 h-3.5" />}
                               </button>
                               <EditAnnouncementModal announcement={announcement} />
                               <DeleteButton

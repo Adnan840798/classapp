@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import CapacitorHandler from '@/components/ui/CapacitorHandler';
+import EdgeSwipeHandler from '@/components/ui/EdgeSwipeHandler';
 import './globals.css';
 
 const inter = Inter({
@@ -49,6 +50,7 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <CapacitorHandler />
+          <EdgeSwipeHandler />
           {children}
         </ThemeProvider>
       </body>

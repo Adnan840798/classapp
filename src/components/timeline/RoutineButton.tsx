@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { CalendarDays, Upload, X, Trash2, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { uploadRoutine, deleteRoutine } from '@/lib/actions/routine';
 import { useRouter } from 'next/navigation';
 import { resolveSupabaseUrlSync } from '@/lib/utils/resolveUrl';
+import { overlayStack } from '@/lib/utils/overlayStack';
 
 interface RoutineButtonProps {
   initialImageUrl: string | null;
@@ -20,6 +21,22 @@ export function RoutineButton({ initialImageUrl, isCR }: RoutineButtonProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Close routine modal on back gesture
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const closeFn = () => setIsModalOpen(false);
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isModalOpen]);
+
+  // Close upload modal on back gesture
+  useEffect(() => {
+    if (!isUploadOpen) return;
+    const closeFn = () => setIsUploadOpen(false);
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isUploadOpen]);
 
   // Handle uploading a new routine image
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {

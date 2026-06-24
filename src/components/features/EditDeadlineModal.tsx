@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Pencil, X, Loader2 } from 'lucide-react';
+import { overlayStack } from '@/lib/utils/overlayStack';
 import { updateDeadline } from '@/lib/actions/deadlines';
 
 interface EditDeadlineModalProps {
@@ -17,6 +18,13 @@ interface EditDeadlineModalProps {
 
 export function EditDeadlineModal({ deadline }: EditDeadlineModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeFn = () => setIsOpen(false);
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isOpen]);
 
   return (
     <>

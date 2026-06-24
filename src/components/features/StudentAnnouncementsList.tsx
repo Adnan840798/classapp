@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Megaphone,
   FileText,
   ArrowRight,
   Pin,
+  Loader2,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
@@ -24,6 +26,8 @@ type Announcement = {
 };
 
 export function StudentAnnouncementsList({ announcements }: { announcements: Announcement[] }) {
+  const router = useRouter();
+  const [qaNavigatingId, setQaNavigatingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pinned' | 'current' | 'past'>('all');
 
   const now = new Date();
@@ -150,13 +154,21 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/student/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => {
+                                setQaNavigatingId(announcement.id);
+                                router.push(`/student/announcements/${announcement.id}`);
+                              }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id ? (
+                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                              ) : (
+                                <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -248,13 +260,21 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/student/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => {
+                                setQaNavigatingId(announcement.id);
+                                router.push(`/student/announcements/${announcement.id}`);
+                              }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id ? (
+                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                              ) : (
+                                <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -335,13 +355,21 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                                 </button>
                               </AttachmentViewer>
                             )}
-                            <Link
-                              href={`/student/announcements/${announcement.id}`}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-700 dark:text-zinc-300 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap"
+                            <button
+                              onClick={() => {
+                                setQaNavigatingId(announcement.id);
+                                router.push(`/student/announcements/${announcement.id}`);
+                              }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-700 dark:text-zinc-300 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                               Question &amp; Answer
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                            </Link>
+                              {qaNavigatingId === announcement.id ? (
+                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                              ) : (
+                                <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>

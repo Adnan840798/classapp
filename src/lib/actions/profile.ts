@@ -3,10 +3,12 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { createClient, FunctionsHttpError } from '@supabase/supabase-js';
+import { sendEmail, getPasswordResetHtml } from '@/lib/utils/email';
 
 function normalizeBdNumber(num: string | null | undefined): string | null {
   if (!num) return null;
@@ -459,7 +461,7 @@ export async function requestPasswordReset(email: string) {
     // Verify the email belongs to a profile in this tenant's class
     const { data: profileRow } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, full_name')
       .eq('email', normalizedEmail)
       .maybeSingle();
 
@@ -471,15 +473,50 @@ export async function requestPasswordReset(email: string) {
       };
     }
 
-    // Send the Supabase password reset email
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://classapp0.vercel.app';
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${siteUrl}/reset-password?type=recovery`,
+    // 1. Create a Supabase admin client to generate the reset link
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      console.error('SUPABASE_SERVICE_ROLE_KEY is not defined in environment variables.');
+      return { error: 'Server authentication configuration is missing.' };
+    }
+
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+
+    const adminClient = createClient(tenantUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
     });
 
-    if (resetError) {
-      console.error('requestPasswordReset error:', resetError);
-      return { error: 'Failed to send reset email. Please try again later.' };
+    // 2. Generate the recovery link
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://classapp0.vercel.app';
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'recovery',
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${siteUrl}/reset-password?type=recovery`,
+      },
+    });
+
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error('generateLink error:', linkError);
+      return { error: 'Failed to generate reset link. Please try again later.' };
+    }
+
+    // 3. Send email using Brevo
+    try {
+      const resetLink = linkData.properties.action_link;
+      const htmlContent = getPasswordResetHtml(resetLink, profileRow.full_name || 'User');
+      await sendEmail({
+        to: normalizedEmail,
+        subject: 'Reset your ClassApp password',
+        htmlContent,
+      });
+    } catch (sendError: any) {
+      console.error('Brevo email send error:', sendError);
+      return { error: sendError.message || 'Failed to send password reset email.' };
     }
 
     return { success: true };

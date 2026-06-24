@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Pencil, X, Loader2 } from 'lucide-react';
+import { overlayStack } from '@/lib/utils/overlayStack';
 import { updateAnnouncement } from '@/lib/actions/announcements';
 
 interface EditAnnouncementModalProps {
@@ -15,6 +16,13 @@ interface EditAnnouncementModalProps {
 
 export function EditAnnouncementModal({ announcement }: EditAnnouncementModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeFn = () => setIsOpen(false);
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isOpen]);
 
   return (
     <>

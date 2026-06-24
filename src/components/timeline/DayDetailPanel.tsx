@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, ChevronRight, ExternalLink, Umbrella } from 'lucide-react';
 import Link from 'next/link';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
+import { overlayStack } from '@/lib/utils/overlayStack';
 
 interface DayDetailPanelProps {
   isOpen: boolean;
@@ -97,6 +98,14 @@ export function DayDetailPanel({
 }: DayDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isTogglingHoliday, setIsTogglingHoliday] = useState(false);
+
+  // Close on back gesture event
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeFn = () => onClose();
+    overlayStack.push(closeFn);
+    return () => overlayStack.pop(closeFn);
+  }, [isOpen, onClose]);
 
   async function handleHolidayToggle() {
     if (!onToggleHoliday || weekNumber === undefined || dayIndex === undefined) return;
