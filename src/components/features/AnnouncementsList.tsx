@@ -322,12 +322,12 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                         ? 'linear-gradient(90deg, rgba(244,63,94,0.06) 0%, hsl(var(--card)) 100%)'
                         : isImportant
                           ? 'linear-gradient(90deg, rgba(6,182,212,0.08) 0%, hsl(var(--card)) 100%)'
-                          : 'linear-gradient(90deg, hsl(var(--muted)/0.15) 0%, hsl(var(--card)) 100%)',
+                          : 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, hsl(var(--card)) 100%)',
                       border: isSelected
                         ? '1px solid rgba(244, 63, 94, 0.4)'
                         : isImportant
                           ? '1px solid rgba(6, 182, 212, 0.35)'
-                          : '1px solid hsl(var(--border))',
+                          : '1px solid hsl(var(--primary) / 0.3)',
                       boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
                     }}
                   >
@@ -339,7 +339,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                           ? 'linear-gradient(180deg, #f43f5e, #be123c)'
                           : isImportant
                             ? 'linear-gradient(180deg, #22d3ee, #0891b2)'
-                            : 'linear-gradient(180deg, #71717a, #3f3f46)',
+                            : 'linear-gradient(180deg, #34D399, #059669)',
                       }}
                     />
 
@@ -364,15 +364,15 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
                               ? 'rgba(244, 63, 94, 0.12)'
                               : isImportant
                                 ? 'rgba(6, 182, 212, 0.1)'
-                                : 'hsl(var(--muted) / 0.3)',
+                                : 'rgba(16,185,129,0.1)',
                             border: isSelected
                               ? '1px solid rgba(244, 63, 94, 0.25)'
                               : isImportant
                                 ? '1px solid rgba(6, 182, 212, 0.25)'
-                                : '1px solid hsl(var(--border))',
+                                : '1px solid hsl(var(--primary) / 0.25)',
                           }}
                         >
-                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isImportant ? 'text-cyan-600 dark:text-cyan-400' : 'text-muted-foreground'}`} />
+                          <Megaphone className={`w-5 h-5 ${isSelected ? 'text-rose-600 dark:text-rose-400' : isImportant ? 'text-cyan-600 dark:text-cyan-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1.5">
