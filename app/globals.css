@@ -63,27 +63,27 @@
 
   .dark {
     /* ── Dark mode tokens ─────────────────────────── */
-    --background: 240 10% 3.9%;          /* Deep black (zinc-950 style) */
+    --background: 240 10% 3.9%;          /* Deep black (kept as requested) */
     --foreground: 210 20% 94%;
-    --card: 240 5% 7.5%;                 /* Dark charcoal (so cards stand out from the black bg) */
+    --card: 220 14% 12%;                 /* Restored original lighter card */
     --card-foreground: 210 20% 94%;
-    --popover: 240 5% 7.5%;
+    --popover: 220 14% 12%;              /* Restored original */
     --popover-foreground: 210 20% 94%;
     --primary: 160 84% 51%;
     --primary-foreground: 240 3% 8%;
-    --secondary: 240 5% 10%;
+    --secondary: 215 14% 20%;            /* Restored original */
     --secondary-foreground: 210 20% 94%;
-    --muted: 240 5% 9%;
+    --muted: 215 14% 16%;                /* Restored original */
     --muted-foreground: 220 10% 56%;
-    --accent: 240 5% 10%;
+    --accent: 215 14% 20%;                /* Restored original */
     --accent-foreground: 210 20% 94%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 20% 98%;
-    --border: 240 5% 13%;                /* Clean subtle border */
-    --input: 240 5% 13%;
+    --border: 220 10% 16%;               /* Restored original */
+    --input: 220 10% 16%;                /* Restored original */
     --ring: 160 84% 51%;
 
-    --sidebar-bg: 240 5% 5%;
+    --sidebar-bg: 240 3% 7%;             /* Restored original */
   }
 
   * {
