@@ -297,6 +297,9 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
 
         {/* Announcements Section (Current & Upcoming) */}
         <div className="flex flex-col gap-3.5">
+          <div className="flex items-center gap-2 px-1">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Current Announcements</h2>
+          </div>
 
           {upcomingAnnouncements.length === 0 ? (
             <p className="text-xs text-muted-foreground italic pl-1 py-1">

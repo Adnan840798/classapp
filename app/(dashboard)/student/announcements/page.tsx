@@ -136,7 +136,7 @@ export default async function StudentAnnouncementsPage() {
           {/* Current & Upcoming Section */}
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center gap-2 px-1">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-primary">Announcements</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Current Announcements</h2>
             </div>
 
             {upcomingAnnouncements.length === 0 ? (
