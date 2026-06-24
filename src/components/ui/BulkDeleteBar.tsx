@@ -68,15 +68,14 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
           <button
             onClick={onCancel}
             disabled={isPending}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer disabled:opacity-40"
+            className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer disabled:opacity-40"
           >
-            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden xs:inline">Cancel</span>
+            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" /><span className="hidden xs:inline">Cancel</span>
           </button>
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer disabled:opacity-60 active:scale-[0.97]"
+            className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer disabled:opacity-60 active:scale-[0.97]"
             style={{
               background: isPending
                 ? 'rgba(244,63,94,0.4)'
@@ -86,15 +85,9 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
             }}
           >
             {isPending ? (
-              <>
-                <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
-                <span className="hidden xs:inline">Deleting...</span>
-              </>
+              <><Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" /><span className="hidden xs:inline">Deleting...</span></>
             ) : (
-              <>
-                <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Delete<span className="hidden xs:inline"> {count}</span></span>
-              </>
+              <><Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /><span>Delete<span className="hidden xs:inline"> {count}</span></span></>
             )}
           </button>
         </div>

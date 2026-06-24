@@ -76,6 +76,7 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   // Long-press detection refs and handlers
   const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
   const isLongPressActive = useRef(false);
+  const justSelectedByLongPress = useRef<string | null>(null);
 
   const handleTouchStart = (id: string) => {
     isLongPressActive.current = false;
@@ -87,6 +88,7 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
         }
         setSelectMode(true);
         setSelectedIds(new Set([id]));
+        justSelectedByLongPress.current = id;
       }, 500);
     }
   };
@@ -111,6 +113,10 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   };
 
   const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (justSelectedByLongPress.current === id) {
+      justSelectedByLongPress.current = null;
+      return;
+    }
     if (selectMode) {
       e.preventDefault();
       e.stopPropagation();

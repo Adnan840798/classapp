@@ -64,6 +64,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   // Long-press detection refs and handlers
   const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
   const isLongPressActive = useRef(false);
+  const justSelectedByLongPress = useRef<string | null>(null);
 
   const handleTouchStart = (id: string) => {
     isLongPressActive.current = false;
@@ -75,6 +76,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         }
         setSelectMode(true);
         setSelectedIds(new Set([id]));
+        justSelectedByLongPress.current = id;
       }, 500);
     }
   };
@@ -99,6 +101,10 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   };
 
   const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (justSelectedByLongPress.current === id) {
+      justSelectedByLongPress.current = null;
+      return;
+    }
     if (selectMode) {
       e.preventDefault();
       e.stopPropagation();
@@ -662,39 +668,35 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
             <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <button
                 onClick={toggleSelectMode}
-                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border border-white/[0.06] hover:bg-white/[0.06] transition-all cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Cancel</span>
+                <X className="w-3.5 h-3.5" /><span className="hidden xs:inline">Cancel</span>
               </button>
 
               <button
                 onClick={() => handleBulkPin(true)}
-                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-400 hover:text-amber-350 border border-amber-500/20 hover:bg-amber-500/10 transition-all cursor-pointer"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-400 hover:text-amber-350 border border-amber-500/20 hover:bg-amber-500/10 transition-all cursor-pointer"
               >
-                <Pin className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Pin</span>
+                <Pin className="w-3.5 h-3.5" /><span className="hidden xs:inline">Pin</span>
               </button>
 
               <button
                 onClick={() => handleBulkPin(false)}
-                className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-500 hover:text-amber-400 border border-amber-500/35 hover:bg-amber-500/15 transition-all cursor-pointer"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-amber-500 hover:text-amber-400 border border-amber-500/35 hover:bg-amber-500/15 transition-all cursor-pointer"
               >
-                <Pin className="w-3.5 h-3.5 rotate-180" />
-                <span className="hidden xs:inline">Unpin</span>
+                <Pin className="w-3.5 h-3.5 rotate-180" /><span className="hidden xs:inline">Unpin</span>
               </button>
 
               <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer active:scale-[0.97]"
+                className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold text-white transition-all cursor-pointer active:scale-[0.97]"
                 style={{
                   background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
                   boxShadow: '0 4px 12px rgba(244,63,94,0.25)',
                   border: '1px solid rgba(244,63,94,0.15)',
                 }}
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Delete</span>
+                <Trash2 className="w-3.5 h-3.5" /><span className="hidden xs:inline">Delete</span>
               </button>
             </div>
           </div>

@@ -36,6 +36,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
   // Long-press detection refs and handlers (CR only)
   const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
   const isLongPressActive = useRef(false);
+  const justSelectedByLongPress = useRef<string | null>(null);
 
   const handleTouchStart = (id: string) => {
     isLongPressActive.current = false;
@@ -47,6 +48,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
         }
         setSelectMode(true);
         setSelectedIds(new Set([id]));
+        justSelectedByLongPress.current = id;
       }, 500);
     }
   };
@@ -71,6 +73,10 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
   };
 
   const handleItemClick = (e: React.MouseEvent, id: string) => {
+    if (justSelectedByLongPress.current === id) {
+      justSelectedByLongPress.current = null;
+      return;
+    }
     if (selectMode) {
       e.preventDefault();
       e.stopPropagation();

@@ -47,7 +47,7 @@ export function LandingHeaderActions({ profile, dashboardUrl }: LandingHeaderAct
     return (
       <Link
         href="/login"
-        className="text-xs sm:text-sm font-semibold bg-muted/45 hover:bg-muted/80 border border-border text-muted-foreground hover:text-foreground px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
+        className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold bg-muted/45 hover:bg-muted/80 border border-border text-muted-foreground hover:text-foreground px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all"
       >
         Sign In
       </Link>
