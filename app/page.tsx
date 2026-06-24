@@ -46,14 +46,14 @@ const FEATURES = [
   {
     icon: BookMarked,
     color: 'hsl(210 80% 60%)',
-    title: 'Organized Study Vault',
-    desc: 'Slides, lab manuals, and past papers structured by subject.',
+    title: 'Shared Class Resources',
+    desc: 'Create private study notes and share public Google Drive links.',
   },
   {
     icon: Award,
     color: 'hsl(340 80% 58%)',
-    title: 'Gradeboards & Stats',
-    desc: 'CRs publish grades with automatic class average analytics.',
+    title: 'Exam Marksheets',
+    desc: 'Access exam results and grading sheets published by class representatives.',
   },
   {
     icon: Users,

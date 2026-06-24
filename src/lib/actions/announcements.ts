@@ -102,7 +102,7 @@ export async function createAnnouncement(formData: FormData) {
       .insert({
         title: parsed.data.title,
         body: parsed.data.body,
-        is_important: true, // always important
+        is_important: false, // starts as not pinned/important by default
         is_public: false,   // always class-only
         attachment_url,
         attachment_type,
@@ -273,4 +273,31 @@ export async function updateAnnouncement(id: string, formData: FormData) {
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function togglePinAnnouncement(id: string, isPinned: boolean) {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('announcements')
+      .update({ is_important: isPinned })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+
+    revalidateTag('announcements', { expire: 0 });
+    revalidatePath('/cr/announcements');
+    revalidatePath('/student/announcements');
+    revalidatePath('/cr/timeline');
+    revalidatePath('/student/timeline');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('togglePinAnnouncement error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
 

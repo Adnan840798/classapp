@@ -21,7 +21,7 @@ const colorThemes = {
     iconColorClass: 'text-zinc-700 dark:text-red-400',
     badgeBgClass: 'bg-red-500/[0.03] dark:bg-red-500/25 border border-red-500/10',
     badgeTextColor: 'text-rose-950 dark:text-rose-300',
-    btnClass: 'text-rose-950 dark:text-rose-300 border border-red-500/15 bg-red-500/[0.01] dark:bg-red-950/15 hover:bg-red-500/10',
+    btnClass: 'text-zinc-900 dark:text-zinc-100 border border-red-500/30 dark:border-red-500/45 bg-red-500/12 dark:bg-red-500/25 hover:bg-red-500/22 dark:hover:bg-red-500/35 shadow-sm shadow-red-500/5',
   },
   yellow: {
     cardBgClass: 'bg-gradient-to-r from-amber-500/[0.18] to-card border-amber-500/60 dark:from-amber-500/[0.22] dark:to-card/40 dark:border-amber-500/55',
@@ -32,7 +32,7 @@ const colorThemes = {
     iconColorClass: 'text-zinc-700 dark:text-amber-400',
     badgeBgClass: 'bg-amber-500/[0.03] dark:bg-amber-500/25 border border-amber-500/10',
     badgeTextColor: 'text-amber-950 dark:text-amber-300',
-    btnClass: 'text-amber-950 dark:text-amber-300 border border-amber-500/15 bg-amber-500/[0.01] dark:bg-amber-950/15 hover:bg-amber-500/10',
+    btnClass: 'text-zinc-900 dark:text-zinc-100 border border-amber-500/30 dark:border-amber-500/45 bg-amber-500/12 dark:bg-amber-500/25 hover:bg-amber-500/22 dark:hover:bg-amber-500/35 shadow-sm shadow-amber-500/5',
   },
   green: {
     cardBgClass: 'bg-gradient-to-r from-emerald-500/[0.18] to-card border-emerald-500/60 dark:from-emerald-500/[0.22] dark:to-card/40 dark:border-emerald-500/55',
@@ -43,7 +43,7 @@ const colorThemes = {
     iconColorClass: 'text-zinc-700 dark:text-emerald-400',
     badgeBgClass: 'bg-emerald-500/[0.03] dark:bg-emerald-500/25 border border-emerald-500/10',
     badgeTextColor: 'text-emerald-950 dark:text-emerald-300',
-    btnClass: 'text-emerald-950 dark:text-emerald-300 border border-emerald-500/15 bg-emerald-500/[0.01] dark:bg-emerald-950/15 hover:bg-emerald-500/10',
+    btnClass: 'text-zinc-900 dark:text-zinc-100 border border-emerald-500/30 dark:border-emerald-500/45 bg-emerald-500/12 dark:bg-emerald-500/25 hover:bg-emerald-500/22 dark:hover:bg-emerald-500/35 shadow-sm shadow-emerald-500/5',
   },
   gray: {
     cardBgClass: 'bg-gradient-to-r from-muted/30 to-card border-border dark:from-muted/10 dark:to-card/40',
@@ -54,7 +54,7 @@ const colorThemes = {
     iconColorClass: 'text-zinc-700 dark:text-zinc-400',
     badgeBgClass: 'bg-muted border border-border',
     badgeTextColor: 'text-zinc-800 dark:text-zinc-300',
-    btnClass: 'text-zinc-800 dark:text-zinc-400 border border-border bg-muted/20 hover:bg-muted/40',
+    btnClass: 'text-zinc-900 dark:text-zinc-100 border border-border bg-muted/40 dark:bg-muted/20 hover:bg-muted/60 dark:hover:bg-muted/30 shadow-sm',
   },
   selected: {
     cardBgClass: 'bg-gradient-to-r from-rose-500/[0.04] to-card border-rose-500/30 dark:from-rose-500/[0.08] dark:to-card/40 dark:border-rose-500/40',
@@ -65,7 +65,7 @@ const colorThemes = {
     iconColorClass: 'text-zinc-700 dark:text-rose-400',
     badgeBgClass: 'bg-rose-500/[0.03] dark:bg-rose-500/25 border border-rose-500/10',
     badgeTextColor: 'text-rose-950 dark:text-rose-300',
-    btnClass: 'text-rose-950 dark:text-rose-300 border border-rose-500/15 bg-rose-50/10 dark:bg-rose-950/15 hover:bg-rose-500/10',
+    btnClass: 'text-zinc-900 dark:text-zinc-100 border border-rose-500/30 dark:border-rose-500/45 bg-rose-500/12 dark:bg-rose-500/25 hover:bg-rose-500/22 dark:hover:bg-rose-500/35 shadow-sm shadow-rose-500/5',
   },
 };
 

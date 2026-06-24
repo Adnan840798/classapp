@@ -33,7 +33,6 @@ const STUDENT_CARDS: FeatureCard[] = [
       { label: 'Check Daily Routine', description: 'View today\'s lectures, labs, and breaks organized chronologically from the moment you open the app.' },
       { label: 'View Class Details', description: 'Tap any class slot to instantly see the room number, teacher, subject code, and exact timings.' },
       { label: 'Navigate the Calendar', description: 'Tap any date on the calendar to pull up the schedule for future weeks and plan ahead.' },
-      { label: 'See Live Changes', description: 'View rescheduling notices, teacher swaps, and class cancellations updated on your timeline instantly.' },
     ]
   },
   {
@@ -43,9 +42,8 @@ const STUDENT_CARDS: FeatureCard[] = [
     color: 'hsl(38 90% 55%)',
     gradient: 'from-amber-500/10 to-transparent',
     features: [
-      { label: 'Track Priority Feed', description: 'Identify urgent tasks immediately with color-coding: red for overdue, orange for due within 48h, and white for upcoming.' },
+      { label: 'Track Priority Feed', description: 'Identify urgent tasks instantly with color-coding: grey for overdue, red for highly urgent (due in < 3 days), yellow for upcoming (due within 7 days), and green for future deadlines.' },
       { label: 'Access Submission Details', description: 'Open any deadline card to view instructions, syllabus topics, and reference documents uploaded by your CR.' },
-      { label: 'Auto-Archive Completed', description: 'Hide completed tasks automatically from your active list once marked as done to keep your feed clean.' },
     ]
   },
   {
@@ -74,27 +72,27 @@ const STUDENT_CARDS: FeatureCard[] = [
     ]
   },
   {
-    title: 'Course Resources',
-    subtitle: 'organized slide decks, notes, and past papers.',
+    title: 'Class Resources',
+    subtitle: 'Your private study notes and shared class links.',
     icon: BookMarked,
     color: 'hsl(210 80% 60%)',
     gradient: 'from-blue-500/10 to-transparent',
     features: [
-      { label: 'Access Study Vault', description: 'Find lecture slides, lab sheets, and past papers uploaded by your CR, organized neatly by course.' },
-      { label: 'Preview PDFs In-App', description: 'Read reference documents and syllabus guidelines directly in the app before deciding to download.' },
-      { label: 'One-Tap Downloads', description: 'Download files straight to your device storage instantly without needing external drive links.' },
+      { label: 'Private Study Notes', description: 'Create and organize your own personal notes, study outlines, and text descriptions inside the app.' },
+      { label: 'Share Google Drive Links', description: 'Post reference files, Google Drive directories, or study websites for the class.' },
+      { label: 'Access Verified Vault', description: 'Browse shared notes and external resource links uploaded by classmates and verified by the CR.' },
     ]
   },
   {
-    title: 'Results & Grades',
-    subtitle: 'Confidential grade tracking with class analytics.',
+    title: 'Exam Results',
+    subtitle: 'Access class exam marksheets in one place.',
     icon: Award,
     color: 'hsl(340 80% 58%)',
     gradient: 'from-rose-500/10 to-transparent',
     features: [
-      { label: 'View Confidential Marks', description: 'Check your individual quiz, midterm, or assignment grades securely (only you can see your scores).' },
-      { label: 'Check Class Averages', description: 'See the class average and highest score alongside your own grade to understand your performance.' },
-      { label: 'Open Official sheets', description: 'View or download grade distribution PDFs and result spreadsheets uploaded by your CR.' },
+      { label: 'View Published Marksheets', description: 'Instantly check class exam results and grading sheets published by your CR.' },
+      { label: 'Preview Sheets In-App', description: 'Open result spreadsheets, PDFs, or notice board photos directly inside the app.' },
+      { label: 'Download Marksheets', description: 'Save copies of published class grade sheets directly to your device storage.' },
     ]
   },
 ];
@@ -150,26 +148,27 @@ const CR_CARDS: FeatureCard[] = [
     ]
   },
   {
-    title: 'Resource Library',
-    subtitle: 'Keep slides, guides, and papers permanently organized.',
+    title: 'Class Resources Manager',
+    subtitle: 'Coordinate shared links and approve student uploads.',
     icon: BookMarked,
     color: 'hsl(190 75% 50%)',
     gradient: 'from-cyan-500/10 to-transparent',
     features: [
-      { label: 'Upload Course Files', description: 'Host lecture slides, lab manuals, and syllabus files for direct student downloads.' },
-      { label: 'Tag by Subject', description: 'Categorize uploads with course codes and titles to keep the class study vault structured and searchable.' },
+      { label: 'Manage Class Links', description: 'Add public reference links, Google Drive folders, and shared file URLs for the class.' },
+      { label: 'Approve Student Notes', description: 'Review public notes and study links submitted by students and approve them to appear on the class feed.' },
+      { label: 'Moderate Outdated Links', description: 'Edit or delete class resources and external URLs to keep the shared library clean and organized.' },
     ]
   },
   {
     title: 'Results Publisher',
-    subtitle: 'Publish grades securely with built-in analytics.',
+    subtitle: 'Publish exam names and attach class marksheets.',
     icon: Award,
     color: 'hsl(340 80% 58%)',
     gradient: 'from-rose-500/10 to-transparent',
     features: [
-      { label: 'Publish Assessment Marks', description: 'Input individual student scores for quizzes, midterms, or assignments securely.' },
-      { label: 'Anonymize Class Averages', description: 'Show students their own marks alongside automated class averages and highest scores, protecting individual grades.' },
-      { label: 'Upload Grade Sheets', description: 'Attach full-class distribution sheets or spreadsheets for major examinations.' },
+      { label: 'Publish Exam Results', description: 'Post exam titles (like Midterms or Quizzes) directly to the class dashboard.' },
+      { label: 'Attach Result Sheets', description: 'Upload class marksheet PDFs, images, or distribution spreadsheets for students to view.' },
+      { label: 'Publish on Timeline', description: 'Optionally pin published result sheets directly to specific timeline dates.' },
     ]
   },
 ];
