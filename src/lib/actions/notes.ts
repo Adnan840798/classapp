@@ -60,9 +60,11 @@ export async function createNote(formData: FormData) {
 
     if (error) return { error: error.message };
 
+    // SEC-12: Revalidate both student and CR note lists so changes show up immediately for all roles
+    revalidatePath('/student/notes');
+    revalidatePath('/cr/notes');
+    
     const notesPath = isCR ? '/cr/notes' : '/student/notes';
-
-    revalidatePath(notesPath);
     redirect(notesPath);
   } catch (err: any) {
     if (
@@ -133,10 +135,13 @@ export async function updateNote(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    const notesPath = isCR ? '/cr/notes' : '/student/notes';
+    // SEC-12: Revalidate all related feeds and single note pages
+    revalidatePath('/student/notes');
+    revalidatePath(`/student/notes/${id}`);
+    revalidatePath('/cr/notes');
+    revalidatePath(`/cr/notes/${id}`);
 
-    revalidatePath(notesPath);
-    revalidatePath(`${notesPath}/${id}`);
+    const notesPath = isCR ? '/cr/notes' : '/student/notes';
     redirect(notesPath);
   } catch (err: any) {
     if (
@@ -186,7 +191,18 @@ export async function bulkDeleteNotes(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
-    // CR-only: delete any note by id
+    
+    // SEC-02: Add CR/admin role check before bulk delete
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can bulk delete resources.' };
+    }
+
     const { error } = await supabase.from('notes').delete().in('id', ids);
     if (error) return { error: error.message };
     revalidatePath('/cr/notes');

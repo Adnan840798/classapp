@@ -53,10 +53,6 @@ export async function createAbsentTracker(courseName: string) {
       console.error('createAbsentTracker database error:', error);
       return { success: false, error: error.message };
     }
-
-    revalidatePath('/cr/timeline');
-    revalidatePath('/student/timeline');
-
     return { success: true, data };
   } catch (err: any) {
     console.error('createAbsentTracker unexpected error:', err);
@@ -87,10 +83,6 @@ export async function updateAbsentTracker(id: string, count: number) {
       console.error('updateAbsentTracker database error:', error);
       return { success: false, error: error.message };
     }
-
-    revalidatePath('/cr/timeline');
-    revalidatePath('/student/timeline');
-
     return { success: true, data };
   } catch (err: any) {
     console.error('updateAbsentTracker unexpected error:', err);
@@ -114,9 +106,6 @@ export async function deleteAbsentTracker(id: string) {
       console.error('deleteAbsentTracker database error:', error);
       return { success: false, error: error.message };
     }
-
-    revalidatePath('/cr/timeline');
-    revalidatePath('/student/timeline');
 
     return { success: true };
   } catch (err: any) {

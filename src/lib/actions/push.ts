@@ -120,8 +120,11 @@ export async function sendFCMPush(payload: {
     }
 
     // 2. Fetch profiles that have a registered FCM token
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      tenantUrl,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 

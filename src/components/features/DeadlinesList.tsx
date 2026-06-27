@@ -128,8 +128,7 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   };
 
   const enriched = enrichDeadlines(deadlines);
-  // eslint-disable-next-line react-hooks/purity
-  const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= Date.now());
+  const activeDeadlines = enriched;
 
   function toggleSelectMode() {
     setSelectMode((v) => !v);

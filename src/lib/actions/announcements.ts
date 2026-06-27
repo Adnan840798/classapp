@@ -175,7 +175,7 @@ export async function createAnnouncement(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
-    revalidateTag('announcements', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/announcements');
     revalidatePath('/student/announcements');
     revalidatePath('/cr/timeline');
@@ -201,11 +201,18 @@ export async function createAnnouncement(formData: FormData) {
 export async function deleteAnnouncement(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    // SEC-01 fix: enforce CR/admin role — any authenticated user could call this directly
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete announcements.' };
+    }
     // Delete associated in-app notifications
     await supabase.from('notifications').delete().eq('reference_id', id).eq('type', 'announcement');
     const { error } = await supabase.from('announcements').delete().eq('id', id);
     if (error) return { error: error.message };
-    revalidateTag('announcements', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/announcements');
     revalidatePath('/student/announcements');
     return { success: true };
@@ -221,11 +228,16 @@ export async function bulkDeleteAnnouncements(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // SEC-01 fix: enforce CR/admin role
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete announcements.' };
+    }
     // Delete associated in-app notifications in bulk
     await supabase.from('notifications').delete().in('reference_id', ids).eq('type', 'announcement');
     const { error } = await supabase.from('announcements').delete().in('id', ids);
     if (error) return { error: error.message };
-    revalidateTag('announcements', { expire: 0 });
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/announcements');
     revalidatePath('/student/announcements');
     return { success: true };
@@ -259,7 +271,7 @@ export async function updateAnnouncement(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    revalidateTag('announcements', { expire: 0 });
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath(`/cr/announcements/${id}`);
     revalidatePath(`/student/announcements/${id}`);
     revalidatePath('/cr/announcements');
@@ -287,7 +299,7 @@ export async function togglePinAnnouncement(id: string, isPinned: boolean) {
 
     if (error) return { error: error.message };
 
-    revalidateTag('announcements', { expire: 0 });
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/announcements');
     revalidatePath('/student/announcements');
     revalidatePath('/cr/timeline');
@@ -314,7 +326,7 @@ export async function bulkTogglePinAnnouncements(ids: string[], isPinned: boolea
 
     if (error) return { error: error.message };
 
-    revalidateTag('announcements', { expire: 0 });
+    revalidateTag('announcements', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/announcements');
     revalidatePath('/student/announcements');
     revalidatePath('/cr/timeline');

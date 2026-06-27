@@ -21,6 +21,12 @@ export async function createCalendarEvent(formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
 
+    // SEC-03: Enforce CR/admin role for createCalendarEvent
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can create calendar events.' };
+    }
+
     const raw = {
       title: formData.get('title') as string,
       description: (formData.get('description') as string) || undefined,
@@ -43,7 +49,10 @@ export async function createCalendarEvent(formData: FormData) {
 
     revalidatePath('/cr/calendar');
     revalidatePath('/student/calendar');
-    redirect('/cr/calendar');
+    
+    // SEC-11: Redirect using role-appropriate path
+    const redirectPath = (profile.role === 'cr' || profile.role === 'admin') ? '/cr/calendar' : '/student/calendar';
+    redirect(redirectPath);
   } catch (err: any) {
     if (
       err instanceof Error &&
@@ -62,6 +71,12 @@ export async function updateCalendarEvent(id: string, formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
 
+    // SEC-03: Enforce CR/admin role for updateCalendarEvent
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can update calendar events.' };
+    }
+
     const { error } = await supabase
       .from('calendar_events')
       .update({
@@ -78,7 +93,9 @@ export async function updateCalendarEvent(id: string, formData: FormData) {
 
     revalidatePath('/cr/calendar');
     revalidatePath('/student/calendar');
-    redirect('/cr/calendar');
+    
+    const redirectPath = (profile.role === 'cr' || profile.role === 'admin') ? '/cr/calendar' : '/student/calendar';
+    redirect(redirectPath);
   } catch (err: any) {
     if (
       err instanceof Error &&
@@ -94,6 +111,16 @@ export async function updateCalendarEvent(id: string, formData: FormData) {
 export async function deleteCalendarEvent(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    
+    // SEC-03: Enforce auth and CR/admin role check for deleteCalendarEvent
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete calendar events.' };
+    }
+
     const { error } = await supabase.from('calendar_events').delete().eq('id', id);
     if (error) return { error: error.message };
     revalidatePath('/cr/calendar');
@@ -133,6 +160,12 @@ export async function answerQuestion(questionId: string, formData: FormData) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
+
+    // SEC-04: Add role check to answerQuestion
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can answer questions.' };
+    }
 
     const answer = formData.get('answer') as string;
     if (!answer || answer.length > 1000) return { error: 'Invalid answer.' };
@@ -210,6 +243,12 @@ export async function resolveQuestion(questionId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
 
+    // SEC-04: Add role check to resolveQuestion
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can resolve questions.' };
+    }
+
     const { error } = await supabase
       .from('timeline_questions')
       .update({ is_resolved: true, resolved_by: user.id, resolved_at: new Date().toISOString() })
@@ -242,11 +281,15 @@ export async function askQuestion(
     if (!user) redirect('/login');
 
     const question = formData.get('question') as string;
-    if (!question || question.length > 500) return { error: 'Question must be 1–500 characters.' };
+    // SEC-13 fix: trim whitespace-only input and check question boundary correctly
+    const trimmedQuestion = question ? question.trim() : '';
+    if (trimmedQuestion.length === 0 || trimmedQuestion.length > 500) {
+      return { error: 'Question must be 1–500 characters.' };
+    }
 
     const insertData: Record<string, any> = {
       asked_by: user.id,
-      question,
+      question: trimmedQuestion,
     };
 
     if (entityType === 'event') {

@@ -465,7 +465,7 @@ export async function requestPasswordReset(email: string) {
       };
     }
 
-    // 1. Create a Supabase admin client to generate the reset link
+    // 1. Create a Supabase admin client to generate the reset link if we have permission
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceRoleKey) {
       console.error('SUPABASE_SERVICE_ROLE_KEY is not defined in environment variables.');
@@ -474,44 +474,66 @@ export async function requestPasswordReset(email: string) {
 
     const cookieStore = await cookies();
     const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
-    const adminClient = createClient(tenantUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // 2. Generate the recovery link
     const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://classapp0.vercel.app';
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: normalizedEmail,
-      options: {
+
+    // We only try generateLink + Brevo if we are on the default project (where the service role key matches)
+    const isDefaultProject = tenantUrl.replace(/\/$/, '') === process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/$/, '');
+
+    let linkData = null;
+    let linkError = null;
+
+    if (isDefaultProject) {
+      try {
+        const adminClient = createClient(tenantUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        });
+
+        const { data, error } = await adminClient.auth.admin.generateLink({
+          type: 'recovery',
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/reset-password?type=recovery`,
+          },
+        });
+        linkData = data;
+        linkError = error;
+      } catch (err) {
+        console.warn('Failed to generate reset link via admin client (will fall back):', err);
+      }
+    }
+
+    if (linkData?.properties?.action_link) {
+      // 2. Send email using Brevo
+      try {
+        const resetLink = linkData.properties.action_link;
+        const htmlContent = getPasswordResetHtml(resetLink, profileRow.full_name || 'User');
+        await sendEmail({
+          to: normalizedEmail,
+          subject: 'Reset your ClassApp password',
+          htmlContent,
+        });
+        return { success: true };
+      } catch (sendError: any) {
+        console.error('Brevo email send error:', sendError);
+        return { error: sendError.message || 'Failed to send password reset email.' };
+      }
+    } else {
+      // 3. Fallback: Use standard Supabase public password reset (works on any tenant / custom database)
+      console.log('Using standard supabase.auth.resetPasswordForEmail for reset link');
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${siteUrl}/reset-password?type=recovery`,
-      },
-    });
-
-    if (linkError || !linkData?.properties?.action_link) {
-      console.error('generateLink error:', linkError);
-      return { error: 'Failed to generate reset link. Please try again later.' };
-    }
-
-    // 3. Send email using Brevo
-    try {
-      const resetLink = linkData.properties.action_link;
-      const htmlContent = getPasswordResetHtml(resetLink, profileRow.full_name || 'User');
-      await sendEmail({
-        to: normalizedEmail,
-        subject: 'Reset your ClassApp password',
-        htmlContent,
       });
-    } catch (sendError: any) {
-      console.error('Brevo email send error:', sendError);
-      return { error: sendError.message || 'Failed to send password reset email.' };
-    }
 
-    return { success: true };
+      if (resetError) {
+        console.error('resetPasswordForEmail error:', resetError);
+        return { error: resetError.message || 'Failed to send password reset email.' };
+      }
+
+      return { success: true };
+    }
   } catch (err: any) {
     console.error('requestPasswordReset error:', err);
     return { error: err.message || 'An unexpected error occurred.' };

@@ -79,13 +79,15 @@ export async function getTimelineData(weekNumber: number, semesterStartDate: str
 
   const timelineDays = days.map((dayDate, index) => {
     const dateStr = toISODateString(dayDate);
-    const dayStart = dayDate.getTime();
-    const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
 
     const filterByDay = (itemDateStr: string) => {
-      const itemDate = new Date(itemDateStr);
-      const time = itemDate.getTime();
-      return time >= dayStart && time <= dayEnd;
+      if (!itemDateStr) return false;
+      try {
+        const itemDate = new Date(itemDateStr);
+        return toISODateString(itemDate) === dateStr;
+      } catch {
+        return false;
+      }
     };
 
     return {
@@ -356,13 +358,15 @@ export async function getAllSemesterTimelineData(totalWeeks: number, semesterSta
     const { days } = getWeekDates(w, semesterStartDate);
     allWeeksData[w] = days.map((dayDate, index) => {
       const dateStr = toISODateString(dayDate);
-      const dayStart = dayDate.getTime();
-      const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
 
       const filterByDay = (itemDateStr: string) => {
-        const itemDate = new Date(itemDateStr);
-        const time = itemDate.getTime();
-        return time >= dayStart && time <= dayEnd;
+        if (!itemDateStr) return false;
+        try {
+          const itemDate = new Date(itemDateStr);
+          return toISODateString(itemDate) === dateStr;
+        } catch {
+          return false;
+        }
       };
 
       return {

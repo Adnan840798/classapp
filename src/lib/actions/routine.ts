@@ -53,9 +53,11 @@ export async function uploadRoutine(formData: FormData) {
 
     if (oldRoutine?.image_url) {
       try {
-        const urlParts = oldRoutine.image_url.split('/public/notices/');
-        if (urlParts.length > 1) {
-          const oldStoragePath = urlParts[1];
+        const urlWithoutQuery = oldRoutine.image_url.split('?')[0];
+        const bucketMarker = `/notices/`;
+        const markerIndex = urlWithoutQuery.indexOf(bucketMarker);
+        if (markerIndex !== -1) {
+          const oldStoragePath = urlWithoutQuery.substring(markerIndex + bucketMarker.length);
           await supabase.storage
             .from(STORAGE_BUCKETS.NOTICES)
             .remove([oldStoragePath]);
@@ -142,12 +144,18 @@ export async function deleteRoutine() {
       .maybeSingle();
 
     if (routine?.image_url) {
-      const urlParts = routine.image_url.split('/public/notices/');
-      if (urlParts.length > 1) {
-        const storagePath = urlParts[1];
-        await supabase.storage
-          .from(STORAGE_BUCKETS.NOTICES)
-          .remove([storagePath]);
+      try {
+        const urlWithoutQuery = routine.image_url.split('?')[0];
+        const bucketMarker = `/notices/`;
+        const markerIndex = urlWithoutQuery.indexOf(bucketMarker);
+        if (markerIndex !== -1) {
+          const storagePath = urlWithoutQuery.substring(markerIndex + bucketMarker.length);
+          await supabase.storage
+            .from(STORAGE_BUCKETS.NOTICES)
+            .remove([storagePath]);
+        }
+      } catch (err) {
+        console.warn('Failed to delete routine from storage (non-fatal):', err);
       }
     }
 

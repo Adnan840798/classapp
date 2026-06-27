@@ -161,7 +161,7 @@ export async function publishResult(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
-    revalidateTag('results', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('results', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/results');
     revalidatePath('/student/results');
     revalidatePath('/cr/timeline');
@@ -187,11 +187,18 @@ export async function publishResult(formData: FormData) {
 export async function deleteResult(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    // SEC-01 fix: enforce CR/admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete results.' };
+    }
     // Delete associated in-app notifications
     await supabase.from('notifications').delete().eq('reference_id', id).eq('type', 'result');
     const { error } = await supabase.from('exam_results').delete().eq('id', id);
     if (error) return { error: error.message };
-    revalidateTag('results', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('results', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/results');
     revalidatePath('/student/results');
     return { success: true };
@@ -207,11 +214,16 @@ export async function bulkDeleteResults(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // SEC-01 fix: enforce CR/admin role
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete results.' };
+    }
     // Delete associated in-app notifications in bulk
     await supabase.from('notifications').delete().in('reference_id', ids).eq('type', 'result');
     const { error } = await supabase.from('exam_results').delete().in('id', ids);
     if (error) return { error: error.message };
-    revalidateTag('results', { expire: 0 });
+    revalidateTag('results', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/results');
     revalidatePath('/student/results');
     return { success: true };
@@ -242,7 +254,7 @@ export async function updateResult(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    revalidateTag('results', { expire: 0 });
+    revalidateTag('results', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/results');
     revalidatePath('/student/results');
     revalidatePath('/cr/timeline');

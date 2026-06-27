@@ -90,7 +90,7 @@ export async function createDeadline(formData: FormData) {
     }
 
     const redirectTo = formData.get('redirect_to') as string;
-    revalidateTag('deadlines', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('deadlines', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
     revalidatePath('/cr/timeline');
@@ -116,11 +116,18 @@ export async function createDeadline(formData: FormData) {
 export async function deleteDeadline(id: string) {
   try {
     const supabase = await getSupabaseServerClient();
+    // SEC-01 fix: enforce CR/admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete deadlines.' };
+    }
     // Delete associated in-app notifications
     await supabase.from('notifications').delete().eq('reference_id', id).eq('type', 'deadline');
     const { error } = await supabase.from('deadlines').delete().eq('id', id);
     if (error) return { error: error.message };
-    revalidateTag('deadlines', { expire: 0 }); // bust unstable_cache immediately
+    revalidateTag('deadlines', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
     return { success: true };
@@ -136,11 +143,16 @@ export async function bulkDeleteDeadlines(ids: string[]) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // SEC-01 fix: enforce CR/admin role
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can delete deadlines.' };
+    }
     // Delete associated in-app notifications in bulk
     await supabase.from('notifications').delete().in('reference_id', ids).eq('type', 'deadline');
     const { error } = await supabase.from('deadlines').delete().in('id', ids);
     if (error) return { error: error.message };
-    revalidateTag('deadlines', { expire: 0 });
+    revalidateTag('deadlines', { expire: 0 }); // SEC-07 fix
     revalidatePath('/cr/deadlines');
     revalidatePath('/student/deadlines');
     return { success: true };
@@ -155,6 +167,11 @@ export async function updateDeadline(id: string, formData: FormData) {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
+    // SEC-14 fix: enforce CR/admin role at the server — UI guard alone is not sufficient
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (profile.role !== 'cr' && profile.role !== 'admin')) {
+      return { error: 'Unauthorized: Only CRs and Admins can update deadlines.' };
+    }
 
     const raw = {
       title: formData.get('title') as string,
@@ -185,7 +202,7 @@ export async function updateDeadline(id: string, formData: FormData) {
 
     if (error) return { error: error.message };
 
-    revalidateTag('deadlines', { expire: 0 });
+    revalidateTag('deadlines', { expire: 0 }); // SEC-07 fix
     revalidatePath(`/cr/deadlines/${id}`);
     revalidatePath(`/student/deadlines/${id}`);
     revalidatePath('/cr/deadlines');
