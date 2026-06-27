@@ -358,8 +358,8 @@ export async function createStudentAccount(input: {
 
 export async function resetFirstTimePassword(newPassword: string) {
   try {
-    if (!newPassword || newPassword.length < 6) {
-      return { error: 'Password must be at least 6 characters long.' };
+    if (!newPassword || newPassword.length < 8) {
+      return { error: 'Password must be at least 8 characters long.' };
     }
 
     const supabase = await getSupabaseServerClient();
@@ -429,18 +429,10 @@ export async function changePassword(currentPassword: string, newPassword: strin
       return { error: updateError.message };
     }
 
-    // Automatically re-authenticate with the new password to refresh the session cookies in the browser
-    const { error: reSignInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: newPassword,
-    });
-
-    if (reSignInError) {
-      console.error('Failed to automatically refresh session after password change:', reSignInError);
-      return { error: 'Password updated, but failed to refresh session. Please log in again.' };
-    }
-
-    return { success: true };
+    // BUG-08 fix: A server-side signInWithPassword() after updateUser() cannot write the
+    // refreshed JWT back to the browser's cookie jar (cookie store is read-only in Server Actions).
+    // We signal requiresReLogin so the client can do a browser-side sign-in to refresh the session.
+    return { success: true, requiresReLogin: true, email: user.email };
   } catch (err: any) {
     console.error('changePassword error:', err);
     return { error: err.message || 'An unexpected error occurred.' };

@@ -80,7 +80,8 @@ export async function middleware(request: NextRequest) {
   const isDashboard  = !isPublicPage && !isResetPage && !isAsset;
   const needsAuth    = isDashboard || isResetPage;
 
-  const hasSessionCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-'));
+  // BUG-10 fix: match exact configured auth cookie name, not just generic 'sb-' prefix
+  const hasSessionCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-classapp-auth-token'));
 
   // ── 2. No tenant config → redirect auth-required routes to /login ─────────
   if (!tenantUrl && needsAuth) {

@@ -15,6 +15,8 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // BUG-04: tracks whether setSession() succeeded before allowing form submit
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     // Check URL params to detect if this is an email-recovery link from Supabase
@@ -28,15 +30,37 @@ export default function ResetPasswordPage() {
       // This is an email reset link — Supabase puts the session in the URL hash
       setMode('email-recovery');
 
-      // If there's an access_token in the hash, set the session so updateUser() works
       if (accessToken) {
-        const refreshToken = hashParams.get('refresh_token') || '';
+        const refreshToken = hashParams.get('refresh_token');
+        if (!refreshToken) {
+          // PKCE / magic-link flow: no refresh token in hash.
+          // BUG-04 fix: show a clear error instead of silently passing '' to setSession.
+          setError('This reset link is incomplete. Please request a new password reset email.');
+          setSessionReady(false);
+          return;
+        }
+
         const supabase = getSupabaseBrowserClient();
+        // BUG-04 fix: await setSession and handle failure explicitly
         supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-          .catch(console.error);
+          .then(({ error: sessionError }: { error: Error | null }) => {
+            if (sessionError) {
+              console.error('setSession error:', sessionError);
+              setError(
+                'Your reset link has expired or is invalid. Please request a new password reset email.'
+              );
+              setSessionReady(false);
+            } else {
+              setSessionReady(true);
+            }
+          });
+      } else {
+        // No access_token at all in hash — likely a server-side redirect flow
+        setSessionReady(true);
       }
     } else {
       setMode('first-login');
+      setSessionReady(true);
     }
   }, []);
 
@@ -68,8 +92,22 @@ export default function ResetPasswordPage() {
         // First-login flow — uses the existing server action
         const res = await resetFirstTimePassword(password);
         if (res && res.error) throw new Error(res.error);
+        // BUG-11 fix: redirect directly to role dashboard instead of '/' to avoid
+        // unnecessary middleware hops and to match the success message text.
+        const supabase = getSupabaseBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        let dest = '/';
+        if (user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+          const role = profileData?.role;
+          dest = (role === 'cr' || role === 'admin') ? '/cr/timeline' : '/student/timeline';
+        }
         setSuccess(true);
-        setTimeout(() => { window.location.href = '/'; }, 1500);
+        setTimeout(() => { window.location.href = dest; }, 1500);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to update password. Please try again.');
@@ -192,7 +230,7 @@ export default function ResetPasswordPage() {
               </div>
             )}
 
-            <button type="submit" disabled={isLoading} className="btn-primary mt-1">
+            <button type="submit" disabled={isLoading || (mode === 'email-recovery' && !sessionReady)} className="btn-primary mt-1">
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />

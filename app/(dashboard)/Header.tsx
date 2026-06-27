@@ -9,6 +9,7 @@ import { Menu, X, LogOut, Bell, GraduationCap, User, Shield } from 'lucide-react
 import { useProfile } from '@/context/ProfileContext';
 import { getInitials } from '@/lib/utils/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { clearTenantCookies } from '@/lib/actions/auth-tenant';
 import { NotificationBell } from '@/components/ui/NotificationBell';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
@@ -96,9 +97,8 @@ export function Header() {
   async function handleSignOut() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    // Wipe tenant routing cookies so the login page starts with the join-code step
-    document.cookie = 'tenant_supabase_url=; Max-Age=0; path=/;';
-    document.cookie = 'tenant_supabase_anon_key=; Max-Age=0; path=/;';
+    // BUG-02/BUG-07 fix: use server action to clear both tenant cookies (one is httpOnly)
+    await clearTenantCookies();
     localStorage.removeItem('tenant_class_name');
     window.location.href = '/login';
   }

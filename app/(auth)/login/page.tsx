@@ -5,7 +5,7 @@ import Link from 'next/link';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { verifyAndConnectClass } from '@/lib/actions/auth-tenant';
+import { verifyAndConnectClass, clearTenantCookies } from '@/lib/actions/auth-tenant';
 import { requestPasswordReset } from '@/lib/actions/profile';
 
 export default function LoginPage() {
@@ -80,9 +80,10 @@ export default function LoginPage() {
     }
   }
 
-  function handleSwitchClass() {
-    document.cookie = 'tenant_supabase_url=; Max-Age=0; path=/;';
-    document.cookie = 'tenant_supabase_anon_key=; Max-Age=0; path=/;';
+  async function handleSwitchClass() {
+    // BUG-02/BUG-07 fix: use server action to clear cookies so the httpOnly anon key
+    // is properly removed. document.cookie cannot touch httpOnly cookies.
+    await clearTenantCookies();
     localStorage.removeItem('tenant_class_name');
     setIsClassConnected(false);
     setClassName('');

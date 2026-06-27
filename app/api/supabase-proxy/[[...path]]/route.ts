@@ -4,6 +4,24 @@ import { NextRequest, NextResponse } from 'next/server';
  * Catch-all route to proxy all Supabase requests from client to the tenant instance.
  * Bypasses local ISP blocks on *.supabase.co by routing traffic through Vercel.
  */
+function getAllowedOrigin(request: NextRequest): string {
+  // Only permit requests from our own origin — the proxy is an internal helper.
+  const origin = request.headers.get('origin') ?? '';
+  const host = request.headers.get('host') ?? '';
+  // Strip port from host for comparison
+  const hostWithoutPort = host.split(':')[0];
+  try {
+    const originHost = new URL(origin).hostname;
+    if (originHost === hostWithoutPort) return origin;
+  } catch {
+    // Malformed origin — fall through to deny
+  }
+  // Vercel preview / custom domain allow-list kept via env var
+  const allowed = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '');
+  if (allowed && origin === allowed) return origin;
+  return '';
+}
+
 async function handleProxy(request: NextRequest) {
   const tenantUrl = request.cookies.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -58,8 +76,12 @@ async function handleProxy(request: NextRequest) {
       }
     });
 
-    // Ensure robust CORS headers for standard cross-origin security compatibility
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    // Restrict CORS to same-origin only — wildcard would expose JWT traffic to any site
+    const allowedOrigin = getAllowedOrigin(request);
+    if (allowedOrigin) {
+      responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
+      responseHeaders.set('Vary', 'Origin');
+    }
 
     return new NextResponse(response.body, {
       status: response.status,
@@ -84,13 +106,15 @@ export const PUT = handleProxy;
 export const PATCH = handleProxy;
 export const DELETE = handleProxy;
 
-export const OPTIONS = async () => {
+export const OPTIONS = async (request: NextRequest) => {
+  const allowedOrigin = getAllowedOrigin(request);
   return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
+    status: allowedOrigin ? 200 : 403,
+    headers: allowedOrigin ? {
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': '*',
-    },
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, apikey, x-client-info, prefer',
+      'Vary': 'Origin',
+    } : {},
   });
 };

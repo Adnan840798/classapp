@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Camera, Save, Loader2, AlertTriangle, CheckCircle, Bell, BellOff, Volume2, VolumeX, Users, Trash2, Search, X, Mail, Phone, Shield, UserPlus, KeyRound, Eye, EyeOff, ShieldCheck, UserCheck, Calendar, ChevronDown, Send } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import { updateProfile, deleteUserAccount, createStudentAccount, updateUserRole, changePassword, updateSemesterConfig, updateAvatar, removeAvatar, updateNotifEnabled, updateTelegramConfig } from '@/lib/actions/profile';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Profile } from '@/types';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { playNotificationChime } from '@/lib/utils/audio';
@@ -840,6 +841,15 @@ export function ProfileForm({
                         if (res.error) {
                           setCpError(res.error);
                         } else {
+                          // BUG-08 fix: server action can't write new cookies, so we
+                          // do a client-side re-sign-in to refresh the JWT in the browser.
+                          if (res.requiresReLogin && res.email) {
+                            const supabase = getSupabaseBrowserClient();
+                            await supabase.auth.signInWithPassword({
+                              email: res.email,
+                              password: cpNewPass,
+                            });
+                          }
                           setCpSuccess(true);
                           setCpCurrentPass('');
                           setCpNewPass('');

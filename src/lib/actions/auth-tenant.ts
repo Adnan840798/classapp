@@ -28,14 +28,14 @@ export async function verifyAndConnectClass(joinCode: string) {
 
   const cookieStore = await cookies();
   cookieStore.set('tenant_supabase_url', tenantData.supabase_url, {
-    httpOnly: false,
+    httpOnly: false, // Non-secret — browser client reads this to detect active class
     secure: isSecure,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days — persist across browser restarts
   });
   cookieStore.set('tenant_supabase_anon_key', tenantData.supabase_anon_key, {
-    httpOnly: false,
+    httpOnly: true, // BUG-02 fix: anon key is now httpOnly — proxy injects it server-side
     secure: isSecure,
     sameSite: 'lax',
     path: '/',
@@ -43,4 +43,30 @@ export async function verifyAndConnectClass(joinCode: string) {
   });
 
   return { success: true, className: data.class_name };
+}
+
+/**
+ * Clears both tenant routing cookies server-side.
+ * Required because tenant_supabase_anon_key is httpOnly and cannot be deleted from JS.
+ * Call this instead of document.cookie manipulation when switching / signing out.
+ */
+export async function clearTenantCookies() {
+  const cookieStore = await cookies();
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_APP_URL?.startsWith('https');
+
+  cookieStore.set('tenant_supabase_url', '', {
+    httpOnly: false,
+    secure: isSecure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
+  cookieStore.set('tenant_supabase_anon_key', '', {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
+  return { success: true };
 }
