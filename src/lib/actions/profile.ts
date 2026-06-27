@@ -3,7 +3,7 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { z } from 'zod';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
@@ -474,35 +474,40 @@ export async function requestPasswordReset(email: string) {
 
     const cookieStore = await cookies();
     const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://classapp0.vercel.app';
 
-    // We only try generateLink + Brevo if we are on the default project (where the service role key matches)
-    const isDefaultProject = tenantUrl.replace(/\/$/, '') === process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/$/, '');
+    const headerStore = await headers();
+    const host = headerStore.get('host') || 'classapp0.vercel.app';
+    let proto = headerStore.get('x-forwarded-proto');
+    if (!proto) {
+      proto = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
+    }
+    const siteUrl = `${proto}://${host}`;
 
     let linkData = null;
     let linkError = null;
 
-    if (isDefaultProject) {
-      try {
-        const adminClient = createClient(tenantUrl, serviceRoleKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-          },
-        });
+    try {
+      const adminClient = createClient(tenantUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
 
-        const { data, error } = await adminClient.auth.admin.generateLink({
-          type: 'recovery',
-          email: normalizedEmail,
-          options: {
-            redirectTo: `${siteUrl}/reset-password?type=recovery`,
-          },
-        });
-        linkData = data;
-        linkError = error;
-      } catch (err) {
-        console.warn('Failed to generate reset link via admin client (will fall back):', err);
+      const { data, error } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/reset-password?type=recovery`,
+        },
+      });
+      linkData = data;
+      linkError = error;
+      if (error) {
+        console.warn('adminClient.auth.admin.generateLink returned error:', error);
       }
+    } catch (err) {
+      console.warn('Failed to generate reset link via admin client (will fall back):', err);
     }
 
     if (linkData?.properties?.action_link) {

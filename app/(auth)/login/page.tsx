@@ -49,8 +49,15 @@ export default function LoginPage() {
       }
 
       const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('error') === 'profile_missing') {
-        setError('Your profile could not be found. Please contact your Class Representative.');
+      const errorParam = searchParams.get('error');
+      if (errorParam) {
+        if (errorParam === 'profile_missing') {
+          setError('Your profile could not be found. Please contact your Class Representative.');
+        } else if (errorParam === 'auth_failed') {
+          setError(searchParams.get('description') || 'Authentication failed or link expired. Please try again.');
+        } else {
+          setError(searchParams.get('description') || 'An authentication error occurred.');
+        }
         const supabase = getSupabaseBrowserClient();
         supabase.auth.signOut().catch(console.error);
       }

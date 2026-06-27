@@ -14,6 +14,30 @@ export default function CapacitorHandler() {
   const [appLoading, setAppLoading] = useState(true);
 
   useEffect(() => {
+    // Detect password recovery callback in hash fragment and redirect to /reset-password
+    if (typeof window !== 'undefined') {
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      const isRecovery = hashParams.get('type') === 'recovery' || searchParams.get('type') === 'recovery';
+      const hasAccessToken = hashParams.has('access_token');
+      
+      if (hasAccessToken && isRecovery && window.location.pathname !== '/reset-password') {
+        window.location.replace(`/reset-password${window.location.search}${window.location.hash}`);
+        return;
+      }
+
+      // Handle auth error redirect (e.g. expired link)
+      const hasError = hashParams.has('error') || searchParams.has('error');
+      const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
+      if (hasError && errorCode && window.location.pathname !== '/login') {
+        const errorDesc = hashParams.get('error_description') || searchParams.get('error_description') || 'Authentication failed';
+        const cleanDesc = decodeURIComponent(errorDesc).replace(/\+/g, ' ');
+        window.location.replace(`/login?error=auth_failed&description=${encodeURIComponent(cleanDesc)}`);
+        return;
+      }
+    }
+
     // 1. Detect Capacitor and inject body class for CSS styling
     const isNative = typeof window !== 'undefined' && !!window.Capacitor;
     if (isNative) {
