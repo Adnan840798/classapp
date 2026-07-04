@@ -1,27 +1,10 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { getAuthUser } from '@/lib/supabase/server';
-import { ResourcesList } from '@/components/features/ResourcesList';
+import { HubResources } from '@/components/features/hub/HubResources';
 
 export const revalidate = 0; // force dynamic rendering
 
 export default async function StudentNotesPage() {
-  const { user } = await getAuthUser();
-  if (!user) redirect('/login');
-  const supabase = await getSupabaseServerClient();
-
-  const { data: notes, error } = await supabase
-    .from('notes')
-    .select('*, creator:profiles!user_id(full_name)')
-    .or(`user_id.eq.${user.id},is_public.eq.true`)
-    .order('updated_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load resources:', error);
-  }
-
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -35,11 +18,7 @@ export default async function StudentNotesPage() {
         </Link>
       </div>
 
-      <ResourcesList
-        initialNotes={(notes || []) as any}
-        currentUserId={user.id}
-        notesPath="/student/notes"
-      />
+      <HubResources />
     </div>
   );
 }

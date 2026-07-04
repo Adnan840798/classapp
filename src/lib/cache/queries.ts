@@ -19,7 +19,7 @@
 import { unstable_cache } from 'next/cache';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Announcement, Deadline, ExamResult } from '@/types';
+import type { Announcement, Deadline, ExamResult, Note } from '@/types';
 
 // ─── Announcements ──────────────────────────────────────────────────────────
 
@@ -161,3 +161,179 @@ export async function getCachedResults(): Promise<ExamResult[]> {
   )();
 }
 
+// ─── Public Resources (Notes) ─────────────────────────────────────────────────
+
+/**
+ * Fetch all public, approved notes/resources ordered newest-first.
+ * Only is_public=true AND is_pending=false rows are included — never exposes
+ * pending or private notes to other students.
+ * Cached 120 seconds per tenant. Bust with revalidateTag('resources', { expire: 0 }).
+ */
+export async function getCachedResources(): Promise<Note[]> {
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
+
+  return unstable_cache(
+    async () => {
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookieOptions: {
+            name: 'sb-classapp-auth-token',
+          },
+          cookies: {
+            getAll() {
+              return allCookies;
+            },
+            setAll() {
+              // No-op inside caching callbacks
+            },
+          },
+        }
+      );
+
+      const { data, error } = await supabase
+        .from('notes')
+        .select('id, title, content, drive_link, is_public, is_pending, user_id, updated_at, created_at, creator:profiles!user_id(full_name)')
+        .eq('is_public', true)
+        .eq('is_pending', false) // SECURITY: never expose unapproved pending resources
+        .order('updated_at', { ascending: false });
+
+      if (error) console.error('[cache] getCachedResources error:', error);
+      return (data ?? []) as unknown as Note[];
+    },
+    [`resources:${tenantKey}`],
+    { revalidate: 120, tags: ['resources'] }
+  )();
+}
+
+// ─── Semester Config ──────────────────────────────────────────────────────────
+
+/**
+ * Fetch the singleton semester_config row (id=1).
+ * Contains total_weeks and start_date for the current semester.
+ * Cached 300 seconds per tenant. Bust with revalidateTag('semester_config', { expire: 0 }).
+ */
+export async function getCachedSemesterConfig(): Promise<{ id: number; total_weeks: number; start_date: string } | null> {
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
+
+  return unstable_cache(
+    async () => {
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookieOptions: { name: 'sb-classapp-auth-token' },
+          cookies: {
+            getAll() { return allCookies; },
+            setAll() {},
+          },
+        }
+      );
+
+      const { data, error } = await supabase
+        .from('semester_config')
+        .select('id, total_weeks, start_date')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) console.error('[cache] getCachedSemesterConfig error:', error);
+      return data ?? null;
+    },
+    [`semester_config:${tenantKey}`],
+    { revalidate: 300, tags: ['semester_config'] }
+  )();
+}
+
+// ─── Holiday Days ─────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all holiday day slots (week_number + day_index pairs) for the semester.
+ * Used by SemesterTimeline to compute non-holiday class day counters.
+ * Cached 300 seconds per tenant. Bust with revalidateTag('holiday_days', { expire: 0 }).
+ */
+export async function getCachedHolidayDays(): Promise<{ week_number: number; day_index: number; note: string | null }[]> {
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
+
+  return unstable_cache(
+    async () => {
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookieOptions: { name: 'sb-classapp-auth-token' },
+          cookies: {
+            getAll() { return allCookies; },
+            setAll() {},
+          },
+        }
+      );
+
+      const { data, error } = await supabase
+        .from('holiday_days')
+        .select('week_number, day_index, note')
+        .order('week_number', { ascending: true })
+        .order('day_index', { ascending: true });
+
+      if (error) console.error('[cache] getCachedHolidayDays error:', error);
+      return data ?? [];
+    },
+    [`holiday_days:${tenantKey}`],
+    { revalidate: 300, tags: ['holiday_days'] }
+  )();
+}
+
+// ─── Class Routine ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the current class routine image row.
+ * The routine changes at most once per semester — 300s TTL is appropriate.
+ * Cached 300 seconds per tenant. Bust with revalidateTag('class_routine', { expire: 0 }).
+ */
+export async function getCachedClassRoutine(): Promise<{ id: string; image_url: string; uploaded_at: string } | null> {
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value;
+  const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value;
+  const tenantKey = tenantUrl ?? 'default';
+  const allCookies = cookieStore.getAll();
+
+  return unstable_cache(
+    async () => {
+      const supabase = createServerClient(
+        tenantUrl || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        tenantAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookieOptions: { name: 'sb-classapp-auth-token' },
+          cookies: {
+            getAll() { return allCookies; },
+            setAll() {},
+          },
+        }
+      );
+
+      const { data, error } = await supabase
+        .from('class_routine')
+        .select('id, image_url, uploaded_at')
+        .order('uploaded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) console.error('[cache] getCachedClassRoutine error:', error);
+      return data ?? null;
+    },
+    [`class_routine:${tenantKey}`],
+    { revalidate: 300, tags: ['class_routine'] }
+  )();
+}

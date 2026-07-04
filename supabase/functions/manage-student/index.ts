@@ -50,7 +50,8 @@ serve(async (req) => {
         persistSession: false
       }
     })
-    const { action, email, password, studentId, fullName, universityId, batch, department } = await req.json()
+    const body = await req.json()
+    const { action, email, password, studentId, fullName, universityId, batch, department, targetUserId, newRole } = body
 
     // Handle Account Creation
     if (action === 'create-student') {
@@ -95,6 +96,38 @@ serve(async (req) => {
 
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(studentId)
       if (deleteError) throw deleteError
+
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
+    }
+
+    // Handle Role Update
+    if (action === 'update-role') {
+      if (!targetUserId || !newRole) {
+        return new Response(JSON.stringify({ error: 'Missing targetUserId or newRole' }), { status: 400, headers: corsHeaders })
+      }
+      const validRoles = ['student', 'cr', 'admin']
+      if (!validRoles.includes(newRole)) {
+        return new Response(JSON.stringify({ error: 'Invalid role. Must be student, cr, or admin.' }), { status: 400, headers: corsHeaders })
+      }
+      if (targetUserId === user.id) {
+        return new Response(JSON.stringify({ error: 'You cannot change your own role.' }), { status: 400, headers: corsHeaders })
+      }
+
+      // Update profiles table (RLS bypassed by service role key)
+      const { error: dbError } = await adminClient
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', targetUserId)
+
+      if (dbError) throw dbError
+
+      // Sync auth metadata (non-critical — log warning if it fails)
+      const { error: authError } = await adminClient.auth.admin.updateUserById(targetUserId, {
+        user_metadata: { role: newRole }
+      })
+      if (authError) {
+        console.warn('[update-role] Auth metadata sync failed (non-critical):', authError.message)
+      }
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
     }

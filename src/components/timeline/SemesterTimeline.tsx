@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Info, PalmtreeIcon, Plus, Minus, Umbrella, Coffee, Calendar } from 'lucide-react';
 import { getWeekDates, getCurrentWeekNumber, toISODateString } from '@/lib/utils/timelineDates';
 import { getTimelineData, getHolidayDays, toggleHolidayDay, setWeekHoliday, getTotalWeeks, setTotalWeeks, getAllSemesterTimelineData } from '@/lib/actions/timeline';
@@ -9,10 +9,15 @@ import { AbsentTrackerButton } from './AbsentTrackerButton';
 import { DayDetailPanel } from './DayDetailPanel';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useStudentHub } from '@/context/StudentHubContext';
 
 interface SemesterTimelineProps {
   initialRoutineUrl: string | null;
   isCR: boolean;
+  /** Semester config preloaded by student/layout.tsx — eliminates mount-time fetch. */
+  initialSemesterConfig: { id: number; total_weeks: number; start_date: string } | null;
+  /** Holiday days preloaded by student/layout.tsx — eliminates mount-time fetch. */
+  initialHolidayDays: { week_number: number; day_index: number; note: string | null }[];
 }
 
 /* ── Icon Components ── */
@@ -123,23 +128,75 @@ function getHolidayGroups(weekRanges: { isFullHoliday: boolean }[], totalWeeks: 
   return result;
 }
 
-export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelineProps) {
+export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfig, initialHolidayDays }: SemesterTimelineProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const [totalWeeks, setTotalWeeksState] = useState<number>(14);
-  const [startDate, setStartDate] = useState<string>('2026-05-20');
+
+  // Read preloaded hub data — announcements/deadlines/results already in memory
+  const { announcements: hubAnnouncements, deadlines: hubDeadlines, results: hubResults } = useStudentHub();
+
+  // Seed initial state from layout-preloaded props — no mount-time DB fetch needed
+  const [totalWeeks, setTotalWeeksState] = useState<number>(initialSemesterConfig?.total_weeks ?? 14);
+  const [startDate, setStartDate] = useState<string>(initialSemesterConfig?.start_date ?? '2026-05-20');
   const currentWeek = getCurrentWeekNumber(startDate, totalWeeks);
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [allWeeksData, setAllWeeksData] = useState<Record<number, any[]>>({});
-  const weekData = allWeeksData[selectedWeek] || [];
+  const [selectedWeek, setSelectedWeek] = useState<number>(() => {
+    const cur = getCurrentWeekNumber(
+      initialSemesterConfig?.start_date ?? '2026-05-20',
+      initialSemesterConfig?.total_weeks ?? 14
+    );
+    return cur !== null ? cur : 1;
+  });
   const [isPending, startTransition] = useTransition();
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   const [hasScrolledInit, setHasScrolledInit] = useState(false);
-  const [holidays, setHolidays] = useState<HolidaySlot[]>([]);
+  // Seed holidays from layout-preloaded props — no mount-time fetch needed
+  const [holidays, setHolidays] = useState<HolidaySlot[]>(initialHolidayDays);
   const [isTogglingHoliday, setIsTogglingHoliday] = useState(false);
   const [isChangingWeeks, setIsChangingWeeks] = useState(false);
 
   const weekListRef = useRef<HTMLDivElement>(null);
+
+  // ── Week-mapping computation ─────────────────────────────────────────────
+  // Derives per-day timeline data from hub context — zero network calls.
+  // Hub already has ALL announcements/deadlines/results. We just filter by date.
+  const computeAllWeeksData = useCallback((weeksCount: number, startD: string) => {
+    const dayNames = ['SAT', 'SUN', 'MON', 'TUE', 'WED'];
+    const weekMap: Record<number, any[]> = {};
+    for (let w = 1; w <= weeksCount; w++) {
+      const { days } = getWeekDates(w, startD);
+      weekMap[w] = days.map((dayDate, index) => {
+        const dateStr = toISODateString(dayDate);
+        const filterByDay = (itemDateStr: string) => {
+          if (!itemDateStr) return false;
+          try { return toISODateString(new Date(itemDateStr)) === dateStr; } catch { return false; }
+        };
+        return {
+          dateStr,
+          dayName: dayNames[index],
+          dateLabel: dayDate.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }),
+          announcements: hubAnnouncements.filter(a => filterByDay(a.created_at)),
+          deadlines: hubDeadlines.filter(d => filterByDay(d.due_date)),
+          results: hubResults.filter(r => filterByDay(r.published_at)),
+        };
+      });
+    }
+    return weekMap;
+  }, [hubAnnouncements, hubDeadlines, hubResults]);
+
+  // Initialize allWeeksData synchronously from hub context — no async, no spinner
+  const [allWeeksData, setAllWeeksData] = useState<Record<number, any[]>>(() =>
+    computeAllWeeksData(
+      initialSemesterConfig?.total_weeks ?? 14,
+      initialSemesterConfig?.start_date ?? '2026-05-20'
+    )
+  );
+  const weekData = allWeeksData[selectedWeek] || [];
+
+  // Recompute week mapping when hub data refreshes (e.g. new announcement posted)
+  useEffect(() => {
+    setAllWeeksData(computeAllWeeksData(totalWeeks, startDate));
+  }, [computeAllWeeksData, totalWeeks, startDate]);
+
 
   // Drag scroll ref properties
   const isMouseDownRef = useRef(false);
@@ -185,39 +242,6 @@ export function SemesterTimeline({ initialRoutineUrl, isCR }: SemesterTimelinePr
     }
     container.scrollLeft = scrollLeftRef.current - walk;
   };
-
-  const fetchAllData = (weeksCount: number, startD: string) => {
-    startTransition(async () => {
-      const data = await getAllSemesterTimelineData(weeksCount, startD);
-      setAllWeeksData(data);
-    });
-  };
-
-  // Fetch timeline data when totalWeeks or startDate changes
-  useEffect(() => {
-    if (totalWeeks && startDate) {
-      fetchAllData(totalWeeks, startDate);
-    }
-  }, [totalWeeks, startDate]);
-
-  // Fetch holiday data and total weeks once on mount
-  useEffect(() => {
-    getHolidayDays().then(setHolidays);
-    supabase
-      .from('semester_config')
-      .select('total_weeks, start_date')
-      .eq('id', 1)
-      .maybeSingle()
-      .then(({ data }: any) => {
-        if (data) {
-          setTotalWeeksState(data.total_weeks);
-          setStartDate(data.start_date);
-          const cur = getCurrentWeekNumber(data.start_date, data.total_weeks);
-          setSelectedWeek(cur !== null ? cur : 1);
-        }
-      });
-  }, []);
-
   const holidayDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const channel = supabase

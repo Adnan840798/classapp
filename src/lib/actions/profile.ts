@@ -1,7 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
 import { z } from 'zod';
@@ -145,7 +145,8 @@ export async function updateUserRole(targetUserId: string, newRole: 'student' | 
   try {
     const supabase = await getSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!user || !session) return { error: 'Unauthorized' };
 
     const { data: callerProfile } = await supabase
       .from('profiles')
@@ -157,36 +158,26 @@ export async function updateUserRole(targetUserId: string, newRole: 'student' | 
       return { error: 'Access denied. Only Class Representatives or Admins can manage accounts.' };
     }
 
-    // Initialize admin client to update user role
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    // Route through the tenant's manage-student Edge Function.
+    // The Edge Function runs inside the tenant's own Supabase project and uses its
+    // own SUPABASE_SERVICE_ROLE_KEY (Deno.env) — always the correct tenant DB.
+    // This fixes the bug where the old admin client used NEXT_PUBLIC_SUPABASE_URL
+    // (master project), which would write to the wrong DB when multiple tenants exist.
+    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: {
+        action: 'update-role',
+        targetUserId,
+        newRole,
+      },
+    });
 
-    // Update in profiles table
-    const { error: dbError } = await supabaseAdmin
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', targetUserId);
-
-    if (dbError) {
-      return { error: dbError.message };
-    }
-
-    // Also update in user raw_user_meta_data so it matches
-    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-      targetUserId,
-      { user_metadata: { role: newRole } }
-    );
-
-    if (authError) {
-      console.warn('Auth metadata update failed:', authError.message);
+    if (edgeError || (edgeData && edgeData.error)) {
+      const msg = edgeData?.error || edgeError?.message || 'Failed to update role.';
+      console.error('updateUserRole edge error:', msg);
+      return { error: msg };
     }
 
     revalidatePath('/student/profile');
@@ -594,6 +585,8 @@ export async function updateSemesterConfig(formData: FormData) {
     revalidatePath('/student/timeline');
     revalidatePath('/cr/profile');
     revalidatePath('/student/profile');
+    revalidateTag('semester_config', { expire: 0 });
+    revalidateTag('holiday_days', { expire: 0 }); // start_date change affects week layout
 
     return { success: true };
   } catch (err: any) {

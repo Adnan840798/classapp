@@ -1,17 +1,19 @@
-import { getClassRoutine } from '@/lib/actions/timeline';
-import { SemesterTimeline } from '@/components/timeline/SemesterTimeline';
+import { SemesterTimelineWrapper } from '@/components/timeline/SemesterTimelineWrapper';
 
 export const revalidate = 0; // force dynamic rendering
 
-export default async function StudentTimelinePage() {
-  const routine = await getClassRoutine();
-
+/**
+ * StudentTimelinePage — serves as a trivially simple shell.
+ *
+ * All data (semesterConfig, holidayDays, classRoutine, announcements,
+ * deadlines, results) is preloaded server-side by student/layout.tsx.
+ * SemesterTimelineWrapper reads from StudentHubContext and passes initial
+ * props to SemesterTimeline — zero mount-time DB fetches.
+ */
+export default function StudentTimelinePage() {
   return (
     <div className="w-full animate-fade-in">
-      <SemesterTimeline
-        initialRoutineUrl={routine?.image_url ?? null}
-        isCR={false}
-      />
+      <SemesterTimelineWrapper isCR={false} />
     </div>
   );
 }

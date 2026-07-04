@@ -1,7 +1,7 @@
 'use server';
 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -63,6 +63,8 @@ export async function createNote(formData: FormData) {
     // SEC-12: Revalidate both student and CR note lists so changes show up immediately for all roles
     revalidatePath('/student/notes');
     revalidatePath('/cr/notes');
+    // Bust the getCachedResources cache so hub context gets fresh public resources
+    revalidateTag('resources', { expire: 0 });
     
     const notesPath = isCR ? '/cr/notes' : '/student/notes';
     redirect(notesPath);
@@ -140,6 +142,8 @@ export async function updateNote(id: string, formData: FormData) {
     revalidatePath(`/student/notes/${id}`);
     revalidatePath('/cr/notes');
     revalidatePath(`/cr/notes/${id}`);
+    // Bust the getCachedResources cache so hub context gets fresh public resources
+    revalidateTag('resources', { expire: 0 });
 
     const notesPath = isCR ? '/cr/notes' : '/student/notes';
     redirect(notesPath);
@@ -178,6 +182,8 @@ export async function deleteNote(id: string) {
 
     revalidatePath('/student/notes');
     revalidatePath('/cr/notes');
+    // Bust the getCachedResources cache in case a public note was deleted
+    revalidateTag('resources', { expire: 0 });
     return { success: true };
   } catch (err: any) {
     console.error('deleteNote error:', err);
@@ -207,6 +213,8 @@ export async function bulkDeleteNotes(ids: string[]) {
     if (error) return { error: error.message };
     revalidatePath('/cr/notes');
     revalidatePath('/student/notes');
+    // Bust the getCachedResources cache — bulk delete may remove public notes
+    revalidateTag('resources', { expire: 0 });
     return { success: true };
   } catch (err: any) {
     console.error('bulkDeleteNotes error:', err);
@@ -244,9 +252,39 @@ export async function approveNote(id: string) {
 
     revalidatePath('/student/notes');
     revalidatePath('/cr/notes');
+    // Bust the getCachedResources cache — approved note is now publicly visible
+    revalidateTag('resources', { expire: 0 });
     return { success: true };
   } catch (err: any) {
     console.error('approveNote error:', err);
     return { error: err.message || 'An unexpected error occurred during approval.' };
+  }
+}
+
+/**
+ * getMyPrivateNotes — returns the authenticated user's own private/pending notes.
+ *
+ * Called client-side by HubResources when the hub context is not hydrated
+ * (i.e. direct URL navigation to /student/notes). This avoids requiring the
+ * server page to fetch user-specific data and pass it as a prop.
+ */
+export async function getMyPrivateNotes(): Promise<{ data: any[]; error: string | null }> {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [], error: 'Unauthorized' };
+
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*, creator:profiles!user_id(full_name)')
+      .eq('user_id', user.id)
+      .eq('is_public', false)
+      .order('updated_at', { ascending: false });
+
+    if (error) return { data: [], error: error.message };
+    return { data: data ?? [], error: null };
+  } catch (err: any) {
+    console.error('getMyPrivateNotes error:', err);
+    return { data: [], error: err.message || 'Unexpected error.' };
   }
 }
