@@ -7,14 +7,32 @@ export async function sendEmail({
   subject: string;
   htmlContent: string;
 }) {
-  const apiKey = process.env.BREVO_API_KEY;
-  if (!apiKey) {
-    console.error('BREVO_API_KEY is not defined in environment variables.');
-    throw new Error('Email sending is not configured.');
+  let apiKey = process.env.BREVO_API_KEY;
+  let senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@classapp.com';
+  let senderName = process.env.BREVO_SENDER_NAME || 'ClassApp Support';
+
+  try {
+    const { getSupabaseServerClient } = await import('@/lib/supabase/server');
+    const supabase = await getSupabaseServerClient();
+    const { data: dbConfig } = await supabase
+      .from('brevo_config')
+      .select('api_key, sender_email, sender_name, is_enabled')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (dbConfig && dbConfig.is_enabled && dbConfig.api_key) {
+      apiKey = dbConfig.api_key;
+      senderEmail = dbConfig.sender_email || senderEmail;
+      senderName = dbConfig.sender_name || senderName;
+    }
+  } catch (err) {
+    console.warn('[sendEmail] Could not load tenant-specific brevo_config, using env fallback:', err);
   }
 
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@classapp.com';
-  const senderName = process.env.BREVO_SENDER_NAME || 'ClassApp Support';
+  if (!apiKey) {
+    console.error('BREVO_API_KEY is not defined in environment variables or database.');
+    throw new Error('Email sending is not configured.');
+  }
 
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
