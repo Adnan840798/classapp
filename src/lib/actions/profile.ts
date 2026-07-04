@@ -456,16 +456,7 @@ export async function requestPasswordReset(email: string) {
       };
     }
 
-    // 1. Create a Supabase admin client to generate the reset link if we have permission
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!serviceRoleKey) {
-      console.error('SUPABASE_SERVICE_ROLE_KEY is not defined in environment variables.');
-      return { error: 'Server authentication configuration is missing.' };
-    }
-
-    const cookieStore = await cookies();
-    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
+    // Derive the live site URL from the incoming request headers
     const headerStore = await headers();
     const host = headerStore.get('host') || 'classapp0.vercel.app';
     let proto = headerStore.get('x-forwarded-proto');
@@ -473,38 +464,45 @@ export async function requestPasswordReset(email: string) {
       proto = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
     }
     const siteUrl = `${proto}://${host}`;
+    const redirectTo = `${siteUrl}/reset-password?type=recovery`;
 
-    let linkData = null;
-    let linkError = null;
+    // 1. Call the manage-student Edge Function to generate a recovery link.
+    //    The Edge Function runs inside this tenant's Supabase project and therefore
+    //    automatically has the correct SUPABASE_SERVICE_ROLE_KEY — no env var needed.
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    let resetLink: string | null = null;
 
     try {
-      const adminClient = createClient(tenantUrl, serviceRoleKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
+      const fnUrl = `${tenantUrl}/functions/v1/manage-student`;
+      const fnRes = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': tenantAnonKey,
         },
+        body: JSON.stringify({
+          action: 'generate-reset-link',
+          email: normalizedEmail,
+          redirectTo,
+        }),
       });
 
-      const { data, error } = await adminClient.auth.admin.generateLink({
-        type: 'recovery',
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${siteUrl}/reset-password?type=recovery`,
-        },
-      });
-      linkData = data;
-      linkError = error;
-      if (error) {
-        console.warn('adminClient.auth.admin.generateLink returned error:', error);
+      const fnData = await fnRes.json();
+      if (fnData?.link) {
+        resetLink = fnData.link;
+      } else if (fnData?.error) {
+        console.warn('[requestPasswordReset] Edge Function error:', fnData.error);
       }
-    } catch (err) {
-      console.warn('Failed to generate reset link via admin client (will fall back):', err);
+    } catch (fnErr) {
+      console.warn('[requestPasswordReset] Failed to call Edge Function:', fnErr);
     }
 
-    if (linkData?.properties?.action_link) {
-      // 2. Send email using Brevo
+    // 2. If we got a link, send via Brevo
+    if (resetLink) {
       try {
-        const resetLink = linkData.properties.action_link;
         const htmlContent = getPasswordResetHtml(resetLink, profileRow.full_name || 'User');
         await sendEmail({
           to: normalizedEmail,
@@ -513,28 +511,30 @@ export async function requestPasswordReset(email: string) {
         });
         return { success: true };
       } catch (sendError: any) {
-        console.error('Brevo email send error:', sendError);
+        console.error('[requestPasswordReset] Brevo email send error:', sendError);
         return { error: sendError.message || 'Failed to send password reset email.' };
       }
-    } else {
-      // 3. Fallback: Use standard Supabase public password reset (works on any tenant / custom database)
-      console.log('Using standard supabase.auth.resetPasswordForEmail for reset link');
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: `${siteUrl}/reset-password?type=recovery`,
-      });
-
-      if (resetError) {
-        console.error('resetPasswordForEmail error:', resetError);
-        return { error: resetError.message || 'Failed to send password reset email.' };
-      }
-
-      return { success: true };
     }
+
+    // 3. Fallback — Brevo not configured or Edge Function unavailable.
+    //    Use Supabase's built-in email (will use whatever SMTP is configured in Supabase).
+    console.warn('[requestPasswordReset] Falling back to supabase.auth.resetPasswordForEmail');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo,
+    });
+
+    if (resetError) {
+      console.error('[requestPasswordReset] resetPasswordForEmail error:', resetError);
+      return { error: resetError.message || 'Failed to send password reset email.' };
+    }
+
+    return { success: true };
   } catch (err: any) {
     console.error('requestPasswordReset error:', err);
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
 
 /**
  * Update the global semester config (total weeks and start date). CR/Admin only.

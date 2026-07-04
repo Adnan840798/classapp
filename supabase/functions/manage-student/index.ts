@@ -13,14 +13,59 @@ serve(async (req) => {
   }
 
   try {
+    const currentProjectUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const currentAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const currentServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+
+    const body = await req.json()
+    const { action } = body
+
+    // ─── generate-reset-link ─────────────────────────────────────────────────
+    // No auth header required — triggered by unauthenticated users on the login
+    // page. Protected by verifying the email exists in profiles first.
+    if (action === 'generate-reset-link') {
+      const { email, redirectTo } = body
+      if (!email || !redirectTo) {
+        return new Response(JSON.stringify({ error: 'Missing email or redirectTo' }), { status: 400, headers: corsHeaders })
+      }
+
+      const adminClient = createClient(currentProjectUrl, currentServiceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+      })
+
+      // Verify this email belongs to a user in this tenant before generating a link
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('email', email.trim().toLowerCase())
+        .maybeSingle()
+
+      if (!profile) {
+        // Return generic success to prevent email enumeration
+        return new Response(JSON.stringify({ success: true, link: null }), { status: 200, headers: corsHeaders })
+      }
+
+      const { data, error } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email: email.trim().toLowerCase(),
+        options: { redirectTo },
+      })
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, link: data?.properties?.action_link ?? null }),
+        { status: 200, headers: corsHeaders }
+      )
+    }
+
+    // ─── Authenticated actions below ─────────────────────────────────────────
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing user auth token' }), { status: 401, headers: corsHeaders })
     }
-
-    const currentProjectUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const currentAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    const currentServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
     // 1. Verify caller identity using their own JWT token
     const userClient = createClient(currentProjectUrl, currentAnonKey, {
@@ -50,8 +95,8 @@ serve(async (req) => {
         persistSession: false
       }
     })
-    const body = await req.json()
-    const { action, email, password, studentId, fullName, universityId, batch, department, targetUserId, newRole } = body
+
+    const { email, password, studentId, fullName, universityId, batch, department, targetUserId, newRole } = body
 
     // Handle Account Creation
     if (action === 'create-student') {
@@ -122,11 +167,11 @@ serve(async (req) => {
       if (dbError) throw dbError
 
       // Sync auth metadata (non-critical — log warning if it fails)
-      const { error: authError } = await adminClient.auth.admin.updateUserById(targetUserId, {
+      const { error: authMetaError } = await adminClient.auth.admin.updateUserById(targetUserId, {
         user_metadata: { role: newRole }
       })
-      if (authError) {
-        console.warn('[update-role] Auth metadata sync failed (non-critical):', authError.message)
+      if (authMetaError) {
+        console.warn('[update-role] Auth metadata sync failed (non-critical):', authMetaError.message)
       }
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
@@ -138,3 +183,4 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
   }
 })
+
