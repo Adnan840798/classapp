@@ -45,10 +45,26 @@ async function handleProxy(request: NextRequest) {
     }
   });
 
-  // Inject anon key if available in cookies but missing from headers
+  // Inject/override the tenant's anon key if available
   const tenantAnonKey = request.cookies.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (tenantAnonKey && !headers.has('apikey')) {
+  if (tenantAnonKey) {
+    const originalApiKey = headers.get('apikey');
     headers.set('apikey', tenantAnonKey);
+
+    const authHeader = headers.get('authorization');
+    if (authHeader) {
+      const token = authHeader.replace(/^Bearer\s+/i, '');
+      if (
+        !token ||
+        token === originalApiKey ||
+        token === 'proxy-managed' ||
+        token === process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      ) {
+        headers.set('authorization', `Bearer ${tenantAnonKey}`);
+      }
+    } else {
+      headers.set('authorization', `Bearer ${tenantAnonKey}`);
+    }
   }
 
   let body: any = null;
