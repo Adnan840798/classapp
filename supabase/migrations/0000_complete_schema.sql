@@ -295,34 +295,42 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 4. broadcast_notification — inserts one notification per student
+-- 4. broadcast_notification — inserts one notification per student in bulk
 CREATE OR REPLACE FUNCTION public.broadcast_notification(
   p_title        text,
   p_message      text,
-  p_type         public.notif_type,
-  p_reference_id uuid DEFAULT NULL
+  p_type         text    DEFAULT 'system',
+  p_reference_id uuid    DEFAULT NULL
 )
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  student_record RECORD;
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 BEGIN
-  FOR student_record IN
-    SELECT id FROM public.profiles WHERE role = 'student'
-  LOOP
-    INSERT INTO public.notifications (user_id, title, message, type, reference_id)
-    VALUES (student_record.id, p_title, p_message, p_type, p_reference_id);
+  -- Step 1: Bulk insert one notification per student in a single statement
+  INSERT INTO public.notifications (user_id, title, message, type, reference_id)
+  SELECT id, p_title, p_message, p_type::public.notif_type, p_reference_id
+  FROM   public.profiles
+  WHERE  role = 'student';
 
-    -- Keep only the latest 15 notifications per student
-    DELETE FROM public.notifications
-    WHERE user_id = student_record.id
-      AND id NOT IN (
-        SELECT id
-        FROM public.notifications
-        WHERE user_id = student_record.id
-        ORDER BY created_at DESC
-        LIMIT 15
-      );
-  END LOOP;
+  -- Step 2: Trim each student's inbox to the latest 15 notifications.
+  DELETE FROM public.notifications
+  WHERE id IN (
+    SELECT id
+    FROM (
+      SELECT
+        id,
+        ROW_NUMBER() OVER (
+          PARTITION BY user_id
+          ORDER BY created_at DESC
+        ) AS rn
+      FROM public.notifications
+      WHERE user_id IN (
+        SELECT id FROM public.profiles WHERE role = 'student'
+      )
+    ) ranked
+    WHERE rn > 15
+  );
 END;
 $$;
 
@@ -996,6 +1004,90 @@ DROP TRIGGER IF EXISTS absent_trackers_updated_at ON public.absent_trackers;
 CREATE TRIGGER absent_trackers_updated_at
   BEFORE UPDATE ON public.absent_trackers
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ── brevo_config ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.brevo_config (
+  id           int PRIMARY KEY DEFAULT 1 CHECK (id = 1), -- singleton row
+  api_key      text,
+  sender_email text,
+  sender_name  text,
+  is_enabled   boolean DEFAULT false,
+  updated_at   timestamptz DEFAULT now(),
+  updated_by   uuid REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+-- Seed default empty row
+INSERT INTO public.brevo_config (id, api_key, sender_email, sender_name, is_enabled)
+VALUES (1, NULL, NULL, NULL, false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Enable RLS
+ALTER TABLE public.brevo_config ENABLE ROW LEVEL SECURITY;
+
+-- Policies (only CR and Admin can view/modify)
+DROP POLICY IF EXISTS "brevo_config_cr_admin_all" ON public.brevo_config;
+CREATE POLICY "brevo_config_cr_admin_all"
+  ON public.brevo_config FOR ALL
+  TO authenticated
+  USING (public.get_my_role() IN ('cr', 'admin'));
+
+-- Trigger
+DROP TRIGGER IF EXISTS brevo_config_updated_at ON public.brevo_config;
+CREATE TRIGGER brevo_config_updated_at
+  BEFORE UPDATE ON public.brevo_config
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+
+-- ── password_reset_otps ───────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.password_reset_otps (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       TEXT NOT NULL,
+  otp_code    TEXT NOT NULL,
+  user_id     UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  expires_at  TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '5 minutes'),
+  used_at     TIMESTAMPTZ,
+  attempts    INT NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Fast lookup by email (used on every OTP check)
+CREATE INDEX IF NOT EXISTS idx_otp_email_created
+  ON public.password_reset_otps (email, created_at DESC);
+
+
+-- ── Performance Indexes ───────────────────────────────────
+-- Announcements
+CREATE INDEX IF NOT EXISTS ann_created_at_idx   ON public.announcements (created_at DESC);
+CREATE INDEX IF NOT EXISTS ann_is_important_idx ON public.announcements (is_important);
+
+-- Deadlines
+CREATE INDEX IF NOT EXISTS dl_due_date_idx      ON public.deadlines (due_date DESC);
+
+-- Exam Results
+CREATE INDEX IF NOT EXISTS res_published_at_idx ON public.exam_results (published_at DESC);
+
+-- Notifications
+CREATE INDEX IF NOT EXISTS notif_user_id_idx    ON public.notifications (user_id);
+CREATE INDEX IF NOT EXISTS notif_created_at_idx ON public.notifications (created_at DESC);
+CREATE INDEX IF NOT EXISTS notif_user_read_idx  ON public.notifications (user_id, is_read);
+
+-- Notes / Resources
+CREATE INDEX IF NOT EXISTS notes_user_id_idx        ON public.notes (user_id);
+CREATE INDEX IF NOT EXISTS notes_public_pending_idx ON public.notes (is_public, is_pending);
+
+-- Profiles
+CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles (email);
+CREATE INDEX IF NOT EXISTS profiles_role_idx  ON public.profiles (role);
+
+-- Timeline QnA
+CREATE INDEX IF NOT EXISTS tq_is_resolved_idx ON public.timeline_questions (is_resolved);
+CREATE INDEX IF NOT EXISTS tq_asked_by_idx    ON public.timeline_questions (asked_by);
+
+-- Calendar Events
+CREATE INDEX IF NOT EXISTS cal_event_date_idx ON public.calendar_events (event_date DESC);
+
+-- Holiday Days
+CREATE INDEX IF NOT EXISTS hd_week_number_idx ON public.holiday_days (week_number);
 
 
 -- ============================================================

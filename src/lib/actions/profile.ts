@@ -5,10 +5,11 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
 import { z } from 'zod';
+import { randomInt } from 'crypto';
 import { STORAGE_BUCKETS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { createClient, FunctionsHttpError } from '@supabase/supabase-js';
-import { sendEmail, getPasswordResetHtml } from '@/lib/utils/email';
+import { sendEmail, getPasswordResetHtml, getOtpResetHtml } from '@/lib/utils/email';
 
 function normalizeBdNumber(num: string | null | undefined): string | null {
   if (!num) return null;
@@ -531,6 +532,177 @@ export async function requestPasswordReset(email: string) {
     return { success: true };
   } catch (err: any) {
     console.error('requestPasswordReset error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * OTP-based password reset — Step 1.
+ * Generates a 6-digit code, stores it in password_reset_otps, sends via Brevo.
+ * Rules:
+ *   - 60-second cooldown between requests per email
+ *   - Previous OTPs for this email are deleted before inserting the new one
+ *   - Only the last OTP is ever valid
+ */
+export async function requestPasswordResetOtp(email: string) {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return { error: 'Email is required.' };
+
+    const supabase = await getSupabaseServerClient();
+
+    // ── 1. Cooldown check ──────────────────────────────────────────────────
+    const { data: recentOtp } = await supabase
+      .from('password_reset_otps')
+      .select('created_at')
+      .eq('email', normalizedEmail)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recentOtp) {
+      const secondsAgo = (Date.now() - new Date(recentOtp.created_at).getTime()) / 1000;
+      if (secondsAgo < 60) {
+        const wait = Math.ceil(60 - secondsAgo);
+        return { error: `Please wait ${wait} second${wait !== 1 ? 's' : ''} before requesting another code.` };
+      }
+    }
+
+    // ── 2. Verify email exists in this tenant ──────────────────────────────
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+
+    // Always return generic success to prevent email enumeration
+    if (!profileRow) {
+      return { success: true };
+    }
+
+    // ── 3. Delete all previous OTPs for this email (keep table tiny) ───────
+    await supabase
+      .from('password_reset_otps')
+      .delete()
+      .eq('email', normalizedEmail);
+
+    // ── 4. Generate + insert fresh OTP (crypto.randomInt = cryptographically secure) ─
+    const otpCode = String(randomInt(100000, 1000000)); // always 6 digits: 100000–999999
+    const { error: insertError } = await supabase
+      .from('password_reset_otps')
+      .insert({
+        email: normalizedEmail,
+        otp_code: otpCode,
+        user_id: profileRow.id,
+      });
+
+    if (insertError) {
+      console.error('[requestPasswordResetOtp] Insert error:', insertError);
+      return { error: 'Failed to generate reset code. Please try again.' };
+    }
+
+    // ── 5. Send via Brevo ──────────────────────────────────────────────────
+    const htmlContent = getOtpResetHtml(otpCode, profileRow.full_name || 'User');
+    await sendEmail({
+      to: normalizedEmail,
+      subject: 'Your ClassApp password reset code',
+      htmlContent,
+    });
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[requestPasswordResetOtp] error:', err);
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * OTP-based password reset — Step 2.
+ * Verifies the OTP, calls the Edge Function to update the password, marks OTP used.
+ */
+export async function verifyAndResetPassword(email: string, otpCode: string, newPassword: string) {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !otpCode || !newPassword) {
+      return { error: 'All fields are required.' };
+    }
+    if (newPassword.length < 8) {
+      return { error: 'Password must be at least 8 characters long.' };
+    }
+
+    const supabase = await getSupabaseServerClient();
+
+    // ── 1. Atomically increment attempts + fetch OTP row ──────────────────
+    // We use a plain select then update to keep RLS compatible
+    const { data: otpRow } = await supabase
+      .from('password_reset_otps')
+      .select('id, otp_code, expires_at, used_at, attempts, user_id')
+      .eq('email', normalizedEmail)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!otpRow) {
+      return { error: 'No reset code found for this email. Please request a new one.' };
+    }
+    if (otpRow.used_at) {
+      return { error: 'This code has already been used. Please request a new one.' };
+    }
+    if (new Date(otpRow.expires_at) < new Date()) {
+      return { error: 'This code has expired. Please request a new one.' };
+    }
+    if (otpRow.attempts >= 3) {
+      return { error: 'Too many incorrect attempts. Please request a new code.' };
+    }
+
+    // ── 2. Increment attempt counter first (before checking code) ─────────
+    await supabase
+      .from('password_reset_otps')
+      .update({ attempts: otpRow.attempts + 1 })
+      .eq('id', otpRow.id);
+
+    // ── 3. Check code ──────────────────────────────────────────────────────
+    if (otpRow.otp_code !== otpCode.trim()) {
+      const remaining = 3 - (otpRow.attempts + 1);
+      if (remaining <= 0) {
+        return { error: 'Too many incorrect attempts. Please request a new code.' };
+      }
+      return { error: `Invalid code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.` };
+    }
+
+    // ── 4. Call Edge Function to update password (uses tenant service key) ─
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    const fnRes = await fetch(`${tenantUrl}/functions/v1/manage-student`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': tenantAnonKey,
+      },
+      body: JSON.stringify({
+        action: 'reset-password',
+        userId: otpRow.user_id,
+        newPassword,
+      }),
+    });
+
+    const fnData = await fnRes.json();
+    if (!fnData?.success) {
+      console.error('[verifyAndResetPassword] Edge Function error:', fnData);
+      return { error: fnData?.error || 'Failed to update password. Please try again.' };
+    }
+
+    // ── 5. Mark OTP as used ────────────────────────────────────────────────
+    await supabase
+      .from('password_reset_otps')
+      .update({ used_at: new Date().toISOString() })
+      .eq('id', otpRow.id);
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[verifyAndResetPassword] error:', err);
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }

@@ -6,7 +6,7 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { verifyAndConnectClass, clearTenantCookies } from '@/lib/actions/auth-tenant';
-import { requestPasswordReset } from '@/lib/actions/profile';
+import { requestPasswordResetOtp, verifyAndResetPassword } from '@/lib/actions/profile';
 
 export default function LoginPage() {
   const captchaRef = useRef<HCaptcha>(null);
@@ -24,12 +24,17 @@ export default function LoginPage() {
   const [className, setClassName] = useState('');
   const [isClassConnected, setIsClassConnected] = useState(false);
 
-  // Forgot password flow
+  // Forgot password OTP flow
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmailLocked, setForgotEmailLocked] = useState(false);
   const [forgotPending, setForgotPending] = useState(false);
-  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotStep, setForgotStep] = useState<'email' | 'otp'>('email');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
   const [showForgotLink, setShowForgotLink] = useState(false);
 
   useEffect(() => {
@@ -88,8 +93,6 @@ export default function LoginPage() {
   }
 
   async function handleSwitchClass() {
-    // BUG-02/BUG-07 fix: use server action to clear cookies so the httpOnly anon key
-    // is properly removed. document.cookie cannot touch httpOnly cookies.
     await clearTenantCookies();
     localStorage.removeItem('tenant_class_name');
     setIsClassConnected(false);
@@ -99,7 +102,6 @@ export default function LoginPage() {
     setCaptchaToken(isLocalhost ? 'dev-bypass-token' : null);
     captchaRef.current?.resetCaptcha();
     setShowForgotPassword(false);
-    setForgotSent(false);
     setShowForgotLink(false);
   }
 
@@ -143,7 +145,6 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        // Show forgot password hint on bad credentials
         if (signInError.message.toLowerCase().includes('invalid') || signInError.message.toLowerCase().includes('credentials')) {
           setShowForgotLink(true);
           throw new Error('Invalid login credentials. Please verify your email and password.');
@@ -152,14 +153,12 @@ export default function LoginPage() {
       }
       if (!data.user) throw new Error('Login failed. Please try again.');
 
-      // Fetch the user's profile to determine role and first-login status
       const { data: profileData } = await supabase
         .from('profiles')
         .select('role, password_reset_required')
         .eq('id', data.user.id)
         .maybeSingle();
 
-      // First-time login: CR created account with temp password → force reset
       if (profileData?.password_reset_required === true) {
         window.location.href = '/reset-password';
         return;
@@ -183,7 +182,6 @@ export default function LoginPage() {
         !nextParam.includes('\\\\') &&
         !nextParam.includes('//')
       ) {
-        // Enforce role authorization boundaries
         const isStudentRoute = nextParam.startsWith('/student/');
         const isCrRoute = nextParam.startsWith('/cr/');
         const isResetPassword = nextParam.startsWith('/reset-password');
@@ -192,14 +190,12 @@ export default function LoginPage() {
           if (isCrRoute || isResetPassword) {
             finalRedirect = nextParam;
           } else if (isStudentRoute) {
-            // Remap student path to CR path for Class Representative/Admin
             finalRedirect = nextParam.replace(/^\/student\//, '/cr/');
           }
         } else if (role === 'student') {
           if (isStudentRoute || isResetPassword) {
             finalRedirect = nextParam;
           } else if (isCrRoute) {
-            // Remap CR path to Student path for Students
             finalRedirect = nextParam.replace(/^\/cr\//, '/student/');
           }
         }
@@ -217,7 +213,9 @@ export default function LoginPage() {
     }
   }
 
-  async function handleForgotPassword(e: React.FormEvent) {
+  // ── OTP password reset handlers ────────────────────────────────────────────
+
+  async function handleRequestOtp(e: React.FormEvent) {
     e.preventDefault();
     setForgotError(null);
     if (!forgotEmail.trim()) {
@@ -226,30 +224,55 @@ export default function LoginPage() {
     }
     setForgotPending(true);
     try {
-      const result = await requestPasswordReset(forgotEmail.trim().toLowerCase());
-
-      // Email is not registered in this class → show professional rejection
-      if (result?.unrecognized) {
-        setForgotError(
-          result.error ??
-          'This email address is not registered in this class portal. Please contact your Class Representative.'
-        );
-        return;
-      }
-
-      // Any other server-side error
+      const result = await requestPasswordResetOtp(forgotEmail.trim().toLowerCase());
       if (result?.error) {
         setForgotError(result.error);
         return;
       }
-
-      // Success: the reset link was dispatched
-      setForgotSent(true);
+      setForgotStep('otp');
     } catch (err: any) {
-      setForgotError(err.message || 'Failed to send reset email. Please try again.');
+      setForgotError(err.message || 'Failed to send code. Please try again.');
     } finally {
       setForgotPending(false);
     }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError(null);
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match.');
+      return;
+    }
+    if (forgotNewPassword.length < 8) {
+      setForgotError('Password must be at least 8 characters.');
+      return;
+    }
+    setForgotPending(true);
+    try {
+      const result = await verifyAndResetPassword(forgotEmail, forgotOtp, forgotNewPassword);
+      if (result?.error) {
+        setForgotError(result.error);
+        return;
+      }
+      setForgotSuccess(true);
+    } catch (err: any) {
+      setForgotError(err.message || 'Failed to reset password. Please try again.');
+    } finally {
+      setForgotPending(false);
+    }
+  }
+
+  function resetForgotFlow() {
+    setShowForgotPassword(false);
+    setForgotStep('email');
+    setForgotEmail('');
+    setForgotEmailLocked(false);
+    setForgotOtp('');
+    setForgotNewPassword('');
+    setForgotConfirmPassword('');
+    setForgotError(null);
+    setForgotSuccess(false);
   }
 
   return (
@@ -319,10 +342,10 @@ export default function LoginPage() {
             </button>
           </form>
         ) : showForgotPassword ? (
-          // ── Forgot Password Flow ───────────────────────────
+          // ── Forgot Password OTP Flow ───────────────────────
           <div className="flex flex-col gap-5">
             <button
-              onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotError(null); setForgotEmail(''); }}
+              onClick={resetForgotFlow}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors w-fit"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -336,43 +359,78 @@ export default function LoginPage() {
               >
                 <Mail className="w-5 h-5 text-emerald-400" />
               </div>
-              <h2 className="text-base font-bold text-white">Reset Password</h2>
+              <h2 className="text-base font-bold text-white">
+                {forgotSuccess ? 'Password Reset!' : forgotStep === 'otp' ? 'Enter Reset Code' : 'Reset Password'}
+              </h2>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Enter the email linked to your <strong className="text-slate-300">{className}</strong> Class portal
+                {forgotSuccess
+                  ? 'Your password has been updated. You can now sign in.'
+                  : forgotStep === 'otp'
+                    ? <>We sent a 6-digit code to <strong className="text-slate-300">{forgotEmail}</strong></>
+                    : <>The email linked to your <strong className="text-slate-300">{className}</strong> Class portal</>}
               </p>
             </div>
 
-            {forgotSent ? (
-              <div className="flex flex-col items-center gap-4 py-4 text-center">
+            {forgotSuccess ? (
+              <div className="flex flex-col items-center gap-4 py-2 text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-white">Reset Link Dispatched</p>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    A secure password reset link has been dispatched to <span className="text-slate-300 font-semibold">{forgotEmail}</span>.
-                    Please check your university inbox (including the spam or promotions tab) and follow the instructions to restore your account access.
-                  </p>
-                </div>
-                <button
-                  onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2 mt-2"
-                >
-                  Back to Sign In
+                <button onClick={resetForgotFlow} className="btn-primary w-full">
+                  Sign In Now
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+            ) : forgotStep === 'otp' ? (
+              <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+                {/* 6-digit code */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-300">
-                    University Email
+                  <label htmlFor="forgotOtp" className="text-xs font-semibold text-slate-300">
+                    6-Digit Code
                   </label>
                   <input
-                    id="forgotEmail"
-                    type="email"
-                    value={forgotEmail}
-                    onChange={e => setForgotEmail(e.target.value)}
-                    placeholder="you@university.edu"
+                    id="forgotOtp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={forgotOtp}
+                    onChange={e => setForgotOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="_ _ _ _ _ _"
+                    required
+                    className="form-input text-center font-mono text-xl tracking-[0.4em] font-bold"
+                    disabled={forgotPending}
+                    autoFocus
+                  />
+                </div>
+
+                {/* New password */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="forgotNewPwd" className="text-xs font-semibold text-slate-300">
+                    New Password
+                  </label>
+                  <input
+                    id="forgotNewPwd"
+                    type="password"
+                    value={forgotNewPassword}
+                    onChange={e => setForgotNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    required
+                    minLength={8}
+                    className="form-input"
+                    disabled={forgotPending}
+                  />
+                </div>
+
+                {/* Confirm password */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="forgotConfirmPwd" className="text-xs font-semibold text-slate-300">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="forgotConfirmPwd"
+                    type="password"
+                    value={forgotConfirmPassword}
+                    onChange={e => setForgotConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
                     required
                     className="form-input"
                     disabled={forgotPending}
@@ -385,12 +443,53 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <button type="submit" disabled={forgotPending} className="btn-primary">
-                  {forgotPending ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                <button type="submit" disabled={forgotPending || forgotOtp.length !== 6} className="btn-primary">
+                  {forgotPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying…</> : 'Reset Password'}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={forgotPending}
+                  onClick={() => { setForgotStep('email'); setForgotOtp(''); setForgotError(null); }}
+                  className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-2 text-center"
+                >
+                  Didn't receive a code? Send again
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRequestOtp} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-300">
+                    University Email
+                  </label>
+                  {forgotEmailLocked ? (
+                    // Locked — email came from sign-in form, cannot be changed
+                    <div className="form-input flex items-center gap-2 opacity-75 cursor-not-allowed select-none">
+                      <Mail className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                      <span className="text-slate-200 text-sm truncate flex-1">{forgotEmail}</span>
+                    </div>
                   ) : (
-                    'Send Reset Link'
+                    <input
+                      id="forgotEmail"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      placeholder="you@university.edu"
+                      required
+                      className="form-input"
+                      disabled={forgotPending}
+                    />
                   )}
+                </div>
+
+                {forgotError && (
+                  <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                    {forgotError}
+                  </div>
+                )}
+
+                <button type="submit" disabled={forgotPending} className="btn-primary">
+                  {forgotPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : 'Send Code'}
                 </button>
               </form>
             )}
@@ -443,7 +542,7 @@ export default function LoginPage() {
                 {showForgotLink && (
                   <button
                     type="button"
-                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setError(null); }}
+                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setForgotEmailLocked(!!email.trim()); setError(null); }}
                     className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2 animate-fade-in"
                   >
                     Forgot password?

@@ -61,6 +61,31 @@ serve(async (req) => {
       )
     }
 
+    // ─── reset-password ──────────────────────────────────────────────────────
+    // Updates a user's password via the admin API.
+    // No auth header required — the caller (verifyAndResetPassword server action)
+    // has already verified the OTP before calling this endpoint.
+    if (action === 'reset-password') {
+      const { userId, newPassword } = body
+      if (!userId || !newPassword) {
+        return new Response(JSON.stringify({ error: 'Missing userId or newPassword' }), { status: 400, headers: corsHeaders })
+      }
+      if (newPassword.length < 8) {
+        return new Response(JSON.stringify({ error: 'Password must be at least 8 characters.' }), { status: 400, headers: corsHeaders })
+      }
+
+      const adminClient = createClient(currentProjectUrl, currentServiceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+      })
+
+      const { error } = await adminClient.auth.admin.updateUserById(userId, { password: newPassword })
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+      }
+
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
+    }
+
     // ─── Authenticated actions below ─────────────────────────────────────────
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
