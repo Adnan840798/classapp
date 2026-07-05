@@ -36,6 +36,8 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [showForgotLink, setShowForgotLink] = useState(false);
+  const [showForgotNewPwd, setShowForgotNewPwd] = useState(false);
+  const [showForgotConfirmPwd, setShowForgotConfirmPwd] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -407,17 +409,28 @@ export default function LoginPage() {
                   <label htmlFor="forgotNewPwd" className="text-xs font-semibold text-slate-300">
                     New Password
                   </label>
-                  <input
-                    id="forgotNewPwd"
-                    type="password"
-                    value={forgotNewPassword}
-                    onChange={e => setForgotNewPassword(e.target.value)}
-                    placeholder="At least 8 characters"
-                    required
-                    minLength={8}
-                    className="form-input"
-                    disabled={forgotPending}
-                  />
+                  <div className="relative">
+                    <input
+                      id="forgotNewPwd"
+                      type={showForgotNewPwd ? 'text' : 'password'}
+                      value={forgotNewPassword}
+                      onChange={e => setForgotNewPassword(e.target.value)}
+                      placeholder="At least 8 characters"
+                      required
+                      minLength={8}
+                      className="form-input pr-10"
+                      disabled={forgotPending}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotNewPwd(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                      aria-label={showForgotNewPwd ? 'Hide password' : 'Show password'}
+                    >
+                      {showForgotNewPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Confirm password */}
@@ -425,16 +438,27 @@ export default function LoginPage() {
                   <label htmlFor="forgotConfirmPwd" className="text-xs font-semibold text-slate-300">
                     Confirm Password
                   </label>
-                  <input
-                    id="forgotConfirmPwd"
-                    type="password"
-                    value={forgotConfirmPassword}
-                    onChange={e => setForgotConfirmPassword(e.target.value)}
-                    placeholder="Repeat new password"
-                    required
-                    className="form-input"
-                    disabled={forgotPending}
-                  />
+                  <div className="relative">
+                    <input
+                      id="forgotConfirmPwd"
+                      type={showForgotConfirmPwd ? 'text' : 'password'}
+                      value={forgotConfirmPassword}
+                      onChange={e => setForgotConfirmPassword(e.target.value)}
+                      placeholder="Repeat new password"
+                      required
+                      className="form-input pr-10"
+                      disabled={forgotPending}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotConfirmPwd(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                      aria-label={showForgotConfirmPwd ? 'Hide password' : 'Show password'}
+                    >
+                      {showForgotConfirmPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {forgotError && (

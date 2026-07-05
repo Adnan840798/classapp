@@ -198,7 +198,7 @@ export async function getCachedResources(): Promise<Note[]> {
 
       const { data, error } = await supabase
         .from('notes')
-        .select('id, title, content, drive_link, is_public, is_pending, user_id, updated_at, created_at, creator:profiles!user_id(full_name)')
+        .select('id, title, content, drive_link, attachment_url, attachment_type, is_public, is_pending, user_id, updated_at, created_at, creator:profiles!user_id(full_name)')
         .eq('is_public', true)
         .eq('is_pending', false) // SECURITY: never expose unapproved pending resources
         .order('updated_at', { ascending: false });

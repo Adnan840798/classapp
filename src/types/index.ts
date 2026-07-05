@@ -111,6 +111,8 @@ export interface Note {
   title: string;
   content: string | null;
   drive_link: string | null;
+  attachment_url: string | null;
+  attachment_type: 'image' | 'pdf' | null;
   is_public: boolean;
   is_pending: boolean;
   updated_at: string;

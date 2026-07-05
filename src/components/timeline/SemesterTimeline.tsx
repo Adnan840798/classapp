@@ -283,6 +283,43 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
           router.refresh();
         }
       )
+      // ── Live day-card count updates ────────────────────────────────────────
+      // When a CR adds/edits/deletes an announcement, deadline, or result, the
+      // per-day count badges in the timeline refresh automatically (600ms debounce
+      // avoids hammering on rapid successive changes).
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'announcements' },
+        () => {
+          if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
+          holidayDebounceRef.current = setTimeout(async () => {
+            const updatedAllData = await getAllSemesterTimelineData(totalWeeks, startDate);
+            setAllWeeksData(updatedAllData);
+          }, 600);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'deadlines' },
+        () => {
+          if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
+          holidayDebounceRef.current = setTimeout(async () => {
+            const updatedAllData = await getAllSemesterTimelineData(totalWeeks, startDate);
+            setAllWeeksData(updatedAllData);
+          }, 600);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'exam_results' },
+        () => {
+          if (holidayDebounceRef.current) clearTimeout(holidayDebounceRef.current);
+          holidayDebounceRef.current = setTimeout(async () => {
+            const updatedAllData = await getAllSemesterTimelineData(totalWeeks, startDate);
+            setAllWeeksData(updatedAllData);
+          }, 600);
+        }
+      )
       .subscribe();
 
     return () => {

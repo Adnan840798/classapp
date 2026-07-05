@@ -483,6 +483,7 @@ export async function requestPasswordReset(email: string) {
         headers: {
           'Content-Type': 'application/json',
           'apikey': tenantAnonKey,
+          'Authorization': `Bearer ${tenantAnonKey}`,
         },
         body: JSON.stringify({
           action: 'generate-reset-link',
@@ -549,65 +550,28 @@ export async function requestPasswordResetOtp(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return { error: 'Email is required.' };
 
-    const supabase = await getSupabaseServerClient();
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-    // ── 1. Cooldown check ──────────────────────────────────────────────────
-    const { data: recentOtp } = await supabase
-      .from('password_reset_otps')
-      .select('created_at')
-      .eq('email', normalizedEmail)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (recentOtp) {
-      const secondsAgo = (Date.now() - new Date(recentOtp.created_at).getTime()) / 1000;
-      if (secondsAgo < 60) {
-        const wait = Math.ceil(60 - secondsAgo);
-        return { error: `Please wait ${wait} second${wait !== 1 ? 's' : ''} before requesting another code.` };
-      }
-    }
-
-    // ── 2. Verify email exists in this tenant ──────────────────────────────
-    const { data: profileRow } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .eq('email', normalizedEmail)
-      .maybeSingle();
-
-    // Always return generic success to prevent email enumeration
-    if (!profileRow) {
-      return { success: true };
-    }
-
-    // ── 3. Delete all previous OTPs for this email (keep table tiny) ───────
-    await supabase
-      .from('password_reset_otps')
-      .delete()
-      .eq('email', normalizedEmail);
-
-    // ── 4. Generate + insert fresh OTP (crypto.randomInt = cryptographically secure) ─
-    const otpCode = String(randomInt(100000, 1000000)); // always 6 digits: 100000–999999
-    const { error: insertError } = await supabase
-      .from('password_reset_otps')
-      .insert({
+    const fnRes = await fetch(`${tenantUrl}/functions/v1/manage-student`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': tenantAnonKey,
+        'Authorization': `Bearer ${tenantAnonKey}`,
+      },
+      body: JSON.stringify({
+        action: 'request-otp',
         email: normalizedEmail,
-        otp_code: otpCode,
-        user_id: profileRow.id,
-      });
-
-    if (insertError) {
-      console.error('[requestPasswordResetOtp] Insert error:', insertError);
-      return { error: 'Failed to generate reset code. Please try again.' };
-    }
-
-    // ── 5. Send via Brevo ──────────────────────────────────────────────────
-    const htmlContent = getOtpResetHtml(otpCode, profileRow.full_name || 'User');
-    await sendEmail({
-      to: normalizedEmail,
-      subject: 'Your ClassApp password reset code',
-      htmlContent,
+      }),
     });
+
+    const fnData = await fnRes.json();
+    if (!fnRes.ok || fnData?.error) {
+      console.warn('[requestPasswordResetOtp] Edge Function error:', fnData?.error);
+      return { error: fnData?.error || 'Failed to dispatch reset code.' };
+    }
 
     return { success: true };
   } catch (err: any) {
@@ -680,6 +644,7 @@ export async function verifyAndResetPassword(email: string, otpCode: string, new
       headers: {
         'Content-Type': 'application/json',
         'apikey': tenantAnonKey,
+        'Authorization': `Bearer ${tenantAnonKey}`,
       },
       body: JSON.stringify({
         action: 'reset-password',

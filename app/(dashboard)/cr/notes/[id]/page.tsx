@@ -19,7 +19,7 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
   // Fetch note (CR can edit any note)
   const { data: note, error } = await supabase
     .from('notes')
-    .select('id, user_id, title, content, drive_link, is_public, is_pending, updated_at, created_at')
+    .select('id, user_id, title, content, drive_link, attachment_url, attachment_type, is_public, is_pending, updated_at, created_at')
     .eq('id', id)
     .single();
 

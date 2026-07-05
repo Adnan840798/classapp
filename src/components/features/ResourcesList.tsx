@@ -19,6 +19,7 @@ import { deleteNote, bulkDeleteNotes } from '@/lib/actions/notes';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Note } from '@/types';
 import { BulkDeleteBar } from '@/components/ui/BulkDeleteBar';
+import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
 
 interface ResourcesListProps {
   initialNotes: Note[];
@@ -239,6 +240,25 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                         <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed break-words line-clamp-3 mt-1">
                           {note.content}
                         </p>
+                      )}
+
+                      {/* Attachment preview (image/PDF) — tap button to open viewer */}
+                      {note.attachment_url && note.attachment_type && (
+                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                          <AttachmentViewer
+                            url={note.attachment_url}
+                            fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : 'jpg'}`}
+                          >
+                            <button className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                              note.attachment_type === 'pdf'
+                                ? 'text-rose-600 dark:text-rose-400 border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10'
+                                : 'text-sky-600 dark:text-sky-400 border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10'
+                            }`}>
+                              <FileText className="w-3 h-3 flex-shrink-0" />
+                              {note.attachment_type === 'pdf' ? 'View PDF' : 'View Image'}
+                            </button>
+                          </AttachmentViewer>
+                        </div>
                       )}
 
                       {/* Metadata: badge + creator + timestamp */}

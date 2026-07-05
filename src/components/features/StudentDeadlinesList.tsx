@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, Calendar, BookOpen, ArrowRight, Loader2 } from 'lucide-react';
+import { Clock, Calendar, BookOpen, ArrowRight, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import type { Deadline } from '@/types';
@@ -54,14 +54,102 @@ const colorThemes = {
   },
 };
 
-export function StudentDeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
+function DeadlineCard({
+  deadline,
+  qaNavigatingId,
+  onNavigate,
+  muted = false,
+}: {
+  deadline: ReturnType<typeof enrichDeadlines>[number];
+  qaNavigatingId: string | null;
+  onNavigate: (id: string) => void;
+  muted?: boolean;
+}) {
   const router = useRouter();
+  const theme = colorThemes[muted ? 'gray' : (deadline.color as keyof typeof colorThemes)] || colorThemes.green;
+
+  return (
+    <div
+      className={`relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5 border ${theme.cardBgClass} ${muted ? 'opacity-60' : ''}`}
+    >
+      {/* Left urgency colored line */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ background: theme.accent }}
+      />
+
+      <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left section: Icon + Subject + Title & Desc */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.iconBgClass}`}
+          >
+            <Clock className={`w-4 h-4 ${theme.iconColorClass}`} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1 ${theme.subjectBadgeClass}`}>
+                <BookOpen className={`w-2.5 h-2.5 ${theme.subjectIconColor}`} />
+                {deadline.subject}
+              </span>
+              <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
+                {deadline.title}
+              </h3>
+            </div>
+            {deadline.description && (
+              <p className="text-xs text-zinc-700 dark:text-zinc-400 mt-2 whitespace-pre-line leading-relaxed break-words">
+                {deadline.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Right section: Due Date + Action Button */}
+        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-t-0 sm:items-end">
+          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold flex items-center gap-1 whitespace-nowrap">
+              <Calendar className="w-3.5 h-3.5 text-muted-foreground/80 flex-shrink-0" />
+              {muted ? 'Was due:' : 'Due:'} {formatDateTime(deadline.due_date)}
+            </p>
+            <span
+              className={`text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full leading-none w-fit ${theme.badgeBgClass} ${theme.badgeTextColor}`}
+            >
+              {muted ? 'Expired' : formatDaysRemaining(deadline.daysRemaining)}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              onNavigate(deadline.id);
+              router.push(`/student/deadlines/${deadline.id}`);
+            }}
+            disabled={qaNavigatingId === deadline.id}
+            className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap self-start sm:self-auto disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${theme.btnClass}`}
+          >
+            Question &amp; Answer
+            {qaNavigatingId === deadline.id ? (
+              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+            ) : (
+              <ArrowRight className="w-3 h-3 flex-shrink-0" />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StudentDeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   const [qaNavigatingId, setQaNavigatingId] = useState<string | null>(null);
+  const [showPast, setShowPast] = useState(false);
 
   const enriched = enrichDeadlines(deadlines);
-  const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= Date.now());
+  const now = Date.now();
+  const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= now);
+  const pastDeadlines = enriched
+    .filter((d) => new Date(d.due_date).getTime() < now)
+    .sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
 
-  if (activeDeadlines.length === 0) {
+  if (activeDeadlines.length === 0 && pastDeadlines.length === 0) {
     return (
       <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
         <Clock className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
@@ -75,78 +163,54 @@ export function StudentDeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {activeDeadlines.map((deadline) => {
-        const theme = colorThemes[deadline.color] || colorThemes.green;
-        return (
-          <div
+      {/* Active deadlines */}
+      {activeDeadlines.length === 0 ? (
+        <div className="glass-card p-8 text-center flex flex-col items-center justify-center gap-3">
+          <Clock className="w-10 h-10 text-muted-foreground opacity-30 animate-pulse" />
+          <p className="text-sm text-muted-foreground">No upcoming deadlines right now.</p>
+        </div>
+      ) : (
+        activeDeadlines.map((deadline) => (
+          <DeadlineCard
             key={deadline.id}
-            className={`relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5 border ${theme.cardBgClass}`}
+            deadline={deadline}
+            qaNavigatingId={qaNavigatingId}
+            onNavigate={setQaNavigatingId}
+          />
+        ))
+      )}
+
+      {/* Past deadlines collapsible section */}
+      {pastDeadlines.length > 0 && (
+        <div className="mt-4 flex flex-col gap-3">
+          <button
+            onClick={() => setShowPast((v) => !v)}
+            className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer self-start px-1 py-1"
           >
-            {/* Left urgency colored line */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-1"
-              style={{ background: theme.accent }}
-            />
+            {showPast ? (
+              <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+            )}
+            Past Deadlines ({pastDeadlines.length})
+          </button>
 
-            <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Left section: Icon + Subject + Title & Desc */}
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.iconBgClass}`}
-                >
-                  <Clock className={`w-4 h-4 ${theme.iconColorClass}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded flex items-center gap-1 ${theme.subjectBadgeClass}`}>
-                      <BookOpen className={`w-2.5 h-2.5 ${theme.subjectIconColor}`} />
-                      {deadline.subject}
-                    </span>
-                    <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
-                      {deadline.title}
-                    </h3>
-                  </div>
-                  {deadline.description && (
-                    <p className="text-xs text-zinc-700 dark:text-zinc-400 mt-2 whitespace-pre-line leading-relaxed break-words">
-                      {deadline.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Right section: Due Date + Action Button */}
-              <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-t-0 sm:items-end">
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold flex items-center gap-1 whitespace-nowrap">
-                    <Calendar className="w-3.5 h-3.5 text-muted-foreground/80 flex-shrink-0" />
-                    Due: {formatDateTime(deadline.due_date)}
-                  </p>
-                  <span
-                    className={`text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full leading-none w-fit ${theme.badgeBgClass} ${theme.badgeTextColor}`}
-                  >
-                    {formatDaysRemaining(deadline.daysRemaining)}
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    setQaNavigatingId(deadline.id);
-                    router.push(`/student/deadlines/${deadline.id}`);
-                  }}
-                  disabled={qaNavigatingId === deadline.id}
-                  className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap self-start sm:self-auto disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${theme.btnClass}`}
-                >
-                  Question &amp; Answer
-                  {qaNavigatingId === deadline.id ? (
-                    <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
-                  ) : (
-                    <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                  )}
-                </button>
-              </div>
+          {showPast && (
+            <div className="flex flex-col gap-2.5 animate-fade-in">
+              {pastDeadlines.map((deadline) => (
+                <DeadlineCard
+                  key={deadline.id}
+                  deadline={deadline}
+                  qaNavigatingId={qaNavigatingId}
+                  onNavigate={setQaNavigatingId}
+                  muted
+                />
+              ))}
             </div>
-          </div>
-        );
-      })}
+          )}
+        </div>
+      )}
     </div>
   );
 }
+

@@ -132,36 +132,40 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   // Download handler
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Check if running inside Capacitor native webview container
+
+    // Capacitor native webview — let the OS handle the URL (image / video fine, PDF opens browser)
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
       window.open(resolvedUrl, '_system');
       return;
     }
 
-    try {
-      // If we already have the blob URL (PDF was loaded), reuse it
-      if (pdfBlobUrl) {
-        const a = document.createElement('a');
-        a.href = pdfBlobUrl;
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        return;
-      }
-      const res = await fetch(resolvedUrl);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
+    // If the PDF blob is already in memory (viewer was open), use it — fastest & most reliable
+    if (pdfBlobUrl) {
       const a = document.createElement('a');
-      a.href = blobUrl;
+      a.href = pdfBlobUrl;
       a.download = name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
+      return;
+    }
+
+    // For Supabase storage URLs: append ?download=<filename> so the server responds with
+    // Content-Disposition: attachment, which forces Chrome/Android to download instead of
+    // opening in a new tab. This works without CORS fetch and handles all file types.
+    try {
+      const base = resolvedUrl.split('?')[0];
+      const downloadUrl = `${base}?download=${encodeURIComponent(name)}`;
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = name; // hint for same-origin (ignored for cross-origin but harmless)
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } catch {
-      window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+      // Last-resort: try opening in the same tab with ?download param (browser will download it)
+      const base = resolvedUrl.split('?')[0];
+      window.open(`${base}?download=${encodeURIComponent(name)}`, '_blank', 'noopener,noreferrer');
     }
   };
 

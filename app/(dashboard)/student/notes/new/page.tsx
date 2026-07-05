@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, Send, Loader2, AlertCircle, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Link as LinkIcon, Paperclip, X } from 'lucide-react';
 import { createNote } from '@/lib/actions/notes';
 
 function isRedirectError(err: any): boolean {
@@ -22,6 +22,7 @@ export default function NewNotePage() {
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,6 +30,9 @@ export default function NewNotePage() {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
+    if (attachmentFile) {
+      formData.set('attachment', attachmentFile);
+    }
     
     try {
       const res = await createNote(formData);
@@ -123,6 +127,67 @@ export default function NewNotePage() {
             />
           </div>
 
+          {/* File Attachment — CR only */}
+          {isCR && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5 text-primary" />
+                File Attachment (Optional — CR only)
+              </label>
+              <p className="text-xs text-muted-foreground -mt-0.5">
+                Attach an image or PDF (max 5 MB). If the resource is made public, the file will also be sent to the Telegram channel.
+              </p>
+
+              {attachmentFile ? (
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-primary/30 bg-primary/5">
+                  <Paperclip className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground flex-1 min-w-0 truncate">
+                    {attachmentFile.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                    {(attachmentFile.size / 1024 / 1024).toFixed(1)} MB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachmentFile(null)}
+                    disabled={isPending}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-rose-400 hover:bg-rose-400/10 transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="attachment-input"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group"
+                >
+                  <Paperclip className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    Click to select a file (image or PDF, max 5 MB)
+                  </span>
+                  <input
+                    id="attachment-input"
+                    name="attachment"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    disabled={isPending}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        setError('Attachment must be under 5 MB.');
+                        e.target.value = '';
+                        return;
+                      }
+                      setAttachmentFile(file);
+                      setError(null);
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+          )}
+
           {/* Make Public Checkbox */}
           <div className="flex items-center gap-2.5 py-1">
             <input
@@ -134,6 +199,11 @@ export default function NewNotePage() {
             />
             <label htmlFor="is_public" className="text-sm font-semibold text-foreground cursor-pointer select-none">
               Share with Class (Make Public)
+              {isCR && (
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                  — will post to Telegram channel
+                </span>
+              )}
             </label>
           </div>
 

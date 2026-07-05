@@ -24,6 +24,7 @@ export const STORAGE_BUCKETS = {
 export const STORAGE_PATHS = {
   ANNOUNCEMENTS: 'announcements',
   RESULTS: 'results',
+  RESOURCES: 'resources',
 } as const;
 
 export const ROLES = {
