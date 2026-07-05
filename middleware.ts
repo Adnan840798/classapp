@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
 
   // ── 1. Rate limiting ──────────────────────────────────────────────────────
   let bucket: keyof typeof LIMITS = 'page';
-  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+  if (pathname.startsWith('/api/auth')) {
     bucket = 'auth';
   } else if (pathname.startsWith('/api/telegram')) {
     bucket = 'webhook';
