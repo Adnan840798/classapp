@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Loader2,
   AlertCircle,
+  Presentation,
 } from 'lucide-react';
 
 const PDFViewerInner = dynamic(
@@ -36,7 +37,7 @@ interface AttachmentViewerProps {
   children: React.ReactNode;
 }
 
-type FileKind = 'image' | 'pdf' | 'video' | 'doc';
+type FileKind = 'image' | 'pdf' | 'video' | 'doc' | 'presentation';
 
 function detectKind(url: string): FileKind {
   try {
@@ -45,6 +46,7 @@ function detectKind(url: string): FileKind {
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)) return 'image';
     if (ext === 'pdf') return 'pdf';
     if (['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'].includes(ext)) return 'video';
+    if (['pptx', 'ppt'].includes(ext)) return 'presentation';
   } catch {}
   return 'doc';
 }
@@ -171,7 +173,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
     }
   };
 
-  const kindLabel = kind === 'image' ? 'Image' : kind === 'pdf' ? 'PDF Document' : kind === 'video' ? 'Video' : 'File';
+  const kindLabel = kind === 'image' ? 'Image' : kind === 'pdf' ? 'PDF Document' : kind === 'video' ? 'Video' : kind === 'presentation' ? 'PowerPoint' : 'File';
 
   const modal = open && mounted && createPortal(
     <div
@@ -211,6 +213,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
               {kind === 'image' && <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />}
               {kind === 'pdf'   && <FileText  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400" />}
               {kind === 'video' && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />}
+              {kind === 'presentation' && <Presentation className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />}
               {kind === 'doc'   && <File      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" />}
             </div>
             <div className="min-w-0 flex-1">
@@ -375,6 +378,19 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
                 onCanPlay={() => setVideoLoading(false)}
                 className="w-full max-h-full rounded-xl shadow-2xl"
                 style={{ background: '#000', maxHeight: 'calc(92dvh - 56px)' }}
+              />
+            </div>
+          )}
+
+          {/* PRESENTATION (PPTX/PPT) — renders inline via Microsoft Office Viewer */}
+          {kind === 'presentation' && (
+            <div className="relative w-full h-full flex items-center justify-center bg-[#0a0b0d]">
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resolvedUrl)}`}
+                className="w-full h-full border-0"
+                style={{ height: 'calc(92dvh - 56px)' }}
+                title="PowerPoint Web Viewer"
+                allowFullScreen
               />
             </div>
           )}

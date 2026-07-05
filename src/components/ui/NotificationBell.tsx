@@ -9,7 +9,6 @@ import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
 import { timeAgo } from '@/lib/utils/formatters';
 import { cn } from '@/lib/utils';
-import { bulkDeleteNotifications } from '@/lib/actions/notifications';
 import { BulkDeleteBar } from '@/components/ui/BulkDeleteBar';
 
 interface NotifTypeConfig {
@@ -250,7 +249,7 @@ function NotifItem({
 
 export function NotificationBell() {
   const { profile } = useProfile();
-  const { notifications, unreadCount, markAllRead, loading, refreshNotifications } = useNotifications();
+  const { notifications, unreadCount, markAllRead, loading, refreshNotifications, deleteNotifications } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -454,7 +453,7 @@ export function NotificationBell() {
 
   async function handleBulkDelete() {
     const idsArray = Array.from(selectedIds);
-    const res = await bulkDeleteNotifications(idsArray);
+    const res = await deleteNotifications(idsArray);
     if (res && res.error) {
       alert(res.error);
     } else {

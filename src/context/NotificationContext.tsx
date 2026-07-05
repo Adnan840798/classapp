@@ -5,6 +5,7 @@ import { Notification } from '@/types';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useProfile } from '@/context/ProfileContext';
 import { playNotificationChime } from '@/lib/utils/audio';
+import { bulkDeleteNotifications } from '@/lib/actions/notifications';
 
 export interface InAppPopup {
   id: string;
@@ -23,6 +24,7 @@ interface NotificationContextValue {
   dismissPopup: (id: string) => void;
   loading: boolean;
   refreshNotifications: () => Promise<void>;
+  deleteNotifications: (ids: string[]) => Promise<{ success?: boolean; error?: string }>;
 }
 
 export const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -323,6 +325,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setUnreadCount(0);
   }
 
+  async function deleteNotifications(ids: string[]) {
+    if (!ids || ids.length === 0) return { success: true };
+
+    // Optimistically update UI
+    setNotifications((prev) => {
+      const next = prev.filter((n) => !ids.includes(n.id));
+      setUnreadCount(next.filter((n) => !n.is_read).length);
+      return next;
+    });
+
+    const res = await bulkDeleteNotifications(ids);
+    if (res && res.error) {
+      console.error('[deleteNotifications] Error during server deletion:', res.error);
+      refreshNotifications(); // Revert to database state if failed
+      return { error: res.error };
+    }
+    return { success: true };
+  }
+
   function dismissPopup(id: string) {
     setActivePopups((prev) => prev.filter((p) => p.id !== id));
   }
@@ -338,6 +359,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         dismissPopup,
         loading,
         refreshNotifications,
+        deleteNotifications,
       }}
     >
       {children}
