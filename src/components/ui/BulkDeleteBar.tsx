@@ -50,7 +50,7 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
         style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <div
-          className="flex items-center justify-between gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl"
+          className="bulk-delete-bar flex items-center justify-between gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl"
           style={{
             background: 'linear-gradient(135deg, rgba(20,20,25,0.96) 0%, rgba(28,30,38,0.96) 100%)',
             border: '1px solid rgba(244, 63, 94, 0.3)',
@@ -108,7 +108,7 @@ export function BulkDeleteBar({ count, onCancel, onDelete, label = 'items' }: Bu
           onClick={(e) => { if (e.target === e.currentTarget) setShowConfirm(false); }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-5 animate-slide-up"
+            className="bulk-delete-confirm-modal w-full max-w-sm rounded-2xl p-5 animate-slide-up"
             style={{
               background: 'linear-gradient(135deg, rgba(18,18,22,0.98) 0%, rgba(26,28,36,0.98) 100%)',
               border: '1px solid rgba(244, 63, 94, 0.35)',

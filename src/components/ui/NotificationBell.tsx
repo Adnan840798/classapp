@@ -379,6 +379,15 @@ export function NotificationBell() {
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as Node;
       const bellBtn = document.getElementById('notification-bell-btn');
+      
+      // Ignore clicks on BulkDeleteBar elements so clicking select/delete buttons doesn't close the dropdown
+      if (target instanceof Element && (
+        target.closest('.bulk-delete-bar') ||
+        target.closest('.bulk-delete-confirm-modal')
+      )) {
+        return;
+      }
+
       if (
         (dropdownRef.current && dropdownRef.current.contains(target)) ||
         (bellBtn && bellBtn.contains(target))
@@ -399,15 +408,14 @@ export function NotificationBell() {
   }, [isOpen]);
 
   function handleToggle() {
-    setIsOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        refreshNotifications();
-        if (unreadCount > 0) markAllRead();
-      }
-      if (!next) setShowAll(false);
-      return next;
-    });
+    const nextOpen = !isOpen;
+    setIsOpen(nextOpen);
+    if (nextOpen) {
+      refreshNotifications();
+      if (unreadCount > 0) markAllRead();
+    } else {
+      setShowAll(false);
+    }
   }
 
   if (!profile?.notif_enabled) return null;
