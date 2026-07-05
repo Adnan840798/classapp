@@ -503,11 +503,6 @@ export function ProfileForm({
                         currentPermission = await Notification.requestPermission();
                         setBrowserPermission(currentPermission);
                       }
-                      
-                      if (currentPermission === 'denied') {
-                        alert('Notifications are blocked in your browser settings. To enable them, click the lock/settings icon in your browser address bar and allow notifications.');
-                        return; // Block activation if permission is denied
-                      }
                     }
                     
                     // 2. Native Capacitor App Permission Flow
@@ -515,10 +510,7 @@ export function ProfileForm({
                       try {
                         const { PushNotifications } = await import('@capacitor/push-notifications');
                         const permission = await PushNotifications.requestPermissions();
-                        if (permission.receive !== 'granted') {
-                          alert('Notification permissions are blocked in your phone settings. Please enable them in your device settings to receive alerts.');
-                          return; // Block activation if permission is denied
-                        }
+                        setNativePermission(permission.receive);
                       } catch (err) {
                         console.error('Failed to request native push permissions:', err);
                       }
@@ -545,12 +537,12 @@ export function ProfileForm({
                 }}
                 disabled={isPending}
                 className={`touch-compact relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  notifEnabled && browserPermission !== 'denied' ? 'bg-primary' : 'bg-muted'
+                  notifEnabled ? 'bg-primary' : 'bg-muted'
                 }`}
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    notifEnabled && browserPermission !== 'denied' ? 'translate-x-5' : 'translate-x-0'
+                    notifEnabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
