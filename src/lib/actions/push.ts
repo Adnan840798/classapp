@@ -120,15 +120,9 @@ export async function sendFCMPush(payload: {
     }
 
     // 2. Fetch profiles that have a registered FCM token
-    const { cookies } = await import('next/headers');
-    const cookieStore = await cookies();
-    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const adminClient = createClient(
-      tenantUrl,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = await getSupabaseServerClient();
 
-    let query = adminClient
+    let query = supabase
       .from('profiles')
       .select('id, fcm_token')
       .not('fcm_token', 'is', null);
@@ -202,7 +196,7 @@ export async function sendFCMPush(payload: {
             errorCode === 'INVALID_ARGUMENT'
           ) {
             console.log(`[sendFCMPush] Token unregistered or invalid for user: ${profile.id}, cleaning up.`);
-            await adminClient
+            await supabase
               .from('profiles')
               .update({ fcm_token: null })
               .eq('id', profile.id);

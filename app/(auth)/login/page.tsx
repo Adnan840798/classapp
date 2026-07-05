@@ -147,9 +147,14 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        if (signInError.message.toLowerCase().includes('invalid') || signInError.message.toLowerCase().includes('credentials')) {
+        const errMsg = signInError.message.toLowerCase();
+        if (
+          errMsg.includes('invalid') || 
+          errMsg.includes('credentials') || 
+          signInError.status === 400
+        ) {
           setShowForgotLink(true);
-          throw new Error('Invalid login credentials. Please verify your email and password.');
+          throw new Error('Invalid email or password. Please verify your credentials and try again.');
         }
         throw new Error(signInError.message);
       }
@@ -625,8 +630,26 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
-                {error}
+              <div role="alert" className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs leading-relaxed animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 flex flex-col gap-0.5">
+                  <span className="font-semibold text-rose-300">Login Attempt Failed</span>
+                  <span>{error}</span>
+                  {showForgotLink && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setForgotEmail(email);
+                        setForgotEmailLocked(!!email.trim());
+                        setError(null);
+                      }}
+                      className="text-left font-bold text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2 mt-1.5 cursor-pointer"
+                    >
+                      Reset your password?
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
