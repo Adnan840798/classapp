@@ -13,47 +13,50 @@ async function run() {
     .single();
 
   const tenant = classData.tenants;
-  console.log('Connecting to RUETCSE24A DB:', tenant.supabase_url);
-  const tenantClient = createClient(tenant.supabase_url, tenant.supabase_anon_key);
+  console.log('Tenant URL:', tenant.supabase_url);
 
-  // 1. Query notifications
-  console.log('Testing notifications select...');
-  const { data: notifs, error: nError } = await tenantClient
-    .from('notifications')
-    .select('*')
-    .limit(1);
-
-  if (nError) {
-    console.error('notifications table select error:', nError);
-  } else {
-    console.log('notifications table exists, sample:', notifs);
-  }
-
-  // 2. Query my_notifications view
-  console.log('Testing my_notifications view...');
-  const { data: myNotifs, error: mnError } = await tenantClient
-    .from('my_notifications')
-    .select('*')
-    .limit(1);
-
-  if (mnError) {
-    console.error('my_notifications view select error:', mnError);
-  } else {
-    console.log('my_notifications view exists, sample:', myNotifs);
-  }
-
-  // 3. Test RPC call to broadcast_notification
-  console.log('Testing broadcast_notification RPC call...');
-  const { error: rpcError } = await tenantClient.rpc('broadcast_notification', {
-    p_title: 'Test Title',
-    p_message: 'Test Message',
-    p_type: 'general'
+  // Connect to Tenant Supabase
+  const tenantClient = createClient(tenant.supabase_url, tenant.supabase_anon_key, {
+    auth: { persistSession: false }
   });
 
-  if (rpcError) {
-    console.error('broadcast_notification RPC error:', rpcError);
+  console.log('Attempting login as student...');
+  const { data: authData, error: authError } = await tenantClient.auth.signInWithPassword({
+    email: '2403001@student.ruet.ac.bd',
+    password: 'Password123!'
+  });
+
+  if (authError) {
+    console.error('Login failed:', authError.message);
+    return;
+  }
+
+  const user = authData.user;
+  console.log('Login successful! User ID:', user.id);
+
+  // Authenticate the client with the session token
+  const authenticatedClient = createClient(tenant.supabase_url, tenant.supabase_anon_key, {
+    auth: { persistSession: false },
+    global: {
+      headers: {
+        Authorization: `Bearer ${authData.session.access_token}`
+      }
+    }
+  });
+
+  console.log('Attempting profile update...');
+  const { data: updatedProfile, error: updateError } = await authenticatedClient
+    .from('profiles')
+    .update({
+      full_name: 'Test Student 2403001'
+    })
+    .eq('id', user.id)
+    .select();
+
+  if (updateError) {
+    console.error('Profile update failed:', updateError);
   } else {
-    console.log('broadcast_notification RPC executed successfully!');
+    console.log('Profile update successful! Data:', updatedProfile);
   }
 }
 

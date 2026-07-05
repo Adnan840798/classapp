@@ -630,26 +630,9 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div role="alert" className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs leading-relaxed animate-fade-in">
-                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                <div className="flex-1 flex flex-col gap-0.5">
-                  <span className="font-semibold text-rose-300">Login Attempt Failed</span>
-                  <span>{error}</span>
-                  {showForgotLink && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowForgotPassword(true);
-                        setForgotEmail(email);
-                        setForgotEmailLocked(!!email.trim());
-                        setError(null);
-                      }}
-                      className="text-left font-bold text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2 mt-1.5 cursor-pointer"
-                    >
-                      Reset your password?
-                    </button>
-                  )}
-                </div>
+              <div role="alert" className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-450 text-xs font-medium animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-450 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
