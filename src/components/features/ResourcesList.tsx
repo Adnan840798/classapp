@@ -242,24 +242,7 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                         </p>
                       )}
 
-                      {/* Attachment preview (image/PDF) — tap button to open viewer */}
-                      {note.attachment_url && note.attachment_type && (
-                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                          <AttachmentViewer
-                            url={note.attachment_url}
-                            fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : 'jpg'}`}
-                          >
-                            <button className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                              note.attachment_type === 'pdf'
-                                ? 'text-rose-600 dark:text-rose-400 border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10'
-                                : 'text-sky-600 dark:text-sky-400 border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10'
-                            }`}>
-                              <FileText className="w-3 h-3 flex-shrink-0" />
-                              {note.attachment_type === 'pdf' ? 'View PDF' : 'View Image'}
-                            </button>
-                          </AttachmentViewer>
-                        </div>
-                      )}
+
 
                       {/* Metadata: badge + creator + timestamp */}
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-2 text-[10px] text-muted-foreground font-medium">
@@ -296,6 +279,21 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                     <div className="flex items-center justify-end gap-2 flex-shrink-0 w-full sm:w-auto mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t border-border/50 sm:border-0">
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        {/* Attachment viewer — styled in yellowish/amber */}
+                        {note.attachment_url && note.attachment_type && (
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <AttachmentViewer
+                              url={note.attachment_url}
+                              fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : 'jpg'}`}
+                            >
+                              <button className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/25 bg-amber-500/5 hover:bg-amber-500/10 transition-all cursor-pointer">
+                                <FileText className="w-3.5 h-3.5" />
+                                <span className="ml-1">{note.attachment_type === 'pdf' ? 'View PDF' : 'View Image'}</span>
+                              </button>
+                            </AttachmentViewer>
+                          </div>
+                        )}
+
                         {/* Drive link — always shown when present */}
                         {note.drive_link && (
                           <a

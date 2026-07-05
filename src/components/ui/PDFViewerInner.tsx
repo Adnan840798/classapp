@@ -9,9 +9,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 interface PDFViewerInnerProps {
   file: string;
+  onLoadSuccess?: () => void;
+  onLoadError?: () => void;
 }
 
-export function PDFViewerInner({ file }: PDFViewerInnerProps) {
+export function PDFViewerInner({ file, onLoadSuccess, onLoadError }: PDFViewerInnerProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);
@@ -35,6 +37,11 @@ export function PDFViewerInner({ file }: PDFViewerInnerProps) {
 
   function onDocumentLoadSuccess({ numPages: loadedPages }: { numPages: number }) {
     setNumPages(loadedPages);
+    onLoadSuccess?.();
+  }
+
+  function onDocumentLoadError() {
+    onLoadError?.();
   }
 
   return (
@@ -45,6 +52,7 @@ export function PDFViewerInner({ file }: PDFViewerInnerProps) {
       <Document
         file={file}
         onLoadSuccess={onDocumentLoadSuccess}
+        onLoadError={onDocumentLoadError}
         loading={
           <div className="flex flex-col items-center justify-center gap-3 py-16">
             <Loader2 className="w-9 h-9 text-emerald-400 animate-spin" />

@@ -214,6 +214,21 @@ export default function CapacitorHandler() {
 
         const permission = await PushNotifications.requestPermissions();
         if (permission.receive === 'granted') {
+          try {
+            await PushNotifications.createChannel({
+              id: 'classapp-notifications',
+              name: 'ClassApp Notifications',
+              description: 'Announcements, deadlines, results, and reminders',
+              importance: 5, // High/Max importance (shows banner, plays sound)
+              visibility: 1, // Public (shows content on lock screen)
+              sound: 'default',
+              vibration: true,
+            });
+            console.log('[CapacitorHandler] Push channel classapp-notifications created successfully');
+          } catch (channelErr) {
+            console.warn('[CapacitorHandler] Failed to create push channel:', channelErr);
+          }
+
           await PushNotifications.register();
         }
       } catch (err) {

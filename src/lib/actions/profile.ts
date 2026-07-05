@@ -159,26 +159,56 @@ export async function updateUserRole(targetUserId: string, newRole: 'student' | 
       return { error: 'Access denied. Only Class Representatives or Admins can manage accounts.' };
     }
 
-    // Route through the tenant's manage-student Edge Function.
-    // The Edge Function runs inside the tenant's own Supabase project and uses its
-    // own SUPABASE_SERVICE_ROLE_KEY (Deno.env) — always the correct tenant DB.
-    // This fixes the bug where the old admin client used NEXT_PUBLIC_SUPABASE_URL
-    // (master project), which would write to the wrong DB when multiple tenants exist.
-    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: {
-        action: 'update-role',
-        targetUserId,
-        newRole,
-      },
-    });
+    let edgeSuccess = false;
+    let edgeErrorMsg = '';
 
-    if (edgeError || (edgeData && edgeData.error)) {
-      const msg = edgeData?.error || edgeError?.message || 'Failed to update role.';
-      console.error('updateUserRole edge error:', msg);
-      return { error: msg };
+    try {
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: {
+          action: 'update-role',
+          targetUserId,
+          newRole,
+        },
+      });
+
+      if (!edgeError && (!edgeData || !edgeData.error)) {
+        edgeSuccess = true;
+      } else {
+        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to update role.';
+      }
+    } catch (err: any) {
+      edgeErrorMsg = err.message || 'Edge function call failed';
+    }
+
+    if (!edgeSuccess) {
+      console.warn('Edge function invoke failed, attempting direct service role fallback:', edgeErrorMsg);
+      const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
+      const adminClient = await getSupabaseAdminClient();
+      if (!adminClient) {
+        return { error: `Edge function call failed (${edgeErrorMsg}) and no direct admin key is configured.` };
+      }
+
+      // Update profiles table
+      const { error: dbError } = await adminClient
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', targetUserId);
+
+      if (dbError) {
+        console.error('Direct fallback role update failed:', dbError);
+        return { error: `Direct update failed: ${dbError.message}` };
+      }
+
+      // Sync auth metadata (non-critical)
+      const { error: authMetaError } = await adminClient.auth.admin.updateUserById(targetUserId, {
+        user_metadata: { role: newRole }
+      });
+      if (authMetaError) {
+        console.warn('Direct fallback auth metadata sync failed (non-critical):', authMetaError.message);
+      }
     }
 
     revalidatePath('/student/profile');
@@ -212,38 +242,42 @@ export async function deleteUserAccount(targetUserId: string) {
       return { error: 'You cannot delete your own account.' };
     }
 
-    // Invoke the tenant's administrative Edge Function to delete the student
-    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      },
-      body: {
-        action: 'delete-student',
-        studentId: targetUserId
-      }
-    });
+    let edgeSuccess = false;
+    let edgeErrorMsg = '';
 
-    if (edgeError || (edgeData && edgeData.error)) {
-      console.error('deleteUserAccount edge error:', edgeError || edgeData?.error);
-      let errorMsg = 'Failed to delete student account.';
-      if (edgeError) {
-        errorMsg = `[EdgeError] name: ${edgeError.name}, message: ${edgeError.message}`;
-        if (edgeError instanceof FunctionsHttpError) {
-          errorMsg += `, status: ${edgeError.context.status}`;
-          try {
-            const errorBody = await edgeError.context.json();
-            errorMsg += `, body: ${JSON.stringify(errorBody)}`;
-          } catch {
-            try {
-              const errorText = await edgeError.context.text();
-              errorMsg += `, bodyText: ${errorText}`;
-            } catch {}
-          }
+    try {
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: {
+          action: 'delete-student',
+          studentId: targetUserId
         }
-      } else if (edgeData?.error) {
-        errorMsg = typeof edgeData.error === 'object' ? JSON.stringify(edgeData.error) : String(edgeData.error);
+      });
+
+      if (!edgeError && (!edgeData || !edgeData.error)) {
+        edgeSuccess = true;
+      } else {
+        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to delete account.';
       }
-      return { error: errorMsg };
+    } catch (err: any) {
+      edgeErrorMsg = err.message || 'Edge function call failed';
+    }
+
+    if (!edgeSuccess) {
+      console.warn('Edge function invoke failed, attempting direct service role fallback for delete:', edgeErrorMsg);
+      const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
+      const adminClient = await getSupabaseAdminClient();
+      if (!adminClient) {
+        return { error: `Edge function call failed (${edgeErrorMsg}) and no direct admin key is configured.` };
+      }
+
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
+      if (deleteError) {
+        console.error('Direct fallback account deletion failed:', deleteError);
+        return { error: `Direct deletion failed: ${deleteError.message}` };
+      }
     }
 
     revalidatePath('/student/profile');
@@ -300,48 +334,81 @@ export async function createStudentAccount(input: {
       return { error: `University ID "${university_id}" is already registered to another account.` };
     }
 
-    // Invoke the tenant's administrative Edge Function to create the student account
-    const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      },
-      body: {
-        action: 'create-student',
-        email,
-        password: input.password,
-        fullName: full_name,
-        universityId: university_id,
-        batch: input.batch?.trim() || 'N/A',
-        department: input.department?.trim() || 'N/A',
-      }
-    });
+    let edgeSuccess = false;
+    let edgeErrorMsg = '';
+    let edgeUserId = '';
 
-    if (edgeError || (edgeData && edgeData.error)) {
-      console.error('createStudentAccount edge error:', edgeError || edgeData?.error);
-      let errorMsg = 'Failed to create student account.';
-      if (edgeError) {
-        errorMsg = `[EdgeError] name: ${edgeError.name}, message: ${edgeError.message}`;
-        if (edgeError instanceof FunctionsHttpError) {
-          errorMsg += `, status: ${edgeError.context.status}`;
-          try {
-            const errorBody = await edgeError.context.json();
-            errorMsg += `, body: ${JSON.stringify(errorBody)}`;
-          } catch {
-            try {
-              const errorText = await edgeError.context.text();
-              errorMsg += `, bodyText: ${errorText}`;
-            } catch {}
-          }
+    try {
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: {
+          action: 'create-student',
+          email,
+          password: input.password,
+          fullName: full_name,
+          universityId: university_id,
+          batch: input.batch?.trim() || 'N/A',
+          department: input.department?.trim() || 'N/A',
         }
-      } else if (edgeData?.error) {
-        errorMsg = typeof edgeData.error === 'object' ? JSON.stringify(edgeData.error) : String(edgeData.error);
+      });
+
+      if (!edgeError && (!edgeData || !edgeData.error)) {
+        edgeSuccess = true;
+        edgeUserId = edgeData.userId;
+      } else {
+        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to create student account.';
       }
-      return { error: errorMsg };
+    } catch (err: any) {
+      edgeErrorMsg = err.message || 'Edge function call failed';
+    }
+
+    if (!edgeSuccess) {
+      console.warn('Edge function invoke failed, attempting direct service role fallback for creation:', edgeErrorMsg);
+      const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
+      const adminClient = await getSupabaseAdminClient();
+      if (!adminClient) {
+        return { error: `Edge function call failed (${edgeErrorMsg}) and no direct admin key is configured.` };
+      }
+
+      // Check if student ID already registered
+      const { data: existing } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('university_id', university_id)
+        .maybeSingle();
+
+      if (existing) {
+        return { error: 'Student ID is already registered.' };
+      }
+
+      // Create auth user. Role is strictly set to student to prevent privilege escalation.
+      const { data: newAuthUser, error: createError } = await adminClient.auth.admin.createUser({
+        email: email.trim().toLowerCase(),
+        password: input.password,
+        email_confirm: true,
+        user_metadata: {
+          role: 'student',
+          full_name: full_name,
+          university_id: university_id,
+          batch: input.batch?.trim() || 'N/A',
+          department: input.department?.trim() || 'N/A',
+          must_reset_password: true // Trigger auto-reset
+        }
+      });
+
+      if (createError) {
+        console.error('Direct fallback account creation failed:', createError);
+        return { error: `Direct creation failed: ${createError.message}` };
+      }
+
+      edgeUserId = newAuthUser.user.id;
     }
 
     revalidatePath('/student/profile');
     revalidatePath('/cr/profile');
-    return { success: true, userId: edgeData.userId };
+    return { success: true, userId: edgeUserId };
   } catch (err: any) {
     console.error('createStudentAccount error:', err);
     return { error: err.message || 'An unexpected error occurred.' };

@@ -177,6 +177,8 @@ export async function sendFCMPush(payload: {
                 priority: 'high',
                 notification: {
                   sound: 'default',
+                  channel_id: 'classapp-notifications',
+                  visibility: 'public',
                 },
               },
             },

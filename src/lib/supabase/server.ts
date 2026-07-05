@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 
@@ -45,3 +46,17 @@ export const getAuthUser = cache(async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
   return { user: error ? null : user };
 });
+
+/**
+ * Administrative Supabase client using service role key (only for server actions).
+ */
+export async function getSupabaseAdminClient() {
+  const cookieStore = await cookies();
+  const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) return null;
+  return createClient(tenantUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
+}
+

@@ -57,6 +57,7 @@ export function ProfileForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [className, setClassName] = useState('');
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission>('default');
+  const [nativePermission, setNativePermission] = useState<string>('default');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -65,6 +66,16 @@ export function ProfileForm({
       
       if ('Notification' in window) {
         setBrowserPermission(Notification.permission);
+      }
+
+      if (window.Capacitor) {
+        import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+          PushNotifications.checkPermissions().then((status) => {
+            setNativePermission(status.receive);
+          });
+        }).catch((err) => {
+          console.warn('Failed to check native push permissions:', err);
+        });
       }
     }
   }, []);
@@ -552,6 +563,47 @@ export function ProfileForm({
                 <span>
                   Notifications are blocked in your browser settings. Click the lock/settings icon in the address bar to allow them, then reload.
                 </span>
+              </div>
+            )}
+
+            {/* Show warnings/request again if blocked in Capacitor (mobile app) settings */}
+            {typeof window !== 'undefined' && window.Capacitor && nativePermission === 'denied' && (
+              <div className="text-[10px] text-rose-400 font-semibold leading-relaxed border-t border-border/40 pt-2.5 mt-1.5 flex flex-col gap-2 animate-fade-in">
+                <div className="flex items-start gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-400" />
+                  <span>
+                    Notification permissions are blocked in your phone settings. You can try to reset and prompt again below.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsPending(true);
+                    try {
+                      const { PushNotifications } = await import('@capacitor/push-notifications');
+                      const permission = await PushNotifications.requestPermissions();
+                      setNativePermission(permission.receive);
+                      if (permission.receive === 'granted') {
+                        await PushNotifications.register();
+                        await updateNotifEnabled(true);
+                        setNotifEnabled(true);
+                        alert('Notifications enabled and registered successfully!');
+                        window.location.reload();
+                      } else {
+                        alert('Still denied. Please open your phone App settings, select ClassApp, and allow notifications manually.');
+                      }
+                    } catch (err: any) {
+                      console.error('Failed to request permissions again:', err);
+                      alert(err.message || 'Failed to request permissions.');
+                    } finally {
+                      setIsPending(false);
+                    }
+                  }}
+                  disabled={isPending}
+                  className="px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 text-[10px] font-bold text-primary transition-all self-start cursor-pointer disabled:opacity-50"
+                >
+                  Reset &amp; Request Permission Again
+                </button>
               </div>
             )}
           </div>

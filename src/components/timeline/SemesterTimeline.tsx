@@ -133,7 +133,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
   const supabase = getSupabaseBrowserClient();
 
   // Read preloaded hub data — announcements/deadlines/results already in memory
-  const { announcements: hubAnnouncements, deadlines: hubDeadlines, results: hubResults } = useStudentHub();
+  const { announcements: hubAnnouncements, deadlines: hubDeadlines, results: hubResults, isHydrated } = useStudentHub();
 
   // Seed initial state from layout-preloaded props — no mount-time DB fetch needed
   const [totalWeeks, setTotalWeeksState] = useState<number>(initialSemesterConfig?.total_weeks ?? 14);
@@ -196,6 +196,22 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
   useEffect(() => {
     setAllWeeksData(computeAllWeeksData(totalWeeks, startDate));
   }, [computeAllWeeksData, totalWeeks, startDate]);
+
+  // If we are a CR (no StudentHubProvider wrapper) or if the context isn't hydrated yet,
+  // fetch the timeline data asynchronously.
+  useEffect(() => {
+    if (isCR || !isHydrated) {
+      async function fetchTimelineData() {
+        try {
+          const data = await getAllSemesterTimelineData(totalWeeks, startDate);
+          setAllWeeksData(data);
+        } catch (err) {
+          console.error('Failed to fetch timeline data:', err);
+        }
+      }
+      fetchTimelineData();
+    }
+  }, [isCR, isHydrated, totalWeeks, startDate]);
 
 
   // Drag scroll ref properties

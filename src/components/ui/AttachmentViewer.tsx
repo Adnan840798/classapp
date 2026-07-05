@@ -91,7 +91,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
           ? blob
           : new Blob([blob], { type: 'application/pdf' });
         setPdfBlobUrl(URL.createObjectURL(pdfBlob));
-        setPdfLoading(false);
+        // Keep loading true; will set false when PDFViewerInner parses successfully
       })
       .catch(() => {
         if (!cancelled) {
@@ -342,7 +342,14 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
               {/* Inline PDF viewer using same-origin blob URL */}
               {pdfBlobUrl && (
-                <PDFViewerInner file={pdfBlobUrl} />
+                <PDFViewerInner 
+                  file={pdfBlobUrl} 
+                  onLoadSuccess={() => setPdfLoading(false)}
+                  onLoadError={() => {
+                    setPdfError(true);
+                    setPdfLoading(false);
+                  }}
+                />
               )}
             </div>
           )}

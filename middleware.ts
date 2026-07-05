@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
   const tenantAnonKey = request.cookies.get('tenant_supabase_anon_key')?.value;
 
   // Route classification
-  const isPublicPage = pathname === '/' || pathname === '/login' || pathname.startsWith('/api/');
+  const isPublicPage = pathname === '/' || pathname === '/login' || pathname.startsWith('/manual') || pathname.startsWith('/api/');
   const isResetPage  = pathname === '/reset-password';
   const isAsset      = pathname.includes('.') || pathname.startsWith('/_next/');
   const isDashboard  = !isPublicPage && !isResetPage && !isAsset;
