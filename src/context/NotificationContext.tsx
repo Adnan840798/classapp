@@ -108,7 +108,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           event: '*',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${profile.id}`,
         },
         (payload: any) => {
           if (payload.eventType === 'INSERT') {
@@ -139,7 +138,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status: string) => {
+        console.log(`[NotificationContext] Realtime subscription status for notifications:${profile.id}:`, status);
+      });
 
     // CR/Admin realtime channels
     let qnaChannel: any;

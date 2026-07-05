@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown, Check, Lock, CheckSquare } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown, Check, Lock, CheckSquare, FolderOpen } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
@@ -29,6 +29,7 @@ const notifTypeIcon: Record<NotifType, NotifTypeConfig> = {
   qna_deadline:     { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
   qna_event:        { icon: MessageCircle, bg: 'bg-sky-500/10 border-sky-500/20 text-sky-400' },
   resource_pending: { icon: BookMarked,  bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  resource:         { icon: FolderOpen,  bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
 };
 
 function getNotifHref(type: NotifType, refId: string | null, prefix: string): string {
@@ -41,11 +42,12 @@ function getNotifHref(type: NotifType, refId: string | null, prefix: string): st
     case 'qna_deadline':     return refId ? `${prefix}/deadlines/${refId}` : `${prefix}/deadlines`;
     case 'qna_event':        return refId ? `${prefix}/calendar/${refId}` : `${prefix}/calendar`;
     case 'resource_pending': return `${prefix}/notes`;
+    case 'resource':         return `${prefix}/notes`;
     default:                 return `${prefix}/timeline`;
   }
 }
 
-const DELETABLE_TYPES: NotifType[] = ['announcement', 'deadline', 'result', 'system'];
+const DELETABLE_TYPES: NotifType[] = ['announcement', 'deadline', 'result', 'system', 'resource'];
 
 function NotifItem({ 
   notif, 
@@ -503,15 +505,15 @@ export function NotificationBell() {
             <button
               onClick={handleMarkAllRead}
               onTouchEnd={handleMarkAllRead}
-              className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10"
+              className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] hover:text-[#43fca7] transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-[#34D399]/10 whitespace-nowrap flex-shrink-0"
             >
-              <CheckCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mark all read</span>
+              <CheckCheck className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="whitespace-nowrap">Mark all read</span>
             </button>
           )}
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+            className="lg:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
             aria-label="Close notifications"
           >
             <X className="w-4 h-4" />

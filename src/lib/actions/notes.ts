@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { STORAGE_BUCKETS, STORAGE_PATHS } from '@/lib/constants';
 import { generateStoragePath } from '@/lib/utils/formatters';
 import { sendTelegramMessage, sendTelegramFile, escapeHTML } from '@/lib/telegram';
+import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
 
 const NoteSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -107,18 +108,60 @@ export async function createNote(formData: FormData) {
       }
     }
 
-    const { error } = await supabase.from('notes').insert({
-      title: parsed.data.title,
-      content: parsed.data.content ?? null,
-      drive_link: parsed.data.drive_link || null,
-      attachment_url,
-      attachment_type,
-      is_public: finalIsPublic,
-      is_pending: finalIsPending,
-      user_id: user.id,
-    });
+    const { data: note, error } = await supabase
+      .from('notes')
+      .insert({
+        title: parsed.data.title,
+        content: parsed.data.content ?? null,
+        drive_link: parsed.data.drive_link || null,
+        attachment_url,
+        attachment_type,
+        is_public: finalIsPublic,
+        is_pending: finalIsPending,
+        user_id: user.id,
+      })
+      .select('id')
+      .single();
 
-    if (error) return { error: error.message };
+    if (error || !note) return { error: error?.message || 'Failed to create resource.' };
+
+    // Broadcast notifications to students if the resource is public
+    if (finalIsPublic) {
+      // 1. In-app notification
+      try {
+        const { error: rpcError } = await supabase.rpc('broadcast_notification', {
+          p_title: `📚 Resource | ${parsed.data.title}`,
+          p_message: parsed.data.content ? parsed.data.content.slice(0, 150) : 'A new study resource has been published.',
+          p_type: 'resource',
+          p_reference_id: note.id,
+        });
+        if (rpcError) console.error('broadcast_notification RPC error:', rpcError);
+      } catch (rpcErr) {
+        console.error('In-app broadcast failed:', rpcErr);
+      }
+
+      // 2. Web Push
+      try {
+        await sendWebPush({
+          title: `📚 Resource | ${parsed.data.title}`,
+          body: parsed.data.content ? parsed.data.content.slice(0, 150) : 'A new study resource has been published.',
+          url: '/student/notes',
+        });
+      } catch (pushErr) {
+        console.error('Web push failed (non-fatal):', pushErr);
+      }
+
+      // 3. FCM Push (Android lockscreen heads-up)
+      try {
+        await sendFCMPush({
+          title: `📚 Resource | ${parsed.data.title}`,
+          body: parsed.data.content ? parsed.data.content.slice(0, 150) : 'A new study resource has been published.',
+          url: '/student/notes',
+        });
+      } catch (fcmErr) {
+        console.error('FCM push failed (non-fatal):', fcmErr);
+      }
+    }
 
     // Post text-only resource to Telegram if CR made it public and no file was attached
     if (isCR && finalIsPublic && !attachment_url) {
@@ -332,6 +375,44 @@ export async function approveNote(id: string) {
       .eq('id', id);
 
     if (error) return { error: error.message };
+
+    // Broadcast notifications to students
+    if (note) {
+      // 1. In-app notification
+      try {
+        const { error: rpcError } = await supabase.rpc('broadcast_notification', {
+          p_title: `📚 Resource | ${note.title}`,
+          p_message: note.content ? note.content.slice(0, 150) : 'A new study resource has been approved.',
+          p_type: 'resource',
+          p_reference_id: id,
+        });
+        if (rpcError) console.error('broadcast_notification RPC error:', rpcError);
+      } catch (rpcErr) {
+        console.error('In-app broadcast failed:', rpcErr);
+      }
+
+      // 2. Web Push
+      try {
+        await sendWebPush({
+          title: `📚 Resource | ${note.title}`,
+          body: note.content ? note.content.slice(0, 150) : 'A new study resource has been approved.',
+          url: '/student/notes',
+        });
+      } catch (pushErr) {
+        console.error('Web push failed (non-fatal):', pushErr);
+      }
+
+      // 3. FCM Push (Android lockscreen heads-up)
+      try {
+        await sendFCMPush({
+          title: `📚 Resource | ${note.title}`,
+          body: note.content ? note.content.slice(0, 150) : 'A new study resource has been approved.',
+          url: '/student/notes',
+        });
+      } catch (fcmErr) {
+        console.error('FCM push failed (non-fatal):', fcmErr);
+      }
+    }
 
     // Post approved resource to Telegram
     if (note) {

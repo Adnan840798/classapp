@@ -5,7 +5,7 @@
 export type UserRole = 'admin' | 'cr' | 'student';
 export type EventType = 'exam' | 'class' | 'holiday' | 'submission' | 'other';
 export type AttachmentType = 'image' | 'pdf';
-export type NotifType = 'announcement' | 'deadline' | 'result' | 'system' | 'qna' | 'resource_pending' | 'qna_announcement' | 'qna_deadline' | 'qna_event';
+export type NotifType = 'announcement' | 'deadline' | 'result' | 'system' | 'qna' | 'resource_pending' | 'qna_announcement' | 'qna_deadline' | 'qna_event' | 'resource';
 export type DeadlineColor = 'green' | 'yellow' | 'red' | 'gray';
 
 // ── Profile ────────────────────────────────────────────────
