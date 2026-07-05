@@ -2,10 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown, Check, Lock, CheckSquare, FolderOpen } from 'lucide-react';
+import { Bell, X, CheckCheck, Megaphone, Clock, Trophy, MessageCircle, BookMarked, ChevronDown, Check, Lock, CheckSquare, FolderOpen, Loader2 } from 'lucide-react';
 import { Notification, NotifType } from '@/types';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { useProfile } from '@/context/ProfileContext';
@@ -252,7 +250,7 @@ function NotifItem({
 
 export function NotificationBell() {
   const { profile } = useProfile();
-  const { notifications, unreadCount, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markAllRead, loading, refreshNotifications } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -404,7 +402,10 @@ export function NotificationBell() {
   function handleToggle() {
     setIsOpen((prev) => {
       const next = !prev;
-      if (next && unreadCount > 0) markAllRead();
+      if (next) {
+        refreshNotifications();
+        if (unreadCount > 0) markAllRead();
+      }
       if (!next) setShowAll(false);
       return next;
     });
@@ -468,7 +469,11 @@ export function NotificationBell() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5 border-b border-border shrink-0">
         <div className="flex items-center gap-2.5">
-          <Bell className="w-4 h-4 text-[#34D399]" />
+          {loading ? (
+            <Loader2 className="w-4 h-4 text-[#34D399] animate-spin" />
+          ) : (
+            <Bell className="w-4 h-4 text-[#34D399]" />
+          )}
           <h3 className="font-bold text-sm text-foreground">Notifications</h3>
           {unreadCount > 0 && !selectMode && (
             <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5 animate-pulse">
@@ -601,7 +606,11 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
             <div className="flex items-center gap-2.5">
-              <Bell className="w-4 h-4 text-[#34D399]" />
+              {loading ? (
+                <Loader2 className="w-4 h-4 text-[#34D399] animate-spin" />
+              ) : (
+                <Bell className="w-4 h-4 text-[#34D399]" />
+              )}
               <h3 className="font-bold text-sm text-foreground">Notifications</h3>
               {unreadCount > 0 && !selectMode && (
                 <span className="min-w-[20px] h-5 rounded-full bg-[#34D399]/15 border border-[#34D399]/30 text-[#34D399] text-[10px] font-black flex items-center justify-center px-1.5">
@@ -702,7 +711,11 @@ export function NotificationBell() {
         className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 lg:w-9 lg:h-9 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/35 hover:text-primary transition-all duration-300 text-muted-foreground cursor-pointer flex-shrink-0 shadow-lg shadow-black/5 dark:shadow-black/20"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
       >
-        <Bell className="w-4 h-4 transition-transform duration-300" />
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin text-[#34D399]" />
+        ) : (
+          <Bell className="w-4 h-4 transition-transform duration-300" />
+        )}
         {unreadCount > 0 && (
           <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 lg:top-1.5 lg:right-1.5 flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34D399] opacity-75"></span>

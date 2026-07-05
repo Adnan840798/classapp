@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Notification } from '@/types';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useProfile } from '@/context/ProfileContext';
@@ -21,6 +21,8 @@ interface NotificationContextValue {
   markAllRead: () => Promise<void>;
   activePopups: InAppPopup[];
   dismissPopup: (id: string) => void;
+  loading: boolean;
+  refreshNotifications: () => Promise<void>;
 }
 
 export const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -30,6 +32,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activePopups, setActivePopups] = useState<InAppPopup[]>([]);
+  const [loading, setLoading] = useState(false);
   const supabase = getSupabaseBrowserClient();
 
   // Helper to play sound if enabled
@@ -55,45 +58,50 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Load initial notifications
-  useEffect(() => {
+  // Refresh notifications function
+  const refreshNotifications = useCallback(async () => {
     if (!profile?.id) return;
-
-    async function loadNotifications() {
+    setLoading(true);
+    try {
       const { data, error } = await supabase
         .from('my_notifications')
         .select('id, type, title, message, reference_id, is_read, created_at')
         .order('created_at', { ascending: false })
         .limit(30);
 
-       if (error) {
-         console.error('Failed to load notifications:', error);
-         return;
-       }
+      if (error) {
+        console.error('Failed to load notifications:', error);
+        return;
+      }
 
-       if (data) {
-         setNotifications(data as Notification[]);
-         setUnreadCount(data.filter((n: any) => !n.is_read).length);
+      if (data) {
+        setNotifications(data as Notification[]);
+        setUnreadCount(data.filter((n: any) => !n.is_read).length);
 
-         // Pruning check
-         const regularNotifs = data.filter((n: any) => 
-           ['announcement', 'deadline', 'result', 'system'].includes(n.type)
-         );
-         if (regularNotifs.length > 15) {
-           const obsoleteIds = regularNotifs.slice(15).map((n: any) => n.id);
-           supabase
-             .from('notifications')
-             .delete()
-             .in('id', obsoleteIds)
-             .then((res: any) => {
-               if (res.error) console.error('Failed to prune database notifications:', res.error);
-             });
-         }
-       }
-     }
+        // Pruning check
+        const regularNotifs = data.filter((n: any) => 
+          ['announcement', 'deadline', 'result', 'system'].includes(n.type)
+        );
+        if (regularNotifs.length > 15) {
+          const obsoleteIds = regularNotifs.slice(15).map((n: any) => n.id);
+          supabase
+            .from('notifications')
+            .delete()
+            .in('id', obsoleteIds)
+            .then((res: any) => {
+              if (res.error) console.error('Failed to prune database notifications:', res.error);
+            });
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [profile?.id, supabase]);
 
-     loadNotifications();
-  }, [profile?.id]);
+  // Load initial notifications
+  useEffect(() => {
+    refreshNotifications();
+  }, [profile?.id, refreshNotifications]);
 
   // Realtime subscription
   useEffect(() => {
@@ -328,6 +336,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         markAllRead,
         activePopups,
         dismissPopup,
+        loading,
+        refreshNotifications,
       }}
     >
       {children}

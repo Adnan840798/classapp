@@ -21,13 +21,12 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Bulk insert one notification per student, explicitly casting p_type to notif_type
+  -- Bulk insert one notification per profile, explicitly casting p_type to notif_type
   INSERT INTO public.notifications (user_id, title, message, type, reference_id)
   SELECT id, p_title, p_message, p_type::public.notif_type, p_reference_id
-  FROM   public.profiles
-  WHERE  role = 'student';
+  FROM   public.profiles;
 
-  -- Trim each student's inbox to the latest 15 notifications to prevent bloat
+  -- Trim each profile's inbox to the latest 15 notifications to prevent bloat
   DELETE FROM public.notifications
   WHERE id IN (
     SELECT id
@@ -40,7 +39,7 @@ BEGIN
         ) AS rn
       FROM public.notifications
       WHERE user_id IN (
-        SELECT id FROM public.profiles WHERE role = 'student'
+        SELECT id FROM public.profiles
       )
     ) ranked
     WHERE rn > 15

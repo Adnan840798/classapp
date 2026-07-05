@@ -133,9 +133,11 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // Capacitor native webview — let the OS handle the URL (image / video fine, PDF opens browser)
+    // Capacitor native webview — force system browser to download directly using ?download parameter
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
-      window.open(resolvedUrl, '_system');
+      const base = resolvedUrl.split('?')[0];
+      const downloadUrl = `${base}?download=${encodeURIComponent(name)}`;
+      window.open(downloadUrl, '_system');
       return;
     }
 

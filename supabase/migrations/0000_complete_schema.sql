@@ -41,7 +41,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'system', 'qna', 'resource_pending');
+  CREATE TYPE notif_type AS ENUM ('announcement', 'deadline', 'result', 'system', 'qna', 'resource_pending', 'resource');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -54,6 +54,10 @@ EXCEPTION WHEN others THEN null;
 END $$;
 DO $$ BEGIN
   ALTER TYPE public.notif_type ADD VALUE IF NOT EXISTS 'resource_pending';
+EXCEPTION WHEN others THEN null;
+END $$;
+DO $$ BEGIN
+  ALTER TYPE public.notif_type ADD VALUE IF NOT EXISTS 'resource';
 EXCEPTION WHEN others THEN null;
 END $$;
 
@@ -295,7 +299,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 4. broadcast_notification — inserts one notification per student in bulk
+-- 4. broadcast_notification — inserts one notification per profile in bulk
 CREATE OR REPLACE FUNCTION public.broadcast_notification(
   p_title        text,
   p_message      text,
@@ -307,13 +311,12 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Step 1: Bulk insert one notification per student in a single statement
+  -- Step 1: Bulk insert one notification per profile in a single statement
   INSERT INTO public.notifications (user_id, title, message, type, reference_id)
   SELECT id, p_title, p_message, p_type::public.notif_type, p_reference_id
-  FROM   public.profiles
-  WHERE  role = 'student';
+  FROM   public.profiles;
 
-  -- Step 2: Trim each student's inbox to the latest 15 notifications.
+  -- Step 2: Trim each profile's inbox to the latest 15 notifications.
   DELETE FROM public.notifications
   WHERE id IN (
     SELECT id
@@ -326,7 +329,7 @@ BEGIN
         ) AS rn
       FROM public.notifications
       WHERE user_id IN (
-        SELECT id FROM public.profiles WHERE role = 'student'
+        SELECT id FROM public.profiles
       )
     ) ranked
     WHERE rn > 15
@@ -927,7 +930,14 @@ INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 VALUES (
   'notices', 'notices', true,
   5242880,  -- 5 MB
-  ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+  ARRAY[
+    'image/jpeg', 
+    'image/png', 
+    'image/webp', 
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-powerpoint'
+  ]
 )
 ON CONFLICT (id) DO UPDATE SET
   public              = EXCLUDED.public,
