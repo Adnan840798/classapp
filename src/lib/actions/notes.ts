@@ -55,16 +55,20 @@ export async function createNote(formData: FormData) {
 
     // ── Handle file attachment (CR only) ──────────────────────────────────
     let attachment_url: string | null = null;
-    let attachment_type: 'image' | 'pdf' | null = null;
+    let attachment_type: 'image' | 'pdf' | 'pptx' | null = null;
 
     if (isCR) {
       const file = formData.get('attachment') as File | null;
       if (file && file.size > 0) {
         const isImage = file.type.startsWith('image/');
         const isPDF = file.type === 'application/pdf';
+        const isPPTX = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || 
+                       file.type === 'application/vnd.ms-powerpoint' ||
+                       file.name.toLowerCase().endsWith('.pptx') ||
+                       file.name.toLowerCase().endsWith('.ppt');
 
-        if (!isImage && !isPDF) {
-          return { error: 'Only images and PDF files are accepted as attachments.' };
+        if (!isImage && !isPDF && !isPPTX) {
+          return { error: 'Only images, PDF, and PowerPoint (PPT/PPTX) files are accepted as attachments.' };
         }
         if (file.size > 5 * 1024 * 1024) {
           return { error: 'Attachment must be under 5 MB.' };
@@ -104,7 +108,7 @@ export async function createNote(formData: FormData) {
           .getPublicUrl(uploadData.path);
 
         attachment_url = urlData.publicUrl;
-        attachment_type = isImage ? 'image' : 'pdf';
+        attachment_type = isImage ? 'image' : isPDF ? 'pdf' : 'pptx';
       }
     }
 
@@ -422,7 +426,7 @@ export async function approveNote(id: string) {
           const fileRes = await fetch(note.attachment_url);
           if (fileRes.ok) {
             const blob = await fileRes.blob();
-            const ext = note.attachment_type === 'pdf' ? 'pdf' : 'jpg';
+            const ext = note.attachment_type === 'pdf' ? 'pdf' : note.attachment_type === 'pptx' ? 'pptx' : 'jpg';
             const file = new File([blob], `resource.${ext}`, { type: blob.type });
             const caption =
               `📚 <b>Approved Resource</b>\n` +

@@ -135,7 +135,7 @@ export default function NewNotePage() {
                 File Attachment (Optional — CR only)
               </label>
               <p className="text-xs text-muted-foreground -mt-0.5">
-                Attach an image or PDF (max 5 MB). If the resource is made public, the file will also be sent to the Telegram channel.
+                Attach an image, PDF, or PowerPoint presentation (max 5 MB). If the resource is made public, the file will also be sent to the Telegram channel.
               </p>
 
               {attachmentFile ? (
@@ -163,13 +163,13 @@ export default function NewNotePage() {
                 >
                   <Paperclip className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                   <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    Click to select a file (image or PDF, max 5 MB)
+                    Click to select a file (image, PDF, or PPT/PPTX, max 5 MB)
                   </span>
                   <input
                     id="attachment-input"
                     name="attachment"
                     type="file"
-                    accept="image/*,application/pdf"
+                    accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint,.pptx,.ppt"
                     className="hidden"
                     disabled={isPending}
                     onChange={(e) => {

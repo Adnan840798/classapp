@@ -482,7 +482,7 @@ export default function LoginPage() {
                   onClick={() => { setForgotStep('email'); setForgotOtp(''); setForgotError(null); }}
                   className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-2 text-center"
                 >
-                  Didn't receive a code? Send again
+                  Didn&apos;t receive a code? Send again
                 </button>
               </form>
             ) : (

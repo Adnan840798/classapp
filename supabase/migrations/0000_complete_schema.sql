@@ -35,7 +35,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE attachment_type AS ENUM ('image', 'pdf');
+  CREATE TYPE attachment_type AS ENUM ('image', 'pdf', 'pptx');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -400,6 +400,43 @@ DROP TRIGGER IF EXISTS tr_check_profile_role_update ON public.profiles;
 CREATE TRIGGER tr_check_profile_role_update
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.check_profile_role_update();
+
+
+-- 8. delete_associated_notifications — automatically cleans up notifications for deleted resources
+CREATE OR REPLACE FUNCTION public.delete_associated_notifications()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM public.notifications
+  WHERE reference_id = OLD.id;
+  RETURN OLD;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_delete_announcement_notifications ON public.announcements;
+CREATE TRIGGER tr_delete_announcement_notifications
+  AFTER DELETE ON public.announcements
+  FOR EACH ROW EXECUTE FUNCTION public.delete_associated_notifications();
+
+DROP TRIGGER IF EXISTS tr_delete_deadline_notifications ON public.deadlines;
+CREATE TRIGGER tr_delete_deadline_notifications
+  AFTER DELETE ON public.deadlines
+  FOR EACH ROW EXECUTE FUNCTION public.delete_associated_notifications();
+
+DROP TRIGGER IF EXISTS tr_delete_exam_result_notifications ON public.exam_results;
+CREATE TRIGGER tr_delete_exam_result_notifications
+  AFTER DELETE ON public.exam_results
+  FOR EACH ROW EXECUTE FUNCTION public.delete_associated_notifications();
+
+DROP TRIGGER IF EXISTS tr_delete_note_notifications ON public.notes;
+CREATE TRIGGER tr_delete_note_notifications
+  AFTER DELETE ON public.notes
+  FOR EACH ROW EXECUTE FUNCTION public.delete_associated_notifications();
+
+DROP TRIGGER IF EXISTS tr_delete_calendar_event_notifications ON public.calendar_events;
+CREATE TRIGGER tr_delete_calendar_event_notifications
+  AFTER DELETE ON public.calendar_events
+  FOR EACH ROW EXECUTE FUNCTION public.delete_associated_notifications();
+
 
 
 -- ============================================================

@@ -4,7 +4,7 @@
 
 export type UserRole = 'admin' | 'cr' | 'student';
 export type EventType = 'exam' | 'class' | 'holiday' | 'submission' | 'other';
-export type AttachmentType = 'image' | 'pdf';
+export type AttachmentType = 'image' | 'pdf' | 'pptx';
 export type NotifType = 'announcement' | 'deadline' | 'result' | 'system' | 'qna' | 'resource_pending' | 'qna_announcement' | 'qna_deadline' | 'qna_event' | 'resource';
 export type DeadlineColor = 'green' | 'yellow' | 'red' | 'gray';
 
@@ -112,7 +112,7 @@ export interface Note {
   content: string | null;
   drive_link: string | null;
   attachment_url: string | null;
-  attachment_type: 'image' | 'pdf' | null;
+  attachment_type: 'image' | 'pdf' | 'pptx' | null;
   is_public: boolean;
   is_pending: boolean;
   updated_at: string;

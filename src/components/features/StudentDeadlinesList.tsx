@@ -143,7 +143,7 @@ export function StudentDeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
   const [showPast, setShowPast] = useState(false);
 
   const enriched = enrichDeadlines(deadlines);
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
   const activeDeadlines = enriched.filter((d) => new Date(d.due_date).getTime() >= now);
   const pastDeadlines = enriched
     .filter((d) => new Date(d.due_date).getTime() < now)

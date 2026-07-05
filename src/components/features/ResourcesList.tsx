@@ -284,11 +284,17 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                           <div onClick={(e) => e.stopPropagation()}>
                             <AttachmentViewer
                               url={note.attachment_url}
-                              fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : 'jpg'}`}
+                              fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : note.attachment_type === 'pptx' ? 'pptx' : 'jpg'}`}
                             >
                               <button className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/25 bg-amber-500/5 hover:bg-amber-500/10 transition-all cursor-pointer">
                                 <FileText className="w-3.5 h-3.5" />
-                                <span className="ml-1">{note.attachment_type === 'pdf' ? 'View PDF' : 'View Image'}</span>
+                                <span className="ml-1">
+                                  {note.attachment_type === 'pdf' 
+                                    ? 'View PDF' 
+                                    : note.attachment_type === 'pptx' 
+                                    ? 'View PPTX' 
+                                    : 'View Image'}
+                                </span>
                               </button>
                             </AttachmentViewer>
                           </div>
