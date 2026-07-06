@@ -13,6 +13,8 @@ import {
   Trash2,
   Check,
   CheckSquare,
+  Search,
+  X,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { deleteNote, bulkDeleteNotes } from '@/lib/actions/notes';
@@ -29,6 +31,7 @@ interface ResourcesListProps {
 
 export function ResourcesList({ initialNotes, currentUserId, notesPath }: ResourcesListProps) {
   const [filter, setFilter] = useState<'all' | 'private' | 'public'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -106,44 +109,76 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
 
   const filteredNotes = initialNotes.filter((note) => {
     const isOwner = note.user_id === currentUserId;
-    if (filter === 'private') return isOwner && !note.is_public;
-    if (filter === 'public') return note.is_public;
+    if (filter === 'private' && !(isOwner && !note.is_public)) return false;
+    if (filter === 'public' && !note.is_public) return false;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const titleMatch = note.title?.toLowerCase().includes(query);
+      const contentMatch = note.content?.toLowerCase().includes(query);
+      return titleMatch || contentMatch;
+    }
+
     return true;
   });
 
   return (
     <>
       <div className="flex flex-col gap-5 w-full">
-      {/* Filter tabs + Select button */}
-      <div className="flex items-center justify-between gap-4 w-full">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-muted/40 w-full sm:w-auto">
-          {(['all', 'private', 'public'] as const).map((type) => (
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 w-full justify-between">
+        {/* Search Bar */}
+        <div className="relative flex-1 max-w-md w-full">
+          <input
+            type="text"
+            placeholder="Search resources..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="form-input w-full pl-10 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm"
+          />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+          {searchQuery && (
             <button
-              key={type}
-              onClick={() => setFilter(type)}
-              className={`flex-1 sm:flex-none text-center px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer whitespace-nowrap ${
-                filter === type
-                  ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
-              }`}
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center p-0.5"
             >
-              {type === 'all' ? 'All' : type === 'private' ? 'Private' : 'Public'}
+              <X className="w-4 h-4" />
             </button>
-          ))}
+          )}
         </div>
 
-        {isCR && (
-          <button
-            onClick={toggleSelectMode}
-            className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
-              selectMode
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
-            }`}
-          >
-            {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
-          </button>
-        )}
+        {/* Filter tabs + Select button */}
+        <div className="flex items-center justify-between gap-4 w-full md:w-auto flex-shrink-0">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-muted/40 w-full sm:w-auto">
+            {(['all', 'private', 'public'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilter(type)}
+                className={`flex-1 sm:flex-none text-center px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all uppercase tracking-wider cursor-pointer whitespace-nowrap ${
+                  filter === type
+                    ? 'bg-primary text-primary-foreground shadow-[0_0_12px_rgba(52,211,153,0.35)]'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                }`}
+              >
+                {type === 'all' ? 'All' : type === 'private' ? 'Private' : 'Public'}
+              </button>
+            ))}
+          </div>
+
+          {isCR && (
+            <button
+              onClick={toggleSelectMode}
+              className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
+                selectMode
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+              }`}
+            >
+              {selectMode ? <><Trash2 className="w-3.5 h-3.5" /> Cancel Select</> : <><CheckSquare className="w-3.5 h-3.5" /> Select</>}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Empty state */}
@@ -234,11 +269,11 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
 
                     <div className="min-w-0 flex-1">
                       <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
-                        {note.title}
+                        {highlightText(note.title || '', searchQuery)}
                       </h3>
                       {note.content && (
                         <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed break-words line-clamp-3 mt-1">
-                          {note.content}
+                          {highlightText(note.content, searchQuery)}
                         </p>
                       )}
 
@@ -350,6 +385,34 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
         onDelete={handleBulkDelete}
         label="resources"
       />
+    </>
+  );
+}
+
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlightText(text: string, highlight: string) {
+  if (!highlight.trim()) return <>{text}</>;
+  const escapedHighlight = escapeRegExp(highlight.trim());
+  const regex = new RegExp(`(${escapedHighlight})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark
+            key={i}
+            className="bg-emerald-500/20 text-[#34D399] dark:bg-emerald-500/25 dark:text-emerald-400 px-0.5 rounded-sm font-bold"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
     </>
   );
 }

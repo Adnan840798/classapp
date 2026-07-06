@@ -687,56 +687,9 @@ export function ProfileForm({
                 </div>
               </div>
 
-              {/* Social Links */}
-              <div className="flex flex-col gap-4 border-t border-border pt-4">
-                <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-1.5">
-                  Contact & Social Profiles
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="whatsapp" className="text-xs font-semibold text-foreground">
-                      WhatsApp Number
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold select-none flex items-center gap-1 border-r border-border/60 pr-2 pb-0.5">
-                        <span className="text-sm">🇧🇩</span>
-                        <span>+880</span>
-                      </span>
-                      <input
-                        id="whatsapp"
-                        name="whatsapp"
-                        type="tel"
-                        value={whatsappVal}
-                        onChange={(e) => setWhatsAppVal(formatBdPhoneInput(e.target.value))}
-                        placeholder="1712345678"
-                        className="form-input pl-[76px] font-mono tracking-wider"
-                        disabled={isPending}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="telegram_handle" className="text-xs font-semibold text-foreground">
-                      Telegram Username
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="telegram_handle"
-                        name="telegram_handle"
-                        type="text"
-                        defaultValue={profile.telegram_handle || ''}
-                        placeholder="username"
-                        className="form-input pl-8"
-                        disabled={isPending}
-                      />
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold select-none">
-                        @
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Hidden Social Links to preserve existing data on form submission */}
+              <input type="hidden" name="whatsapp" value={profile.whatsapp || ''} />
+              <input type="hidden" name="telegram_handle" value={profile.telegram_handle || ''} />
 
               {/* Save Button */}
               <div className="flex justify-end pt-2 border-t border-border mt-2">

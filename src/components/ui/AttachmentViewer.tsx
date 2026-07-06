@@ -192,7 +192,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
       {/* Panel */}
       <div
-        className="relative z-10 flex flex-col w-full max-w-4xl h-[92dvh] sm:h-auto sm:max-h-[92dvh] rounded-2xl overflow-hidden shadow-2xl mt-[4dvh] sm:mt-0"
+        className="relative z-10 flex flex-col w-full max-w-4xl h-[92dvh] rounded-2xl overflow-hidden shadow-2xl mt-[4dvh] sm:mt-0"
         style={{
           background: 'linear-gradient(145deg, #16181D 0%, #0E0F11 100%)',
           border: '1px solid rgba(255,255,255,0.07)',
@@ -245,10 +245,13 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             </button>
             <button
               onClick={() => {
+                const targetUrl = kind === 'presentation'
+                  ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resolvedUrl)}`
+                  : resolvedUrl;
                 if (typeof window !== 'undefined' && (window as any).Capacitor) {
-                  window.open(resolvedUrl, '_system');
+                  window.open(targetUrl, '_system');
                 } else {
-                  window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+                  window.open(targetUrl, '_blank', 'noopener,noreferrer');
                 }
               }}
               title="Open in browser"
@@ -267,11 +270,11 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
         </div>
 
         {/* ── Content ── */}
-        <div className="flex-1 overflow-auto flex items-center justify-center bg-[#0a0b0d] min-h-0">
+        <div className="flex-1 overflow-hidden bg-[#0a0b0d] min-h-0 flex flex-col">
 
           {/* IMAGE */}
           {kind === 'image' && (
-            <div className="relative w-full h-full flex items-center justify-center p-4 overflow-auto">
+            <div className={`relative w-full flex-1 flex p-4 overflow-auto ${zoom ? 'items-start justify-start' : 'items-center justify-center'}`}>
               {!imgLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-slate-600 animate-spin" />
@@ -296,7 +299,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* PDF — fetched from Supabase as blob → same-origin blob URL → inline in all browsers */}
           {kind === 'pdf' && (
-            <div className="relative flex flex-col w-full h-full min-h-0">
+            <div className="relative flex flex-col w-full flex-1 min-h-0">
 
               {/* Loading */}
               {pdfLoading && (
@@ -361,7 +364,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* VIDEO — plays inline */}
           {kind === 'video' && (
-            <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+            <div className="relative w-full flex-1 flex items-center justify-center p-2 sm:p-4">
               {/* Video buffering spinner */}
               {videoLoading && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0b0d] z-10 rounded-xl">
@@ -384,11 +387,10 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* PRESENTATION (PPTX/PPT) — renders inline via Microsoft Office Viewer */}
           {kind === 'presentation' && (
-            <div className="relative w-full h-full flex items-center justify-center bg-[#0a0b0d]">
+            <div className="relative w-full flex-1 bg-[#0a0b0d]">
               <iframe
                 src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resolvedUrl)}`}
-                className="w-full h-full border-0"
-                style={{ height: 'calc(92dvh - 56px)' }}
+                className="w-full h-full border-0 absolute left-0 top-0 pptx-iframe"
                 title="PowerPoint Web Viewer"
                 allowFullScreen
               />
@@ -397,7 +399,7 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
 
           {/* DOC / OTHER — download only */}
           {kind === 'doc' && (
-            <div className="flex flex-col items-center justify-center gap-6 p-10 text-center w-full max-w-sm mx-auto">
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-10 text-center w-full max-w-sm mx-auto">
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center"
                 style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)' }}>
                 <File className="w-10 h-10 text-sky-400" />
@@ -424,6 +426,14 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
         @keyframes av-in {
           from { opacity: 0; transform: scale(0.94) translateY(12px); }
           to   { opacity: 1; transform: scale(1)    translateY(0); }
+        }
+        @media (max-width: 767px) {
+          .pptx-iframe {
+            width: 200% !important;
+            height: 200% !important;
+            transform: scale(0.5) !important;
+            transform-origin: 0 0 !important;
+          }
         }
       `}</style>
     </div>,
