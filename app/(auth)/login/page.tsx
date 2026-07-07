@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { Eye, EyeOff, GraduationCap, Loader2, ShieldCheck, Sparkles, ArrowLeft, Mail, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { verifyAndConnectClass, clearTenantCookies } from '@/lib/actions/auth-tenant';
 import { requestPasswordResetOtp, verifyAndResetPassword } from '@/lib/actions/profile';
 
 export default function LoginPage() {
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaRef = useRef<TurnstileInstance>(null);
 
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [email, setEmail] = useState('');
@@ -102,7 +102,7 @@ export default function LoginPage() {
     setJoinCode('');
     setError(null);
     setCaptchaToken(isLocalhost ? 'dev-bypass-token' : null);
-    captchaRef.current?.resetCaptcha();
+    captchaRef.current?.reset();
     setShowForgotPassword(false);
     setShowForgotLink(false);
   }
@@ -119,7 +119,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const verifyRes = await fetch('/api/auth/verify-captcha', {
+      const verifyRes = await fetch('/api/auth/verify-turnstile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: captchaToken }),
@@ -213,7 +213,7 @@ export default function LoginPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);
-      captchaRef.current?.resetCaptcha();
+      captchaRef.current?.reset();
       setCaptchaToken(null);
     } finally {
       setIsLoading(false);
@@ -602,21 +602,23 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* hCaptcha — only shown on non-localhost */}
+            {/* Turnstile — only shown on non-localhost */}
             {!isLocalhost && (
               <div className="flex flex-col items-center gap-2">
                 <div className="w-full flex justify-center rounded-xl overflow-hidden border border-border bg-muted/30 p-3">
-                  <HCaptcha
+                  <Turnstile
                     ref={captchaRef}
-                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ?? '10000000-ffff-ffff-ffff-000000000001'}
-                    onVerify={(token) => setCaptchaToken(token)}
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'}
+                    onSuccess={(token) => setCaptchaToken(token)}
                     onExpire={() => setCaptchaToken(null)}
                     onError={() => {
                       setCaptchaToken(null);
-                      setError('Captcha error. Please try again.');
+                      setError('Verification error. Please try again.');
                     }}
-                    theme="dark"
-                    size="normal"
+                    options={{
+                      theme: 'dark',
+                      size: 'normal',
+                    }}
                   />
                 </div>
                 {!captchaToken && (

@@ -14,7 +14,7 @@
     "@capacitor/app": "^8.1.0",
     "@capacitor/push-notifications": "^8.1.1",
     "@capacitor/toast": "^8.0.1",
-    "@hcaptcha/react-hcaptcha": "^2.0.2",
+    "@marsidev/react-turnstile": "^1.5.3",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
