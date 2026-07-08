@@ -1,6 +1,6 @@
 'use server';
 
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
@@ -661,10 +661,12 @@ export async function verifyAndResetPassword(email: string, otpCode: string, new
       return { error: 'Password must be at least 8 characters long.' };
     }
 
-    const supabase = await getSupabaseServerClient();
+    const supabase = await getSupabaseAdminClient();
+    if (!supabase) {
+      return { error: 'Supabase admin client not initialized. Check your SUPABASE_SERVICE_ROLE_KEY.' };
+    }
 
     // ── 1. Atomically increment attempts + fetch OTP row ──────────────────
-    // We use a plain select then update to keep RLS compatible
     const { data: otpRow } = await supabase
       .from('password_reset_otps')
       .select('id, otp_code, expires_at, used_at, attempts, user_id')

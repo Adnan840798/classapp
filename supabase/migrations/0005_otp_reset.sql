@@ -18,5 +18,11 @@ CREATE TABLE IF NOT EXISTS public.password_reset_otps (
 CREATE INDEX IF NOT EXISTS idx_otp_email_created
   ON public.password_reset_otps (email, created_at DESC);
 
--- No RLS: table is only ever accessed server-side via Server Actions.
--- The service role key (used in Edge Functions) bypasses RLS anyway.
+-- Enable Row-Level Security
+ALTER TABLE public.password_reset_otps ENABLE ROW LEVEL SECURITY;
+
+-- Block all public/client access (access is strictly via Service Role key in Server Actions & Edge Functions)
+DROP POLICY IF EXISTS "No public access password_reset_otps" ON public.password_reset_otps;
+CREATE POLICY "No public access password_reset_otps"
+  ON public.password_reset_otps FOR ALL
+  USING (false);
