@@ -60,7 +60,29 @@ export default function ResetPasswordPage() {
       }
     } else {
       setMode('first-login');
-      setSessionReady(true);
+      // If the user already reset their password, redirect them immediately to dashboard
+      const supabase = getSupabaseBrowserClient();
+      supabase.auth.getUser().then((res: any) => {
+        const user = res.data?.user;
+        if (user) {
+          supabase
+            .from('profiles')
+            .select('password_reset_required, role')
+            .eq('id', user.id)
+            .maybeSingle()
+            .then((profileRes: any) => {
+              const profileData = profileRes.data;
+              if (profileData && !profileData.password_reset_required) {
+                const dest = (profileData.role === 'cr' || profileData.role === 'admin') ? '/cr/timeline' : '/student/timeline';
+                window.location.replace(dest);
+              } else {
+                setSessionReady(true);
+              }
+            });
+        } else {
+          setSessionReady(true);
+        }
+      });
     }
   }, []);
 
@@ -87,7 +109,7 @@ export default function ResetPasswordPage() {
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw new Error(updateError.message);
         setSuccess(true);
-        setTimeout(() => { window.location.href = '/login'; }, 2000);
+        setTimeout(() => { window.location.replace('/login'); }, 2000);
       } else {
         // First-login flow — uses the existing server action
         const res = await resetFirstTimePassword(password);
@@ -107,7 +129,7 @@ export default function ResetPasswordPage() {
           dest = (role === 'cr' || role === 'admin') ? '/cr/timeline' : '/student/timeline';
         }
         setSuccess(true);
-        setTimeout(() => { window.location.href = dest; }, 1500);
+        setTimeout(() => { window.location.replace(dest); }, 1500);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to update password. Please try again.');
