@@ -182,13 +182,11 @@ serve(async (req) => {
 
 
     // ─── reset-password ──────────────────────────────────────────────────────
-    // Updates a user's password via the admin API.
-    // No auth header required — the caller (verifyAndResetPassword server action)
-    // has already verified the OTP before calling this endpoint.
+    // Verifies the OTP, and updates a user's password via the admin API.
     if (action === 'reset-password') {
-      const { userId, newPassword } = body
-      if (!userId || !newPassword) {
-        return new Response(JSON.stringify({ error: 'Missing userId or newPassword' }), { status: 400, headers: corsHeaders })
+      const { email, otpCode, newPassword } = body
+      if (!email || !otpCode || !newPassword) {
+        return new Response(JSON.stringify({ error: 'Missing email, otpCode or newPassword' }), { status: 400, headers: corsHeaders })
       }
       if (newPassword.length < 8) {
         return new Response(JSON.stringify({ error: 'Password must be at least 8 characters.' }), { status: 400, headers: corsHeaders })
@@ -198,10 +196,62 @@ serve(async (req) => {
         auth: { autoRefreshToken: false, persistSession: false }
       })
 
-      const { error } = await adminClient.auth.admin.updateUserById(userId, { password: newPassword })
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+      const normalizedEmail = email.trim().toLowerCase()
+
+      // Fetch the latest OTP row for this email
+      const { data: otpRow, error: fetchError } = await adminClient
+        .from('password_reset_otps')
+        .select('id, otp_code, expires_at, used_at, attempts, user_id')
+        .eq('email', normalizedEmail)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (fetchError) {
+        console.error('[Edge reset-password] Fetch error:', fetchError)
+        return new Response(JSON.stringify({ error: 'Failed to retrieve reset verification details.' }), { status: 500, headers: corsHeaders })
       }
+
+      if (!otpRow) {
+        return new Response(JSON.stringify({ error: 'No reset code found for this email. Please request a new one.' }), { status: 400, headers: corsHeaders })
+      }
+      if (otpRow.used_at) {
+        return new Response(JSON.stringify({ error: 'This code has already been used. Please request a new one.' }), { status: 400, headers: corsHeaders })
+      }
+      if (new Date(otpRow.expires_at) < new Date()) {
+        return new Response(JSON.stringify({ error: 'This code has expired. Please request a new one.' }), { status: 400, headers: corsHeaders })
+      }
+      if (otpRow.attempts >= 3) {
+        return new Response(JSON.stringify({ error: 'Too many incorrect attempts. Please request a new code.' }), { status: 400, headers: corsHeaders })
+      }
+
+      // Increment attempt counter first
+      await adminClient
+        .from('password_reset_otps')
+        .update({ attempts: otpRow.attempts + 1 })
+        .eq('id', otpRow.id)
+
+      // Check code
+      if (otpRow.otp_code !== otpCode.trim()) {
+        const remaining = 3 - (otpRow.attempts + 1)
+        if (remaining <= 0) {
+          return new Response(JSON.stringify({ error: 'Too many incorrect attempts. Please request a new code.' }), { status: 400, headers: corsHeaders })
+        }
+        return new Response(JSON.stringify({ error: `Invalid code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.` }), { status: 400, headers: corsHeaders })
+      }
+
+      // Update password
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(otpRow.user_id, { password: newPassword })
+      if (updateError) {
+        console.error('[Edge reset-password] Admin password update error:', updateError)
+        return new Response(JSON.stringify({ error: updateError.message }), { status: 500, headers: corsHeaders })
+      }
+
+      // Mark OTP as used
+      await adminClient
+        .from('password_reset_otps')
+        .update({ used_at: new Date().toISOString() })
+        .eq('id', otpRow.id)
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
     }

@@ -1,6 +1,6 @@
 'use server';
 
-import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
@@ -661,49 +661,7 @@ export async function verifyAndResetPassword(email: string, otpCode: string, new
       return { error: 'Password must be at least 8 characters long.' };
     }
 
-    const supabase = await getSupabaseAdminClient();
-    if (!supabase) {
-      return { error: 'Supabase admin client not initialized. Check your SUPABASE_SERVICE_ROLE_KEY.' };
-    }
-
-    // ── 1. Atomically increment attempts + fetch OTP row ──────────────────
-    const { data: otpRow } = await supabase
-      .from('password_reset_otps')
-      .select('id, otp_code, expires_at, used_at, attempts, user_id')
-      .eq('email', normalizedEmail)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!otpRow) {
-      return { error: 'No reset code found for this email. Please request a new one.' };
-    }
-    if (otpRow.used_at) {
-      return { error: 'This code has already been used. Please request a new one.' };
-    }
-    if (new Date(otpRow.expires_at) < new Date()) {
-      return { error: 'This code has expired. Please request a new one.' };
-    }
-    if (otpRow.attempts >= 3) {
-      return { error: 'Too many incorrect attempts. Please request a new code.' };
-    }
-
-    // ── 2. Increment attempt counter first (before checking code) ─────────
-    await supabase
-      .from('password_reset_otps')
-      .update({ attempts: otpRow.attempts + 1 })
-      .eq('id', otpRow.id);
-
-    // ── 3. Check code ──────────────────────────────────────────────────────
-    if (otpRow.otp_code !== otpCode.trim()) {
-      const remaining = 3 - (otpRow.attempts + 1);
-      if (remaining <= 0) {
-        return { error: 'Too many incorrect attempts. Please request a new code.' };
-      }
-      return { error: `Invalid code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.` };
-    }
-
-    // ── 4. Call Edge Function to update password (uses tenant service key) ─
+    // ── Call Edge Function to verify OTP & update password (runs on tenant container with proper service role key) ─
     const cookieStore = await cookies();
     const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -717,22 +675,17 @@ export async function verifyAndResetPassword(email: string, otpCode: string, new
       },
       body: JSON.stringify({
         action: 'reset-password',
-        userId: otpRow.user_id,
+        email: normalizedEmail,
+        otpCode,
         newPassword,
       }),
     });
 
     const fnData = await fnRes.json();
-    if (!fnData?.success) {
-      console.error('[verifyAndResetPassword] Edge Function error:', fnData);
-      return { error: fnData?.error || 'Failed to update password. Please try again.' };
+    if (!fnRes.ok || fnData?.error) {
+      console.warn('[verifyAndResetPassword] Edge Function error:', fnData?.error);
+      return { error: fnData?.error || 'Failed to verify reset code. Please try again.' };
     }
-
-    // ── 5. Mark OTP as used ────────────────────────────────────────────────
-    await supabase
-      .from('password_reset_otps')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', otpRow.id);
 
     return { success: true };
   } catch (err: any) {
