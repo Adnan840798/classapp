@@ -77,11 +77,12 @@ export async function createNote(formData: FormData) {
         // Post to Telegram first (before compressing for storage) — only if public
         if (finalIsPublic) {
           try {
-            const caption =
-              `📚 <b>New Resource</b>\n` +
-              `<b>${escapeHTML(parsed.data.title)}</b>\n\n` +
-              (parsed.data.content ? escapeHTML(parsed.data.content).slice(0, 900) : '');
-            const telegramResult = await sendTelegramFile(file, caption);
+            const telegramResult = await sendTelegramFile(
+              file,
+              parsed.data.title,
+              parsed.data.content || undefined,
+              '📚 <b>New Resource</b>'
+            );
             if (!telegramResult.success) {
               console.warn('Telegram resource file post failed (non-fatal):', telegramResult.error);
             }
@@ -428,11 +429,12 @@ export async function approveNote(id: string) {
             const blob = await fileRes.blob();
             const ext = note.attachment_type === 'pdf' ? 'pdf' : note.attachment_type === 'pptx' ? 'pptx' : 'jpg';
             const file = new File([blob], `resource.${ext}`, { type: blob.type });
-            const caption =
-              `📚 <b>Approved Resource</b>\n` +
-              `<b>${escapeHTML(note.title)}</b>\n\n` +
-              (note.content ? escapeHTML(note.content).slice(0, 900) : '');
-            await sendTelegramFile(file, caption).catch((err) =>
+            await sendTelegramFile(
+              file,
+              note.title,
+              note.content || undefined,
+              '📚 <b>Approved Resource</b>'
+            ).catch((err) =>
               console.warn('Telegram approved resource file post failed (non-fatal):', err)
             );
           }
@@ -473,7 +475,7 @@ export async function getMyPrivateNotes(): Promise<{ data: any[]; error: string 
 
     const { data, error } = await supabase
       .from('notes')
-      .select('*, attachment_url, attachment_type, creator:profiles!user_id(full_name)')
+      .select('*, attachment_url, attachment_type, creator:profiles_public(full_name)')
       .eq('user_id', user.id)
       .eq('is_public', false)
       .order('updated_at', { ascending: false });

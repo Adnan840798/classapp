@@ -153,7 +153,7 @@ export function getOtpResetHtml(otpCode: string, userName: string = 'User') {
             <p>Enter this code in ClassApp along with your new password to complete the reset. For your security, this code can only be used once, and requesting a new code automatically invalidates previous ones.</p>
 
             <div class="warning">
-              <strong>🔒 Security Reminder:</strong> Never share this code with anyone. ClassApp support staff will never ask for this code. If you did not request this, you can safely ignore this email.
+              <strong> Security Reminder:</strong> Never share this code with anyone. ClassApp support staff will never ask for this code. 
             </div>
 
             <div class="footer">

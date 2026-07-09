@@ -116,7 +116,9 @@ export async function sendTelegramMessage(
  */
 export async function sendTelegramFile(
   file: File,
-  caption: string
+  title: string,
+  body?: string,
+  prefix?: string
 ): Promise<SendMessageResult> {
   const { botToken, channelId, isEnabled } = await getTelegramConfig();
 
@@ -133,8 +135,41 @@ export async function sendTelegramFile(
     const form = new FormData();
     form.set('chat_id', channelId);
     
-    // Telegram caption limit is 1024 chars; truncate safely
-    form.set('caption', caption.slice(0, 1020));
+    // 1. Assemble HTML caption safely. Truncates raw strings dynamically by counting their escaped lengths to ensure we never cut entities or tags in half.
+    let caption = prefix ? `${prefix}\n` : '';
+    const maxLen = 1000;
+    let currentLen = caption.length;
+
+    // Bold Title
+    const titleHeader = '<b>';
+    const titleFooter = '</b>\n\n';
+    currentLen += titleHeader.length + titleFooter.length;
+
+    let escapedTitle = '';
+    const safeTitle = title || '';
+    for (let i = 0; i < safeTitle.length; i++) {
+      const char = safeTitle[i];
+      const escapedChar = escapeHTML(char);
+      if (currentLen + escapedChar.length > maxLen) break;
+      escapedTitle += escapedChar;
+      currentLen += escapedChar.length;
+    }
+    caption += `${titleHeader}${escapedTitle}${titleFooter}`;
+
+    // Body text
+    if (body) {
+      let escapedBody = '';
+      for (let i = 0; i < body.length; i++) {
+        const char = body[i];
+        const escapedChar = escapeHTML(char);
+        if (currentLen + escapedChar.length > maxLen) break;
+        escapedBody += escapedChar;
+        currentLen += escapedChar.length;
+      }
+      caption += escapedBody;
+    }
+    
+    form.set('caption', caption);
     form.set('parse_mode', 'HTML');
     
     // Append the file under the correct field name for the API endpoint

@@ -379,7 +379,7 @@ export function DayDetailPanel({
                           key={d.id}
                           href={`${prefix}/deadlines/${d.id}`}
                           onClick={onClose}
-                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:bg-muted/40 bg-muted/20 border border-border"
+                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all bg-slate-50 hover:bg-slate-100 dark:bg-muted/20 dark:hover:bg-muted/40 border border-slate-200/80 dark:border-border shadow-xs hover:shadow-sm"
                         >
                           <CalendarGridIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
@@ -429,7 +429,7 @@ export function DayDetailPanel({
                           key={a.id}
                           href={`${prefix}/announcements/${a.id}`}
                           onClick={onClose}
-                          className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all hover:bg-muted/40 bg-muted/20 border border-border w-full cursor-pointer"
+                          className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all bg-slate-50 hover:bg-slate-100 dark:bg-muted/20 dark:hover:bg-muted/40 border border-slate-200/80 dark:border-border shadow-xs hover:shadow-sm w-full cursor-pointer"
                         >
                           {/* Purple bookmark icon */}
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-brand-purple/10 border border-brand-purple/20">
@@ -484,7 +484,7 @@ export function DayDetailPanel({
                           key={r.id}
                           href={`${prefix}/results`}
                           onClick={onClose}
-                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all hover:bg-muted/40 bg-muted/20 border border-border"
+                          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl cursor-pointer text-left transition-all bg-slate-50 hover:bg-slate-100 dark:bg-muted/20 dark:hover:bg-muted/40 border border-slate-200/80 dark:border-border shadow-xs hover:shadow-sm"
                         >
                           <SquarePlusIcon className="w-5 h-5 text-brand-cyan flex-shrink-0" />
                           <div className="flex-1 min-w-0">

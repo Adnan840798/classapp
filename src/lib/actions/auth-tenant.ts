@@ -2,6 +2,33 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import crypto from 'crypto';
+
+function decrypt(text: string): string {
+  try {
+    const parts = text.split(':');
+    if (parts.length !== 3) {
+      // Fallback for unencrypted keys (e.g. legacy local developer database setups)
+      return text;
+    }
+    const [ivHex, encryptedHex, authTagHex] = parts;
+    const masterKey = process.env.MASTER_ENCRYPTION_KEY;
+    if (!masterKey || masterKey.length !== 64) {
+      throw new Error('MASTER_ENCRYPTION_KEY must be a 32-byte hex string (64 characters).');
+    }
+    const key = Buffer.from(masterKey, 'hex');
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (err: any) {
+    console.error('Decryption failed:', err.message);
+    return text;
+  }
+}
 
 export async function verifyAndConnectClass(joinCode: string) {
   const normalizedCode = joinCode.trim().toUpperCase();
@@ -23,6 +50,7 @@ export async function verifyAndConnectClass(joinCode: string) {
   }
 
   const tenantData = data.tenants as any;
+  const decryptedKey = decrypt(tenantData.supabase_anon_key);
 
   const isSecure = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_APP_URL?.startsWith('https');
 
@@ -34,7 +62,7 @@ export async function verifyAndConnectClass(joinCode: string) {
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days — persist across browser restarts
   });
-  cookieStore.set('tenant_supabase_anon_key', tenantData.supabase_anon_key, {
+  cookieStore.set('tenant_supabase_anon_key', decryptedKey, {
     httpOnly: true, // BUG-02 fix: anon key is now httpOnly — proxy injects it server-side
     secure: isSecure,
     sameSite: 'lax',

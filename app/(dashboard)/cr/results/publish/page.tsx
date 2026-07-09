@@ -86,8 +86,8 @@ export default function PublishResultPage() {
             <>
               <input type="hidden" name="custom_published_at" value={customDate} />
               <input type="hidden" name="redirect_to" value="timeline" />
-              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
-                <span>Publishing this result directly on the timeline day: <strong className="text-white">{customDate}</strong></span>
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
+                <span>Publishing this result directly on the timeline day: <strong className="text-emerald-800 dark:text-emerald-200 font-extrabold">{customDate}</strong></span>
               </div>
             </>
           )}

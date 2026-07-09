@@ -306,17 +306,17 @@ export default function LoginPage() {
           // ── Step 1: Join Code ──────────────────────────────
           <form onSubmit={handleVerifyJoinCode} className="flex flex-col gap-5">
             <div className="text-center mb-2">
-              <h2 className="text-lg font-bold text-white flex items-center justify-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-lg font-bold text-foreground flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-555 dark:text-emerald-400" />
                 Connect to Class
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Enter your Classcode to accesss your class
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter your Classcode to access your class
               </p>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="joinCode" className="text-xs font-semibold text-slate-300">
+              <label htmlFor="joinCode" className="text-xs font-bold text-muted-foreground">
                 Classcode
               </label>
               <input
@@ -361,20 +361,19 @@ export default function LoginPage() {
 
             <div className="text-center">
               <div
-                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-3 mx-auto"
-                style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-3 mx-auto bg-emerald-500/10 border border-emerald-500/20"
               >
-                <Mail className="w-5 h-5 text-emerald-400" />
+                <Mail className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
               </div>
-              <h2 className="text-base font-bold text-white">
+              <h2 className="text-base font-bold text-foreground">
                 {forgotSuccess ? 'Password Reset!' : forgotStep === 'otp' ? 'Enter Reset Code' : 'Reset Password'}
               </h2>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 {forgotSuccess
                   ? 'Your password has been updated. You can now sign in.'
                   : forgotStep === 'otp'
-                    ? <>We sent a 6-digit code to <strong className="text-slate-300">{forgotEmail}</strong></>
-                    : <>The email linked to your <strong className="text-slate-300">{className}</strong> Class portal</>}
+                    ? <>We sent a 6-digit code to <strong className="text-foreground">{forgotEmail}</strong></>
+                    : <>The email linked to your <strong className="text-foreground">{className}</strong> Class portal</>}
               </p>
             </div>
 
@@ -391,7 +390,7 @@ export default function LoginPage() {
               <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
                 {/* 6-digit code */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="forgotOtp" className="text-xs font-semibold text-slate-300">
+                  <label htmlFor="forgotOtp" className="text-xs font-bold text-muted-foreground">
                     6-Digit Code
                   </label>
                   <input
@@ -411,7 +410,7 @@ export default function LoginPage() {
 
                 {/* New password */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="forgotNewPwd" className="text-xs font-semibold text-slate-300">
+                  <label htmlFor="forgotNewPwd" className="text-xs font-bold text-muted-foreground">
                     New Password
                   </label>
                   <div className="relative">
@@ -440,7 +439,7 @@ export default function LoginPage() {
 
                 {/* Confirm password */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="forgotConfirmPwd" className="text-xs font-semibold text-slate-300">
+                  <label htmlFor="forgotConfirmPwd" className="text-xs font-bold text-muted-foreground">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -467,7 +466,7 @@ export default function LoginPage() {
                 </div>
 
                 {forgotError && (
-                  <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                  <div role="alert" className="text-xs text-rose-550 dark:text-rose-400 font-medium leading-relaxed animate-fade-in">
                     {forgotError}
                   </div>
                 )}
@@ -480,7 +479,7 @@ export default function LoginPage() {
                   type="button"
                   disabled={forgotPending}
                   onClick={() => { setForgotStep('email'); setForgotOtp(''); setForgotError(null); }}
-                  className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-2 text-center"
+                  className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors underline underline-offset-2 text-center cursor-pointer"
                 >
                   Didn&apos;t receive a code? Send again
                 </button>
@@ -488,14 +487,14 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleRequestOtp} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-300">
+                  <label htmlFor="forgotEmail" className="text-xs font-bold text-muted-foreground">
                     University Email
                   </label>
                   {forgotEmailLocked ? (
                     // Locked — email came from sign-in form, cannot be changed
                     <div className="form-input flex items-center gap-2 opacity-75 cursor-not-allowed select-none">
-                      <Mail className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                      <span className="text-slate-200 text-sm truncate flex-1">{forgotEmail}</span>
+                      <Mail className="w-3.5 h-3.5 text-emerald-505 dark:text-emerald-400 flex-shrink-0" />
+                      <span className="text-slate-800 dark:text-slate-200 text-sm truncate flex-1">{forgotEmail}</span>
                     </div>
                   ) : (
                     <input
@@ -512,7 +511,7 @@ export default function LoginPage() {
                 </div>
 
                 {forgotError && (
-                  <div role="alert" className="text-xs text-rose-400 font-medium leading-relaxed animate-fade-in">
+                  <div role="alert" className="text-xs text-rose-550 dark:text-rose-400 font-medium leading-relaxed animate-fade-in">
                     {forgotError}
                   </div>
                 )}
@@ -527,16 +526,16 @@ export default function LoginPage() {
           // ── Step 2: Sign In ────────────────────────────────
           <form onSubmit={handleSignIn} className="flex flex-col gap-5">
             <div className="text-center mb-1">
-              <h2 className="text-2xl font-bold text-white tracking-tight">Sign In</h2>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">Sign In</h2>
               <div className="flex items-center justify-center gap-2 mt-1.5 px-4">
-                <span className="text-sm text-emerald-400 font-semibold truncate max-w-[240px]" title={className}>
+                <span className="text-sm text-emerald-555 dark:text-emerald-400 font-bold truncate max-w-[240px]" title={className}>
                   {className}
                 </span>
-                <span className="text-slate-600 select-none">•</span>
+                <span className="text-slate-300 dark:text-slate-600 select-none">•</span>
                 <button
                   type="button"
                   onClick={handleSwitchClass}
-                  className="touch-compact inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-emerald-400 uppercase tracking-wider transition-colors cursor-pointer"
+                  className="touch-compact inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-2.5 h-2.5 transition-transform hover:rotate-180 duration-500" />
                   Switch
@@ -546,7 +545,7 @@ export default function LoginPage() {
 
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-xs font-bold text-muted-foreground">
                 University Email
               </label>
               <input
@@ -565,7 +564,7 @@ export default function LoginPage() {
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">
+                <label htmlFor="password" className="text-xs font-bold text-muted-foreground">
                   Password
                 </label>
                 {showForgotLink && (

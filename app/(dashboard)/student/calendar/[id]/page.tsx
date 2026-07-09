@@ -5,6 +5,7 @@ import { getSupabaseServerClient, getAuthUser } from '@/lib/supabase/server';
 import { formatDate, formatEventType, getEventTypeColor, formatDateTime } from '@/lib/utils/formatters';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AskQuestionForm } from './AskQuestionForm';
+import { StudentQuestionCard } from '@/components/features/StudentQuestionCard';
 import { TimelineQuestion } from '@/types';
 
 interface StudentCalendarDetailPageProps {
@@ -35,10 +36,10 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
     .from('timeline_questions')
     .select(`
       *,
-      asker:profiles!asked_by(full_name, profile_pic_url),
+      asker:profiles_public!asked_by(full_name, profile_pic_url),
       answers:timeline_answers(
         *,
-        answerer:profiles!answered_by(full_name, profile_pic_url)
+        answerer:profiles_public(full_name, profile_pic_url)
       )
     `)
     .eq('event_id', id)
@@ -143,68 +144,11 @@ export default async function StudentCalendarDetailPage({ params }: StudentCalen
         ) : (
           <div className="flex flex-col gap-4">
             {questions.map((q) => (
-              <div
+              <StudentQuestionCard
                 key={q.id}
-                className={`glass-card p-5 flex flex-col gap-4 border ${
-                  q.is_resolved ? 'border-emerald-500/20 bg-emerald-500/5' : ''
-                }`}
-              >
-                {/* Question Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <UserAvatar
-                      profile={{
-                        full_name: q.asker?.full_name || 'Student',
-                        profile_pic_url: q.asker?.profile_pic_url || null,
-                      }}
-                      size="sm"
-                    />
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">
-                        {q.asker?.full_name || 'Student'}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {formatDateTime(q.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  {q.is_resolved && (
-                    <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-0.5">
-                      <Check className="w-3 h-3" />
-                      Resolved
-                    </span>
-                  )}
-                </div>
-
-                {/* Question text */}
-                <p className="text-sm font-semibold text-foreground pl-1">
-                  {q.question}
-                </p>
-
-                {/* Answers list */}
-                {q.answers && q.answers.length > 0 && (
-                  <div className="flex flex-col gap-3 pl-4 border-l border-border mt-1">
-                    {q.answers.map((ans) => (
-                      <div key={ans.id} className="flex items-start gap-2.5 text-xs">
-                        <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground mt-1 flex-shrink-0" />
-                        <div className="flex-1 bg-accent/20 border border-border/30 rounded-xl p-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-foreground">
-                              {ans.answerer?.full_name || 'CR'}
-                            </span>
-                            <span className="text-[9px] text-muted-foreground">
-                              {formatDateTime(ans.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
-                            {ans.answer}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                question={q}
+                currentUserId={user.id}
+              />
             ))}
           </div>
         )}

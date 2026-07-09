@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const { limit, windowMs } = LIMITS[bucket];
-  const rl = rateLimit(bucket, ip, limit, windowMs);
+  const rl = await rateLimit(bucket, ip, limit, windowMs);
   if (!rl.success) return rateLimitResponse(rl, pathname);
 
   // Inject x-pathname so Server Components / Layouts can read the active route

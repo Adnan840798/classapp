@@ -132,7 +132,6 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
         ? 'border-emerald-500/30 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.04] shadow-md shadow-emerald-950/5' 
         : 'border-border bg-card'
     }`}>
-      {/* Question Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <UserAvatar
@@ -143,49 +142,51 @@ export function QuestionCard({ question: initialQuestion, currentUserId }: Quest
             size="sm"
           />
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs font-semibold text-foreground">
-                {question.asker?.full_name || 'Student'}
-              </span>
-              {currentUserId === question.asked_by && !question.is_resolved && !editingQuestion && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingQuestion(true);
-                    setEditedQuestionText(question.question);
-                  }}
-                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer touch-compact"
-                  title="Edit Question"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <span className="text-xs font-semibold text-foreground">
+              {question.asker?.full_name || 'Student'}
+            </span>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {formatDateTime(question.created_at)}
             </p>
           </div>
         </div>
 
-        {question.is_resolved ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-300 shadow-sm">
-            <Check className="w-3.5 h-3.5" />
-            Resolved
-          </span>
-        ) : (
-          <button
-            onClick={handleResolve}
-            disabled={isResolving}
-            className="text-[10px] uppercase font-bold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center gap-1 cursor-pointer touch-compact"
-          >
-            {isResolving ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <Check className="w-3 h-3" />
-            )}
-            Resolve
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {currentUserId === question.asked_by && !question.is_resolved && !editingQuestion && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingQuestion(true);
+                setEditedQuestionText(question.question);
+              }}
+              className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all active:scale-[0.98] flex items-center gap-1.5 cursor-pointer touch-compact"
+              title="Edit Question"
+            >
+              <Pencil className="w-3 h-3" />
+              <span>Edit</span>
+            </button>
+          )}
+
+          {question.is_resolved ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-300 shadow-sm">
+              <Check className="w-3.5 h-3.5" />
+              Resolved
+            </span>
+          ) : (
+            <button
+              onClick={handleResolve}
+              disabled={isResolving}
+              className="text-[10px] uppercase font-bold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center gap-1 cursor-pointer touch-compact"
+            >
+              {isResolving ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Check className="w-3 h-3" />
+              )}
+              Resolve
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Question Text */}

@@ -83,8 +83,8 @@ export default function NewDeadlinePage() {
           {customDate && (
             <>
               <input type="hidden" name="redirect_to" value="timeline" />
-              <div className="bg-orange-500/10 border border-orange-500/20 text-orange-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
-                <span>Adding this deadline directly to the timeline day: <strong className="text-white">{customDate}</strong></span>
+              <div className="bg-orange-500/10 border border-orange-500/20 text-orange-800 dark:text-orange-300 p-3.5 rounded-lg flex items-start gap-2 text-xs">
+                <span>Adding this deadline directly to the timeline day: <strong className="text-orange-850 dark:text-orange-200 font-extrabold">{customDate}</strong></span>
               </div>
             </>
           )}

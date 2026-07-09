@@ -867,7 +867,12 @@ WITH (security_invoker = on) AS
   -- 1. Regular user-targeted notifications
   SELECT
     n.id::text          AS id,
-    n.type::text        AS type,
+    CASE
+      WHEN n.type = 'qna' AND EXISTS (SELECT 1 FROM public.announcements WHERE id = n.reference_id) THEN 'qna_announcement'
+      WHEN n.type = 'qna' AND EXISTS (SELECT 1 FROM public.deadlines WHERE id = n.reference_id) THEN 'qna_deadline'
+      WHEN n.type = 'qna' AND EXISTS (SELECT 1 FROM public.calendar_events WHERE id = n.reference_id) THEN 'qna_event'
+      ELSE n.type::text
+    END AS type,
     n.title::text       AS title,
     n.message::text     AS message,
     n.reference_id::text AS reference_id,

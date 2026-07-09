@@ -1,18 +1,5 @@
-/**
- * Edge-compatible sliding-window rate limiter.
- *
- * Works without any external service (no Redis / KV required).
- * Runs inside Next.js Edge Middleware — the Map persists across requests
- * within the same edge worker instance, giving effective burst protection.
- *
- * Limitations:
- *  • State resets on worker cold-starts (acceptable for a class-app scale).
- *  • For production at scale, swap the Map for Upstash Redis.
- *
- * Usage:
- *   const result = rateLimit('auth', ip, { limit: 10, windowMs: 60_000 });
- *   if (!result.success) return rateLimitResponse(result);
- */
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 export interface RateLimitResult {
   success: boolean;
@@ -26,7 +13,7 @@ interface Entry {
   resetAt: number;
 }
 
-// One store per named "bucket" (auth, api, page, …)
+// Local stores for in-memory fallback
 const stores = new Map<string, Map<string, Entry>>();
 
 function getStore(bucket: string): Map<string, Entry> {
@@ -47,20 +34,65 @@ function maybePurge() {
   }
 }
 
+let redisInstance: Redis | null = null;
+const ratelimiters = new Map<string, Ratelimit>();
+
+function getRedisRatelimiter(bucket: string, limit: number, windowMs: number): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  if (!redisInstance) {
+    redisInstance = new Redis({ url, token });
+  }
+
+  const key = `${bucket}:${limit}:${windowMs}`;
+  if (!ratelimiters.has(key)) {
+    ratelimiters.set(
+      key,
+      new Ratelimit({
+        redis: redisInstance,
+        limiter: Ratelimit.slidingWindow(limit, `${windowMs} ms`),
+        analytics: true,
+        prefix: `@upstash/ratelimit/${bucket}`,
+      })
+    );
+  }
+  return ratelimiters.get(key)!;
+}
+
 /**
- * Check and increment a rate-limit counter.
+ * Check and increment a rate-limit counter using Upstash Redis or local memory fallback.
  *
  * @param bucket   Logical group: 'auth' | 'api' | 'webhook' | 'page'
  * @param ip       Client identifier (IP address string)
  * @param limit    Max requests allowed in the window
  * @param windowMs Rolling window length in milliseconds
  */
-export function rateLimit(
+export async function rateLimit(
   bucket: string,
   ip: string,
   limit: number,
   windowMs: number,
-): RateLimitResult {
+): Promise<RateLimitResult> {
+  const redisLimiter = getRedisRatelimiter(bucket, limit, windowMs);
+  
+  if (redisLimiter) {
+    try {
+      const identifier = `${bucket}:${ip}`;
+      const result = await redisLimiter.limit(identifier);
+      return {
+        success: result.success,
+        limit: result.limit,
+        remaining: result.remaining,
+        resetAt: result.reset, // epoch ms
+      };
+    } catch (err) {
+      console.warn('Upstash Redis rate limiting failed, falling back to local memory store:', err);
+    }
+  }
+
+  // Local memory store fallback
   maybePurge();
 
   const store = getStore(bucket);

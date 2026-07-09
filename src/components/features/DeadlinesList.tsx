@@ -47,7 +47,7 @@ const colorThemes = {
     btnClass: 'text-zinc-900 dark:text-zinc-100 border border-emerald-500/30 dark:border-emerald-500/45 bg-emerald-500/12 dark:bg-emerald-500/25 hover:bg-emerald-500/22 dark:hover:bg-emerald-500/35 shadow-sm shadow-emerald-500/5',
   },
   gray: {
-    cardBgClass: 'bg-gradient-to-r from-muted/30 to-card border-border dark:from-muted/10 dark:to-card/40',
+    cardBgClass: 'bg-gradient-to-r from-muted/30 to-card border-border dark:from-muted/35 dark:to-card/80',
     accent: 'linear-gradient(180deg, #71717a, #3f3f46)',
     subjectBadgeClass: 'bg-muted border border-border text-zinc-800 dark:text-zinc-300 font-bold',
     subjectIconColor: 'text-zinc-500 dark:text-zinc-400',
@@ -172,7 +172,7 @@ export function DeadlinesList({ deadlines }: { deadlines: Deadline[] }) {
         onTouchEnd={handleTouchEnd}
         className={`relative rounded-xl overflow-hidden transition-all duration-150 animate-fade-in ${
           selectMode ? 'cursor-pointer' : 'hover:translate-x-0.5'
-        } ${theme.cardBgClass} border ${isPast && !isSelected ? 'opacity-60' : ''}`}
+        } ${theme.cardBgClass} border ${isPast && !isSelected ? 'opacity-60 dark:opacity-85' : ''}`}
         style={{
           boxShadow: isSelected ? '0 0 14px rgba(244, 63, 94, 0.12)' : undefined,
         }}

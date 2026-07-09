@@ -55,8 +55,12 @@ export async function createAnnouncement(formData: FormData) {
 
       // ── Step 1: Send ORIGINAL file to Telegram first (non-fatal) ──
       try {
-        const caption = `📢 <b>${escapeHTML(parsed.data.title)}</b>\n\n${escapeHTML(parsed.data.body).slice(0, 900)}`;
-        const telegramResult = await sendTelegramFile(file, caption);
+        const telegramResult = await sendTelegramFile(
+          file,
+          parsed.data.title,
+          parsed.data.body,
+          '📢 <b>Announcement</b>'
+        );
         if (!telegramResult.success) {
           console.warn('Telegram file post failed (non-fatal):', telegramResult.error);
         }

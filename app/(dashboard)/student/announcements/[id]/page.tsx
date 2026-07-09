@@ -23,7 +23,7 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
   // Fetch announcement details
   const { data: announcement, error: announcementError } = await supabase
     .from('announcements')
-    .select('*, creator:profiles(full_name, profile_pic_url)')
+    .select('*, creator:profiles_public(full_name, profile_pic_url)')
     .eq('id', id)
     .single();
 
@@ -36,10 +36,10 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
     .from('timeline_questions')
     .select(`
       *,
-      asker:profiles!asked_by(full_name, profile_pic_url),
+      asker:profiles_public!asked_by(full_name, profile_pic_url),
       answers:timeline_answers(
         *,
-        answerer:profiles!answered_by(full_name, profile_pic_url)
+        answerer:profiles_public(full_name, profile_pic_url)
       )
     `)
     .eq('announcement_id', id)

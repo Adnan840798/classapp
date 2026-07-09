@@ -48,12 +48,12 @@ export async function publishResult(formData: FormData) {
       }
 
       try {
-        const caption =
-          `📊 <b>Result Published</b>\n` +
-          `<b>Exam:</b> ${escapeHTML(parsed.data.exam_name)}\n\n` +
-          `Results have been published. Check the app for details.`;
-
-        const telegramResult = await sendTelegramFile(file, caption);
+        const telegramResult = await sendTelegramFile(
+          file,
+          parsed.data.exam_name,
+          'Results have been published. Check the app for details.',
+          '📊 <b>Result Published</b>'
+        );
         if (!telegramResult.success) {
           console.warn('Telegram result file post failed (non-fatal):', telegramResult.error);
         }

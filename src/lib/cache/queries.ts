@@ -56,7 +56,7 @@ export async function getCachedAnnouncements(): Promise<Announcement[]> {
 
       const { data, error } = await supabase
         .from('announcements')
-        .select('id, title, body, is_important, attachment_url, attachment_type, telegram_posted, created_by, created_at, creator:profiles!created_by(full_name, profile_pic_url)')
+        .select('id, title, body, is_important, attachment_url, attachment_type, telegram_posted, created_by, created_at, creator:profiles_public(full_name, profile_pic_url)')
         .order('is_important', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -198,7 +198,7 @@ export async function getCachedResources(): Promise<Note[]> {
 
       const { data, error } = await supabase
         .from('notes')
-        .select('id, title, content, drive_link, attachment_url, attachment_type, is_public, is_pending, user_id, updated_at, created_at, creator:profiles!user_id(full_name)')
+        .select('id, title, content, drive_link, attachment_url, attachment_type, is_public, is_pending, user_id, updated_at, created_at, creator:profiles_public(full_name)')
         .eq('is_public', true)
         .eq('is_pending', false) // SECURITY: never expose unapproved pending resources
         .order('updated_at', { ascending: false });

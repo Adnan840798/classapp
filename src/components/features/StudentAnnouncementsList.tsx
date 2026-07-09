@@ -297,7 +297,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                   return (
                     <div
                       key={announcement.id}
-                      className="relative rounded-xl overflow-hidden transition-all duration-150 opacity-75 hover:opacity-100 animate-fade-in"
+                      className="relative rounded-xl overflow-hidden transition-all duration-150 opacity-75 dark:opacity-90 hover:opacity-100 animate-fade-in"
                       style={{
                         background: 'linear-gradient(90deg, hsl(var(--muted)/0.08) 0%, hsl(var(--card)) 100%)',
                         border: '1px solid hsl(var(--border))',
@@ -348,7 +348,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                                 <button
                                   title="View Attachment"
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-muted-foreground border border-border bg-muted/20 hover:bg-muted/40 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
                                 >
                                   <FileText className="w-3 h-3 flex-shrink-0" />
                                   <span>Attachment</span>

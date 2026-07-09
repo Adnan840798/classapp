@@ -6,6 +6,7 @@ import { formatDateTime } from '@/lib/utils/formatters';
 import { enrichDeadlines, getDeadlineColorClass, formatDaysRemaining } from '@/lib/utils/deadlinePriority';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AskQuestionForm } from '../../calendar/[id]/AskQuestionForm';
+import { StudentQuestionCard } from '@/components/features/StudentQuestionCard';
 import { TimelineQuestion } from '@/types';
 
 interface StudentDeadlineDetailPageProps {
@@ -39,10 +40,10 @@ export default async function StudentDeadlineDetailPage({ params }: StudentDeadl
     .from('timeline_questions')
     .select(`
       *,
-      asker:profiles!asked_by(full_name, profile_pic_url),
+      asker:profiles_public!asked_by(full_name, profile_pic_url),
       answers:timeline_answers(
         *,
-        answerer:profiles!answered_by(full_name, profile_pic_url)
+        answerer:profiles_public(full_name, profile_pic_url)
       )
     `)
     .eq('deadline_id', id)
@@ -176,75 +177,11 @@ export default async function StudentDeadlineDetailPage({ params }: StudentDeadl
         ) : (
           <div className="flex flex-col gap-5">
             {questions.map((q) => (
-              <div
+              <StudentQuestionCard
                 key={q.id}
-                className={`glass-card p-5.5 flex flex-col gap-4 rounded-2xl border transition-all duration-200 hover:border-muted-foreground/30 ${
-                  q.is_resolved 
-                    ? 'border-emerald-500/30 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.04] shadow-md shadow-emerald-950/5' 
-                    : 'border-border bg-card'
-                }`}
-              >
-                {/* Question Header */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <UserAvatar
-                      profile={{
-                        full_name: q.asker?.full_name || 'Student',
-                        profile_pic_url: q.asker?.profile_pic_url || null,
-                      }}
-                      size="sm"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">
-                        {q.asker?.full_name || 'Student'}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatDateTime(q.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                  {q.is_resolved && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-300 shadow-sm animate-fade-in">
-                      <Check className="w-3 h-3" />
-                      Resolved
-                    </span>
-                  )}
-                </div>
-
-                {/* Question text */}
-                <p className="text-sm font-medium text-foreground leading-relaxed pl-1">
-                  {q.question}
-                </p>
-
-                {/* Answers list */}
-                {q.answers && q.answers.length > 0 && (
-                  <div className="flex flex-col gap-3 pl-4 border-l border-border mt-1">
-                    {q.answers.map((ans) => (
-                      <div key={ans.id} className="flex items-start gap-2.5 text-xs">
-                        <CornerDownRight className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-550 mt-1.5 flex-shrink-0" />
-                        <div className="flex-1 bg-muted/20 border border-border rounded-xl p-4 shadow-sm">
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground">
-                                {ans.answerer?.full_name || 'CR'}
-                              </span>
-                              <span className="text-[10px] text-zinc-800 dark:text-zinc-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold uppercase tracking-widest scale-90">
-                                CR
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-muted-foreground">
-                              {formatDateTime(ans.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-zinc-800 dark:text-zinc-200 whitespace-pre-line leading-relaxed text-xs">
-                            {ans.answer}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                question={q}
+                currentUserId={user.id}
+              />
             ))}
           </div>
         )}
