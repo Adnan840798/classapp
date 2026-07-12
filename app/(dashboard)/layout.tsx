@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthProfile } from '@/lib/supabase/server';
 import { ProfileProvider } from '@/context/ProfileContext';
 import { Profile } from '@/types';
 import { Header } from './Header';
@@ -16,23 +16,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getSupabaseServerClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { user, profile } = await getAuthProfile();
 
   // No valid session — send to login.
-  if (authError || !user) {
+  if (!user) {
     redirect('/login');
   }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, full_name, email, role, profile_pic_url, university_id, phone, whatsapp, telegram_handle, batch, department, notif_enabled, password_reset_required, cr_last_read_at, fcm_token, created_at, updated_at')
-    .eq('id', user.id)
-    .single();
 
   // Redirect to reset password if mandatory reset is flagged
   const headerStore = await headers();

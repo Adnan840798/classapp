@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthProfile } from '@/lib/supabase/server';
 import { headers } from 'next/headers';
 import {
   getCachedAnnouncements,
@@ -10,63 +10,32 @@ import {
   getCachedHolidayDays,
   getCachedClassRoutine,
 } from '@/lib/cache/queries';
-import { getMyPrivateNotes } from '@/lib/actions/notes';
 import { StudentHubProvider } from '@/context/StudentHubContext';
 
 /**
- * Student layout — guards student routes AND preloads ALL hub data.
+ * Student layout — preloads shared hub data for all /student/* pages.
  *
- * WHY HERE: Next.js App Router keeps layouts mounted while navigating
- * between child pages. By placing StudentHubProvider here, the context
- * persists across ALL /student/* navigations — so going from Timeline
- * to Announcements to Deadlines to Results to Notes to Profile is instant.
+ * AUTH: getAuthProfile() is memoized via React.cache(). DashboardLayout
+ * (which always renders before this) already called getAuthProfile() and
+ * fetched user + profile from the DB. This call costs ~0ms — it returns
+ * the same object from the request-scoped cache instantly.
  *
- * CACHING: Seven of the eight queries use unstable_cache. With 60 concurrent
- * students, the DB sees at most 7 queries per cache window regardless of
- * student count. Only getMyPrivateNotes() is user-specific and runs fresh
- * (it's a lightweight index lookup on user_id).
+ * PERFORMANCE: getAuthProfile() + all 7 data queries fire in a single
+ * Promise.all — no sequential waterfall. All 7 data queries are
+ * unstable_cache backed, so on a warm cache they resolve from memory.
  *
- * DATA FLOW: After this layout runs once, ALL child pages have zero extra
- * DB calls on navigation. Timeline reads semesterConfig + holidayDays +
- * classRoutine from context. Notes reads privateNotes from context.
- * Profile reads from ProfileContext (DashboardLayout). Zero spinners.
+ * Private notes are intentionally excluded: they are user-specific (uncached)
+ * and only needed on the Notes page. HubResources fetches them lazily.
  */
 export default async function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect('/login');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
-    redirect('/login?error=profile_missing');
-  }
-
-  if (profile.role === 'cr' || profile.role === 'admin') {
-    const headerStore = await headers();
-    const activePath = headerStore.get('x-pathname') || '';
-    if (activePath.startsWith('/student/')) {
-      const redirectPath = activePath.replace(/^\/student\//, '/cr/');
-      redirect(redirectPath);
-    }
-    redirect('/cr/timeline');
-  }
-
-  // Preload ALL hub data in parallel. Seven of eight are cache-backed
-  // (unstable_cache) — at most 7 DB queries for all 60 concurrent students.
-  // getMyPrivateNotes() is user-specific, always fresh, fast (indexed by user_id).
+  // getAuthProfile() is free here — DashboardLayout already called it.
+  // All 7 data queries are cached and run in parallel alongside it.
   const [
+    { user, profile },
     announcements,
     deadlines,
     results,
@@ -74,8 +43,8 @@ export default async function StudentLayout({
     semesterConfig,
     holidayDays,
     classRoutine,
-    privateNotesResult,
   ] = await Promise.all([
+    getAuthProfile(),
     getCachedAnnouncements(),
     getCachedDeadlines(),
     getCachedResults(),
@@ -83,8 +52,20 @@ export default async function StudentLayout({
     getCachedSemesterConfig(),
     getCachedHolidayDays(),
     getCachedClassRoutine(),
-    getMyPrivateNotes(),
   ]);
+
+  if (!user) redirect('/login');
+  if (!profile) redirect('/login?error=profile_missing');
+
+  // Role guard: redirect CRs/admins who land on /student/* back to /cr/*.
+  if (profile.role === 'cr' || profile.role === 'admin') {
+    const headerStore = await headers();
+    const activePath = headerStore.get('x-pathname') || '';
+    if (activePath.startsWith('/student/')) {
+      redirect(activePath.replace(/^\/student\//, '/cr/'));
+    }
+    redirect('/cr/timeline');
+  }
 
   return (
     <StudentHubProvider
@@ -95,7 +76,7 @@ export default async function StudentLayout({
       semesterConfig={semesterConfig ?? null}
       holidayDays={holidayDays || []}
       classRoutine={classRoutine ?? null}
-      privateNotes={(privateNotesResult.data || []) as any}
+      privateNotes={[]}
     >
       {children}
     </StudentHubProvider>

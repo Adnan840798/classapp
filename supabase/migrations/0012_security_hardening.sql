@@ -43,3 +43,18 @@ FROM public.profiles;
 
 -- 4. Grant access to profiles_public view for cohort members
 GRANT SELECT ON public.profiles_public TO authenticated;
+
+-- 5. CRITICAL: Re-declare get_my_role() as SECURITY DEFINER
+-- The new profiles_read_own_or_staff policy above calls get_my_role() inside its
+-- USING clause. Without SECURITY DEFINER, get_my_role() queries profiles under
+-- the caller's RLS context, which triggers the same policy again → infinite recursion.
+-- SECURITY DEFINER makes it bypass RLS entirely when reading the role column.
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS public.user_role 
+LANGUAGE sql 
+STABLE 
+SECURITY DEFINER
+SET search_path = public 
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$;

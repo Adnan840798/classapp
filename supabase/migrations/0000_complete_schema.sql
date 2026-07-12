@@ -267,8 +267,11 @@ CREATE TRIGGER semester_config_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 -- 2. get_my_role — helper used by RLS policies
+-- SECURITY DEFINER: required so this function bypasses RLS when reading profiles.
+-- Without it, any RLS policy that calls get_my_role() causes infinite recursion
+-- because get_my_role() itself queries the profiles table, triggering the same policy.
 CREATE OR REPLACE FUNCTION public.get_my_role()
-RETURNS public.user_role LANGUAGE sql STABLE SET search_path = public AS $$
+RETURNS public.user_role LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid();
 $$;
 

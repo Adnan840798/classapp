@@ -48,6 +48,34 @@ export const getAuthUser = cache(async () => {
 });
 
 /**
+ * Returns the authenticated user AND their full profile row, memoized for the
+ * duration of the current request via React cache().
+ *
+ * WHY: DashboardLayout, StudentLayout, and CRLayout all need the profile.
+ * Without this, each layout independently queries `profiles`, causing duplicate
+ * DB round-trips in the same render tree. With React.cache(), only the FIRST
+ * call hits the DB (~50ms). Every subsequent call within the same request is
+ * free (returns the cached object instantly).
+ *
+ * SECURITY: Still reads live data from the DB on every request — no stale
+ * profile data is ever served. React.cache() is request-scoped, not global.
+ */
+export const getAuthProfile = cache(async () => {
+  const { user } = await getAuthUser();
+  if (!user) return { user: null, profile: null };
+
+  const supabase = await getSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role, profile_pic_url, university_id, phone, whatsapp, telegram_handle, batch, department, notif_enabled, password_reset_required, cr_last_read_at, fcm_token, created_at, updated_at')
+    .eq('id', user.id)
+    .single();
+
+  return { user, profile };
+});
+
+
+/**
  * Administrative Supabase client using service role key (only for server actions).
  */
 export async function getSupabaseAdminClient() {

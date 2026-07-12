@@ -6,15 +6,18 @@ import { rateLimit, rateLimitResponse } from '@/lib/rateLimit';
 //  auth    → 10 req / 60 s  — brute-force & credential-stuffing protection
 //  webhook → 30 req / 60 s  — Telegram webhook abuse
 //  api     → 60 req / 60 s  — general API callers
-//  page    → 200 req / 60 s — authenticated users browsing normally
+//  page    → 600 req / 60 s — authenticated users browsing (in-memory, per-instance)
+//                             600 allows ~20-30 students on the same university NAT
+//                             IP to browse simultaneously without hitting the limit.
 // ─────────────────────────────────────────────────────────────────────────────
 const LIMITS = {
   auth:    { limit: 10,  windowMs: 60_000 },
   webhook: { limit: 30,  windowMs: 60_000 },
   proxy:   { limit: 300, windowMs: 60_000 },
   api:     { limit: 60,  windowMs: 60_000 },
-  page:    { limit: 200, windowMs: 60_000 },
+  page:    { limit: 600, windowMs: 60_000 },
 } as const;
+
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -46,7 +49,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIp(request);
 
+  // ── 0. Keep-warm ping — bypass all middleware overhead ───────────────────
+  // /api/ping must be unauthenticated and instant. Skip rate limiting, auth,
+  // and Upstash Redis entirely so the ping itself doesn't add cold-start risk.
+  if (pathname === '/api/ping') {
+    return NextResponse.next();
+  }
+
   // ── 1. Rate limiting ──────────────────────────────────────────────────────
+
   let bucket: keyof typeof LIMITS = 'page';
   if (pathname.startsWith('/api/auth')) {
     bucket = 'auth';

@@ -1,39 +1,30 @@
 import { redirect } from 'next/navigation';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthProfile } from '@/lib/supabase/server';
 import { headers } from 'next/headers';
 
 /**
  * CR layout — guards CR routes.
- * Students who somehow bypass middleware get redirected here.
+ *
+ * getAuthProfile() is memoized via React.cache(). DashboardLayout always
+ * runs before this and already fetched user + profile from the DB.
+ * This call costs ~0ms — returns the cached object instantly.
  */
 export default async function CRLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, profile } = await getAuthProfile();
 
   if (!user) redirect('/login');
+  if (!profile) redirect('/login?error=profile_missing');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
-    redirect('/login?error=profile_missing');
-  }
-
+  // Role guard: redirect students who land on /cr/* back to /student/*.
   if (profile.role === 'student') {
     const headerStore = await headers();
     const activePath = headerStore.get('x-pathname') || '';
     if (activePath.startsWith('/cr/')) {
-      const redirectPath = activePath.replace(/^\/cr\//, '/student/');
-      redirect(redirectPath);
+      redirect(activePath.replace(/^\/cr\//, '/student/'));
     }
     redirect('/student/timeline');
   }

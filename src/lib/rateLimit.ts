@@ -75,7 +75,10 @@ export async function rateLimit(
   limit: number,
   windowMs: number,
 ): Promise<RateLimitResult> {
-  const redisLimiter = getRedisRatelimiter(bucket, limit, windowMs);
+  // 'page' bucket: authenticated users browsing the app.
+  // Skip Upstash Redis — in-memory is sufficient and saves ~25-35ms per request.
+  // Auth/api/webhook/proxy buckets still use Redis for cross-instance coordination.
+  const redisLimiter = bucket === 'page' ? null : getRedisRatelimiter(bucket, limit, windowMs);
   
   if (redisLimiter) {
     try {
@@ -91,6 +94,7 @@ export async function rateLimit(
       console.warn('Upstash Redis rate limiting failed, falling back to local memory store:', err);
     }
   }
+
 
   // Local memory store fallback
   maybePurge();
