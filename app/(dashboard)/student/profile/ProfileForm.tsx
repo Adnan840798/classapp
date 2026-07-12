@@ -729,7 +729,6 @@ export function ProfileForm({
             }`}
           >
             <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-amber-400" />
               Change Password
             </span>
             <ChevronDown
@@ -860,10 +859,10 @@ export function ProfileForm({
                     }}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {cpPending ? (
+                     {cpPending ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Updating…</>
                     ) : (
-                      <><KeyRound className="w-4 h-4" /> Update Password</>
+                      <>Update Password</>
                     )}
                   </button>
                 </div>

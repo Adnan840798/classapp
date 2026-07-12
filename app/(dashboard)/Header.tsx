@@ -236,7 +236,7 @@ export function Header() {
                       setIsUserMenuOpen(false);
                       handleSignOut();
                     }}
-                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/15 rounded-xl transition-all cursor-pointer"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/15 rounded-xl transition-all cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Sign Out
@@ -339,7 +339,7 @@ export function Header() {
             <div className="border-t border-border pt-4 flex flex-col gap-1">
               <button
                 onClick={handleSignOut}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-rose-600 dark:text-rose-450 hover:bg-rose-500/10 dark:hover:bg-rose-500/15 rounded-lg transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

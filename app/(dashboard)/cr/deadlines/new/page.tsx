@@ -154,7 +154,7 @@ export default function NewDeadlinePage() {
               id="description"
               name="description"
               rows={4}
-              placeholder="e.g. Submit on Google Classroom. Max PDF size 10MB."
+              placeholder="e.g., Submit via Google Classroom, email, or physical copy. Add any submission instructions here."
               maxLength={1000}
               className="form-input resize-none"
               disabled={isPending}

@@ -103,12 +103,12 @@ export default async function StudentAnnouncementDetailPage({ params }: StudentA
               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                 <button
                   title="View Attachment"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-foreground bg-muted/20 border border-border hover:bg-muted/50 hover:border-border/80 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
                 >
                   {announcement.attachment_type === 'image' ? (
-                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0 text-[#121214]" />
                   ) : (
-                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#121214]" />
                   )}
                   <span>Attachment</span>
                 </button>

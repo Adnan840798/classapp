@@ -36,7 +36,6 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const [mounted, setMounted] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'pinned'>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pinningIds, setPinningIds] = useState<Set<string>>(new Set());
@@ -176,9 +175,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
     .filter((a) => !a.is_important)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const hasAnyMatches =
-    (filter === 'all' && announcements.length > 0) ||
-    (filter === 'pinned' && pinnedAnnouncements.length > 0);
+  const hasAnyMatches = announcements.length > 0;
 
   return (
     <>
@@ -211,35 +208,18 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-1 p-1 rounded-full border border-border bg-muted/30 w-full sm:w-auto self-start">
-        {(['all', 'pinned'] as const).map((type) => (
-          <button
-            key={type}
-            onClick={() => setFilter(type)}
-            className={`flex-1 sm:flex-none text-center px-3.5 py-2 sm:px-5 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all duration-200 uppercase tracking-wider cursor-pointer whitespace-nowrap active:scale-[0.97] ${
-              filter === type
-                ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(16,185,129,0.35)] dark:shadow-[0_4px_12px_rgba(16,185,129,0.2)]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
-            }`}
-          >
-            {type}
-          </button>
-        ))}
-      </div>
-
       {!hasAnyMatches ? (
         <div className="glass-card p-12 text-center flex flex-col items-center justify-center gap-3">
           <Megaphone className="w-12 h-12 text-muted-foreground opacity-30 animate-pulse" />
           <h2 className="text-lg font-semibold">No announcements found</h2>
           <p className="text-sm text-muted-foreground max-w-md">
-            No announcements match the selected filter. Try changing the filter.
+            No announcements found.
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-8">
           {/* Pinned Section */}
-          {(filter === 'all' || filter === 'pinned') && pinnedAnnouncements.length > 0 && (
+          {pinnedAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5">
             <button
               onClick={() => setIsPinnedExpanded(!isPinnedExpanded)}
@@ -361,7 +341,7 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
         )}
 
         {/* ── All Announcements — merged current + past, newest first ──── */}
-        {filter === 'all' && allNonPinnedAnnouncements.length > 0 && (
+        {allNonPinnedAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5 animate-fade-in">
             <button
               onClick={() => setIsAnnouncementsExpanded(!isAnnouncementsExpanded)}

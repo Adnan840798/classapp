@@ -41,10 +41,10 @@ export function AskQuestionForm({ entityId, entityType = 'event' }: AskQuestionF
   }
 
   return (
-    <div className="glass-card p-5.5 rounded-2xl border border-white/[0.06] bg-slate-900/40 shadow-xl relative overflow-hidden">
+    <div className="glass-card p-5.5 rounded-2xl border border-border bg-card shadow-xl relative overflow-hidden">
       {/* Glow highlight */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500/50 to-teal-500/50" />
-      <h4 className="text-sm font-bold text-white mb-3 tracking-wide">Ask a Question</h4>
+      <h4 className="text-sm font-bold text-foreground mb-3 tracking-wide">Ask a Question</h4>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs flex items-center gap-2.5">
@@ -62,7 +62,7 @@ export function AskQuestionForm({ entityId, entityType = 'event' }: AskQuestionF
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isPending}
-            className="form-input text-xs flex-1 rounded-xl bg-white/[0.02] border-white/[0.08]"
+            className="form-input text-xs flex-1 rounded-xl"
           />
           <button
             type="submit"
@@ -77,9 +77,9 @@ export function AskQuestionForm({ entityId, entityType = 'event' }: AskQuestionF
           </button>
         </div>
 
-        <div className="flex justify-between items-center text-[10px] text-slate-400 px-1">
+        <div className="flex justify-between items-center text-[10px] text-muted-foreground px-1">
           <span>Your question will be visible to classmates and answered by CRs.</span>
-          <span className={`font-semibold ${inputText.length > 450 ? 'text-red-400 font-bold' : 'text-slate-500'}`}>
+          <span className={`font-semibold ${inputText.length > 450 ? 'text-red-400 font-bold' : 'text-muted-foreground'}`}>
             {inputText.length} / 500
           </span>
         </div>

@@ -64,27 +64,36 @@
 
   .dark {
     /* ── Dark mode tokens ─────────────────────────── */
-    --background: 240 10% 3.9%;          /* Deep black (kept as requested) */
+    --background: 240 10% 3.9%;
+    /* Deep black (kept as requested) */
     --foreground: 210 20% 94%;
-    --card: 220 14% 12%;                 /* Restored original lighter card */
+    --card: 220 14% 12%;
+    /* Restored original lighter card */
     --card-foreground: 210 20% 94%;
-    --popover: 220 14% 12%;              /* Restored original */
+    --popover: 220 14% 12%;
+    /* Restored original */
     --popover-foreground: 210 20% 94%;
     --primary: 160 84% 51%;
     --primary-foreground: 240 3% 8%;
-    --secondary: 215 14% 20%;            /* Restored original */
+    --secondary: 215 14% 20%;
+    /* Restored original */
     --secondary-foreground: 210 20% 94%;
-    --muted: 215 14% 16%;                /* Restored original */
+    --muted: 215 14% 16%;
+    /* Restored original */
     --muted-foreground: 220 10% 56%;
-    --accent: 215 14% 20%;                /* Restored original */
+    --accent: 215 14% 20%;
+    /* Restored original */
     --accent-foreground: 210 20% 94%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 20% 98%;
-    --border: 220 10% 16%;               /* Restored original */
-    --input: 220 10% 16%;                /* Restored original */
+    --border: 220 10% 16%;
+    /* Restored original */
+    --input: 220 10% 16%;
+    /* Restored original */
     --ring: 160 84% 51%;
 
-    --sidebar-bg: 240 3% 7%;             /* Restored original */
+    --sidebar-bg: 240 3% 7%;
+    /* Restored original */
   }
 
   * {
@@ -117,13 +126,18 @@
 
   /* Minimum touch target for interactive elements on mobile/tablet */
   @media (max-width: 1023px) {
-    button, a, [role="button"] {
+
+    button,
+    a,
+    [role="button"] {
       min-height: 44px;
       min-width: 44px;
     }
   }
+
   /* Exception: small inline badges/chips */
-  .touch-compact, .touch-compact * {
+  .touch-compact,
+  .touch-compact * {
     min-height: unset;
     min-width: unset;
   }
@@ -133,19 +147,23 @@
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 999px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
   }
 }
 
 @layer components {
+
   /* ── Glass card ──────────────────────────────────── */
   .glass-card {
     background: hsl(var(--card) / 0.75);
@@ -171,13 +189,16 @@
     background: linear-gradient(135deg, hsl(160 84% 45%), hsl(170 80% 38%));
     box-shadow: 0 4px 15px hsl(160 84% 45% / 0.3);
   }
+
   .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 20px hsl(160 84% 45% / 0.4);
   }
+
   .btn-primary:active {
     transform: translateY(0);
   }
+
   .btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -192,14 +213,17 @@
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
   }
+
   .btn-yellow:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
     background: linear-gradient(135deg, #fcd34d, #f59e0b);
   }
+
   .btn-yellow:active {
     transform: translateY(0);
   }
+
   .btn-yellow:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -212,10 +236,12 @@
     @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200;
     color: hsl(var(--muted-foreground));
   }
+
   .nav-item:hover {
     background: hsl(var(--accent));
     color: hsl(var(--foreground));
   }
+
   .nav-item.active {
     background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
@@ -231,6 +257,7 @@
     @apply p-5 flex flex-col gap-1;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+
   .stat-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px hsl(var(--primary) / 0.1);
@@ -241,10 +268,12 @@
     @apply w-full rounded-xl border bg-muted/20 px-4 py-2.5 text-sm outline-none transition-all duration-200;
     border-color: hsl(var(--border) / 0.8);
   }
+
   .form-input:hover {
     @apply bg-muted/40;
     border-color: hsl(var(--border));
   }
+
   .form-input:focus {
     @apply bg-background;
     border-color: hsl(var(--primary) / 0.8);
@@ -255,11 +284,13 @@
   .badge {
     @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold;
   }
+
   .badge-important {
     background: hsl(0 84% 60% / 0.12);
     color: hsl(0 84% 60%);
     border-color: hsl(0 84% 60% / 0.3);
   }
+
   .badge-public {
     background: hsl(142 76% 36% / 0.12);
     color: hsl(142 76% 44%);
@@ -270,11 +301,13 @@
   .page-header {
     @apply mb-5 flex flex-col gap-1;
   }
+
   .page-title {
     /* Fluid type: 20px on mobile → 28px on desktop */
     font-size: clamp(1.2rem, 4vw, 1.75rem);
     @apply font-bold tracking-tight;
   }
+
   .page-subtitle {
     @apply text-xs sm:text-sm text-muted-foreground;
   }
@@ -288,10 +321,12 @@
     border-radius: var(--radius);
     @apply p-5 flex flex-col gap-3 transition-all duration-200;
   }
+
   .announcement-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 24px hsl(var(--primary) / 0.08);
   }
+
   .announcement-card.important {
     border-left: 3px solid hsl(0 84% 60%);
   }
@@ -300,6 +335,7 @@
   .timeline-event {
     @apply relative pl-8 pb-8;
   }
+
   .timeline-event::before {
     content: '';
     position: absolute;
@@ -309,9 +345,11 @@
     width: 1px;
     background: hsl(var(--border));
   }
+
   .timeline-event:last-child::before {
     display: none;
   }
+
   .timeline-dot {
     position: absolute;
     left: 0;
@@ -330,9 +368,11 @@
   .chat-message {
     @apply flex gap-3 py-2 px-3 rounded-xl transition-colors duration-150;
   }
+
   .chat-message:hover {
     background: hsl(var(--accent) / 0.5);
   }
+
   .chat-message.pinned {
     background: hsl(var(--primary) / 0.06);
     border-left: 2px solid hsl(var(--primary) / 0.5);
@@ -342,12 +382,15 @@
   .notif-item {
     @apply flex gap-3 p-3 rounded-lg transition-colors duration-150 cursor-pointer;
   }
+
   .notif-item:hover {
     background: hsl(var(--accent));
   }
+
   .notif-item.unread {
     background: hsl(var(--primary) / 0.06);
   }
+
   .notif-item.unread::before {
     content: '';
     display: block;
@@ -361,20 +404,23 @@
 
   /* ── Loading shimmer ─────────────────────────────── */
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--muted)) 25%,
-      hsl(var(--accent)) 50%,
-      hsl(var(--muted)) 75%
-    );
+    background: linear-gradient(90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--accent)) 50%,
+        hsl(var(--muted)) 75%);
     background-size: 400% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: var(--radius);
   }
 
   @keyframes shimmer {
-    0% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   /* ── Fade in animation ───────────────────────────── */
@@ -383,8 +429,15 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* ── Slide in animation ──────────────────────────── */
@@ -393,31 +446,65 @@
   }
 
   @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-12px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   /* ── Progress bar animation ──────────────────────────── */
   @keyframes slide-progress {
-    0% { transform: translateX(-100%); width: 40%; }
-    50% { transform: translateX(150%); width: 60%; }
-    100% { transform: translateX(300%); width: 40%; }
+    0% {
+      transform: translateX(-100%);
+      width: 40%;
+    }
+
+    50% {
+      transform: translateX(150%);
+      width: 60%;
+    }
+
+    100% {
+      transform: translateX(300%);
+      width: 40%;
+    }
   }
 
   /* ── Pulse animation ─────────────────────────────────── */
   @keyframes animate-fade-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   .animate-fade-in {
     animation: animate-fade-in 0.25s ease-out;
   }
 
   /* ── Slide up animation (BulkDeleteBar) ──────────────── */
   @keyframes animate-slide-up {
-    from { opacity: 0; transform: translateY(20px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0)    scale(1); }
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
+
   .animate-slide-up {
     animation: animate-slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
     will-change: transform, opacity;
@@ -438,6 +525,7 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
+
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
@@ -460,9 +548,9 @@
 
 /* ── Capacitor Native App Overrides ──────────────── */
 body.is-native {
+
   /* Apply bottom inset padding for screens with bottom nav indicators */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
 }
-

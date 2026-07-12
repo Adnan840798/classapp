@@ -997,7 +997,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
                         >
                           {/* Left side: Day name + Date */}
                           <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                            <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold leading-none uppercase text-muted-foreground tracking-wider">
+                            <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-bold leading-none uppercase text-muted-foreground tracking-wider">
                               {day.dayName}
                             </span>
                             <span className="text-[9px] sm:text-[11px] lg:text-[12px] font-semibold leading-none mt-1 sm:mt-1.5 text-muted-foreground/80">
@@ -1055,7 +1055,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
                       >
                         {/* Left side: Day name + Date */}
                         <div className="flex flex-col justify-center w-11 sm:w-14 lg:w-16 flex-shrink-0 text-left pr-1 sm:pr-2">
-                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-extrabold text-foreground leading-none uppercase" style={{ letterSpacing: '0.05em' }}>
+                          <span className="text-[12px] sm:text-[14px] lg:text-[15px] font-bold text-zinc-700 dark:text-zinc-300 leading-none uppercase" style={{ letterSpacing: '0.05em' }}>
                             {day.dayName}
                           </span>
                           <span
@@ -1072,7 +1072,7 @@ export function SemesterTimeline({ initialRoutineUrl, isCR, initialSemesterConfi
                         {/* Day Count Column (shifted left, close to the day text) */}
                         <div className="flex flex-col items-center text-center flex-shrink-0 min-w-[32px] sm:min-w-[40px] mr-1.5 sm:mr-4 lg:mr-6">
                           <span className="hidden sm:block text-[10px] text-muted-foreground font-semibold leading-tight">Day</span>
-                          <span className="text-[13px] sm:text-[15px] font-black text-foreground leading-none sm:mt-1">{classDayNum}</span>
+                          <span className="text-[13px] sm:text-[15px] font-bold text-zinc-700 dark:text-zinc-300 leading-none sm:mt-1">{classDayNum}</span>
                         </div>
 
                         {/* Second Vertical Divider */}

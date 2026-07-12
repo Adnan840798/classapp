@@ -132,10 +132,10 @@ export default function NewNotePage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <Paperclip className="w-3.5 h-3.5 text-primary" />
-                File Attachment (Optional — CR only)
+                File Attachment (Optional)
               </label>
               <p className="text-xs text-muted-foreground -mt-0.5">
-                Attach an image, PDF, or PowerPoint presentation (max 5 MB). If the resource is made public, the file will also be sent to the Telegram channel.
+                Upload supporting materials (image, PDF, or PowerPoint presentation up to 5 MB). Public files will automatically be shared to the Telegram channel.
               </p>
 
               {attachmentFile ? (
@@ -163,7 +163,7 @@ export default function NewNotePage() {
                 >
                   <Paperclip className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                   <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    Click to select a file (image, PDF, or PPT/PPTX, max 5 MB)
+                    Click to select a file (Image, PDF, or PPT/PPTX up to 5 MB)
                   </span>
                   <input
                     id="attachment-input"
@@ -198,10 +198,10 @@ export default function NewNotePage() {
               disabled={isPending}
             />
             <label htmlFor="is_public" className="text-sm font-semibold text-foreground cursor-pointer select-none">
-              Share with Class (Make Public)
+              Publish to Class
               {isCR && (
                 <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                  — will post to Telegram channel
+                  (Automatically posts to Telegram channel)
                 </span>
               )}
             </label>
