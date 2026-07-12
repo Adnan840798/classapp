@@ -26,8 +26,18 @@ jobs:
           cache: npm
 
       # ── 3. Android SDK ─────────────────────────────────────────────────────
+      # Do NOT use android-actions/setup-android@v3 — it fails on current GitHub
+      # runners with "Wrong version in preinstalled sdkmanager". Use the SDK
+      # that is already pre-installed on ubuntu-latest ($ANDROID_SDK_ROOT).
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
 
       # ── 4. Java (required by Gradle / Android build tools) ─────────────────
       - name: Set up JDK 21
