@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Pin,
   Loader2,
+  ChevronRight,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
@@ -29,6 +30,8 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
   const router = useRouter();
   const [qaNavigatingId, setQaNavigatingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pinned'>('all');
+  const [isPinnedExpanded, setIsPinnedExpanded] = useState(true);
+  const [isAnnouncementsExpanded, setIsAnnouncementsExpanded] = useState(true);
 
   // Pinned stay at top, sorted newest first
   const pinnedAnnouncements = (announcements || [])
@@ -43,6 +46,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
   const hasAnyMatches =
     (filter === 'all' && announcements.length > 0) ||
     (filter === 'pinned' && pinnedAnnouncements.length > 0);
+
 
   return (
     <div className="flex flex-col gap-6 w-full animate-fade-in">
@@ -89,11 +93,16 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
           {/* ── Pinned Section ─────────────────────────────────────────────── */}
           {(filter === 'all' || filter === 'pinned') && pinnedAnnouncements.length > 0 && (
             <div className="flex flex-col gap-3.5 animate-fade-in">
-              <div className="flex items-center gap-2 px-1">
+              <button
+                onClick={() => setIsPinnedExpanded((v) => !v)}
+                className="flex items-center gap-1.5 px-1 py-1 text-cyan-600 dark:text-cyan-400 hover:opacity-85 transition-all cursor-pointer text-sm font-bold uppercase tracking-wider self-start select-none group"
+              >
+                <ChevronRight className={`w-3.5 h-3.5 text-cyan-500 transition-transform duration-200 ${isPinnedExpanded ? 'rotate-90' : ''}`} />
                 <Pin className="w-4 h-4 text-cyan-500" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned</h2>
-              </div>
-              <div className="flex flex-col gap-3">
+                <span>Pinned</span>
+              </button>
+              {isPinnedExpanded && (
+                <div className="flex flex-col gap-3">
                 {pinnedAnnouncements.map((announcement) => (
                   <div
                     key={`pinned-${announcement.id}`}
@@ -162,18 +171,23 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                   </div>
                 ))}
               </div>
+              )}
             </div>
           )}
 
           {/* ── All Announcements — merged, newest first ────────────────────── */}
           {filter === 'all' && allNonPinnedAnnouncements.length > 0 && (
             <div className="flex flex-col gap-3.5 animate-fade-in">
-              <div className="flex items-center gap-2 px-1">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  Announcements
-                </h2>
-              </div>
-              <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setIsAnnouncementsExpanded((v) => !v)}
+                className="flex items-center gap-1.5 px-1 py-1 text-emerald-600 dark:text-emerald-400 hover:opacity-85 transition-all cursor-pointer text-sm font-bold uppercase tracking-wider self-start select-none group"
+              >
+                <ChevronRight className={`w-3.5 h-3.5 text-emerald-500 transition-transform duration-200 ${isAnnouncementsExpanded ? 'rotate-90' : ''}`} />
+                <Megaphone className="w-4 h-4 text-emerald-500" />
+                <span>Announcements</span>
+              </button>
+              {isAnnouncementsExpanded && (
+                <div className="flex flex-col gap-3">
                 {allNonPinnedAnnouncements.map((announcement) => (
                   <div
                     key={announcement.id}
@@ -257,6 +271,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                   </div>
                 ))}
               </div>
+              )}
             </div>
           )}
 
