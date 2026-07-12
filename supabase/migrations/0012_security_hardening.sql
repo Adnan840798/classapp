@@ -20,6 +20,7 @@ $$;
 
 -- 2. Restrict profiles base table SELECT access (lock down phone/whatsapp columns)
 DROP POLICY IF EXISTS "profiles_read_all" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_read_own_or_staff" ON public.profiles;
 
 CREATE POLICY "profiles_read_own_or_staff"
   ON public.profiles FOR SELECT
@@ -28,6 +29,7 @@ CREATE POLICY "profiles_read_own_or_staff"
     public.get_my_role() IN ('cr', 'admin')
     OR auth.uid() = id
   );
+
 
 -- 3. Create the public profiles view for classmate listings (bypasses RLS via owner privileges)
 CREATE OR REPLACE VIEW public.profiles_public AS
