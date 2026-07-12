@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus, Megaphone, FileText, ArrowRight,
   Square, Trash2, Check, CheckSquare, Pin, X, AlertTriangle, Loader2,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import {
@@ -248,9 +248,9 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
               <Pin className="w-4 h-4 text-cyan-500" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned</h2>
               {isPinnedExpanded ? (
-                <ChevronUp className="w-4 h-4 text-cyan-500" />
-              ) : (
                 <ChevronDown className="w-4 h-4 text-cyan-500" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-cyan-500" />
               )}
             </button>
             {isPinnedExpanded && (
@@ -369,9 +369,9 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
             >
               <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Announcements</h2>
               {isAnnouncementsExpanded ? (
-                <ChevronUp className="w-4 h-4 text-emerald-500" />
-              ) : (
                 <ChevronDown className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-emerald-500" />
               )}
             </button>
             {isAnnouncementsExpanded && (

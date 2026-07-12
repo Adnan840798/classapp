@@ -10,7 +10,7 @@ import {
   Pin,
   Loader2,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import { AttachmentViewer } from '@/components/ui/AttachmentViewer';
@@ -100,9 +100,9 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                 <Pin className="w-4 h-4 text-cyan-500" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned</h2>
                 {isPinnedExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-cyan-500" />
-                ) : (
                   <ChevronDown className="w-4 h-4 text-cyan-500" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-cyan-500" />
                 )}
               </button>
               {isPinnedExpanded && (
@@ -191,9 +191,9 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                   Announcements
                 </h2>
                 {isAnnouncementsExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-emerald-500" />
-                ) : (
                   <ChevronDown className="w-4 h-4 text-emerald-500" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-emerald-500" />
                 )}
               </button>
               {isAnnouncementsExpanded && (
