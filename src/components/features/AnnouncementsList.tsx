@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus, Megaphone, FileText, ArrowRight,
   Square, Trash2, Check, CheckSquare, Pin, X, AlertTriangle, Loader2,
-  ChevronRight,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 import {
@@ -242,17 +242,21 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
           {(filter === 'all' || filter === 'pinned') && pinnedAnnouncements.length > 0 && (
           <div className="flex flex-col gap-3.5">
             <button
-              onClick={() => setIsPinnedExpanded((v) => !v)}
-              className="flex items-center gap-1.5 px-1 py-1 text-cyan-600 dark:text-cyan-400 hover:opacity-85 transition-all cursor-pointer text-sm font-bold uppercase tracking-wider self-start select-none group"
+              onClick={() => setIsPinnedExpanded(!isPinnedExpanded)}
+              className="flex items-center gap-2 px-1 py-1 hover:opacity-80 transition-opacity cursor-pointer text-left self-start"
             >
-              <ChevronRight className={`w-3.5 h-3.5 text-cyan-500 transition-transform duration-200 ${isPinnedExpanded ? 'rotate-90' : ''}`} />
               <Pin className="w-4 h-4 text-cyan-500" />
-              <span>Pinned</span>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pinned</h2>
+              {isPinnedExpanded ? (
+                <ChevronUp className="w-4 h-4 text-cyan-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-cyan-500" />
+              )}
             </button>
             {isPinnedExpanded && (
               <div className="flex flex-col gap-3">
                 {pinnedAnnouncements.map((announcement) => {
-                const isSelected = selectedIds.has(announcement.id);
+                  const isSelected = selectedIds.has(announcement.id);
                 return (
                   <div
                     key={`pinned-${announcement.id}`}
@@ -358,14 +362,17 @@ export function AnnouncementsList({ announcements }: { announcements: Announceme
 
         {/* ── All Announcements — merged current + past, newest first ──── */}
         {filter === 'all' && allNonPinnedAnnouncements.length > 0 && (
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 animate-fade-in">
             <button
-              onClick={() => setIsAnnouncementsExpanded((v) => !v)}
-              className="flex items-center gap-1.5 px-1 py-1 text-emerald-600 dark:text-emerald-400 hover:opacity-85 transition-all cursor-pointer text-sm font-bold uppercase tracking-wider self-start select-none group"
+              onClick={() => setIsAnnouncementsExpanded(!isAnnouncementsExpanded)}
+              className="flex items-center gap-2 px-1 py-1 hover:opacity-80 transition-opacity cursor-pointer text-left self-start"
             >
-              <ChevronRight className={`w-3.5 h-3.5 text-emerald-500 transition-transform duration-200 ${isAnnouncementsExpanded ? 'rotate-90' : ''}`} />
-              <Megaphone className="w-4 h-4 text-emerald-500" />
-              <span>Announcements</span>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Announcements</h2>
+              {isAnnouncementsExpanded ? (
+                <ChevronUp className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-emerald-500" />
+              )}
             </button>
             {isAnnouncementsExpanded && (
               <div className="flex flex-col gap-3">
