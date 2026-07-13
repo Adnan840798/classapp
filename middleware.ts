@@ -3,19 +3,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit';
 
 // ─── Rate limit tiers ────────────────────────────────────────────────────────
-//  auth    → 10 req / 60 s  — brute-force & credential-stuffing protection
-//  webhook → 30 req / 60 s  — Telegram webhook abuse
-//  api     → 60 req / 60 s  — general API callers
-//  page    → 600 req / 60 s — authenticated users browsing (in-memory, per-instance)
-//                             600 allows ~20-30 students on the same university NAT
-//                             IP to browse simultaneously without hitting the limit.
+//  auth    → 10 req / 60 s   — brute-force & credential-stuffing protection
+//  webhook → 30 req / 60 s   — Telegram webhook abuse
+//  api     → 60 req / 60 s   — general API callers
+//  page    → 3000 req / 60 s — authenticated users browsing (in-memory, per-instance)
+//                              3000 supports ~100 students on the same university NAT
+//                              IP browsing simultaneously without hitting the limit.
 // ─────────────────────────────────────────────────────────────────────────────
 const LIMITS = {
-  auth:    { limit: 10,  windowMs: 60_000 },
-  webhook: { limit: 30,  windowMs: 60_000 },
-  proxy:   { limit: 300, windowMs: 60_000 },
-  api:     { limit: 60,  windowMs: 60_000 },
-  page:    { limit: 600, windowMs: 60_000 },
+  auth:    { limit: 10,   windowMs: 60_000 },
+  webhook: { limit: 30,   windowMs: 60_000 },
+  proxy:   { limit: 300,  windowMs: 60_000 },
+  api:     { limit: 60,   windowMs: 60_000 },
+  page:    { limit: 3000, windowMs: 60_000 },
 } as const;
 
 

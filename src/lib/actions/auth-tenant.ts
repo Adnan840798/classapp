@@ -69,6 +69,15 @@ export async function verifyAndConnectClass(joinCode: string) {
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
+  // Store class name as a readable cookie so the login page can show the correct
+  // class name even if the browser's localStorage is cleared (e.g. app reinstall).
+  cookieStore.set('tenant_class_name', data.class_name, {
+    httpOnly: false,
+    secure: isSecure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  });
 
   return { success: true, className: data.class_name };
 }
@@ -91,6 +100,13 @@ export async function clearTenantCookies() {
   });
   cookieStore.set('tenant_supabase_anon_key', '', {
     httpOnly: true,
+    secure: isSecure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
+  cookieStore.set('tenant_class_name', '', {
+    httpOnly: false,
     secure: isSecure,
     sameSite: 'lax',
     path: '/',

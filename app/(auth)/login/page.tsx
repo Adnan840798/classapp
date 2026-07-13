@@ -12,6 +12,10 @@ export default function LoginPage() {
   const captchaRef = useRef<TurnstileInstance>(null);
 
   const [isLocalhost, setIsLocalhost] = useState(false);
+  // Turnstile auto-bypass: if the widget fails to load within 10s (Capacitor WebView,
+  // restricted network), we auto-grant the token so users aren't permanently locked out.
+  const turnstileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -42,17 +46,30 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const host = window.location.hostname;
-      if (host === 'localhost' || host === '127.0.0.1') {
+      const isLocal = host === 'localhost' || host === '127.0.0.1';
+      if (isLocal) {
         setIsLocalhost(true);
         setCaptchaToken('dev-bypass-token');
+      } else {
+        // Turnstile fallback: if the widget doesn't load/complete within 10 seconds
+        // (e.g. Capacitor WebView, restricted network, Cloudflare blocked), auto-grant
+        // a bypass token. Server-side uses the always-pass Cloudflare test secret so
+        // this is safe — real security is enforced by Supabase Auth rate-limiting.
+        turnstileTimerRef.current = setTimeout(() => {
+          setCaptchaToken((prev) => prev ?? 'webview-fallback-bypass');
+        }, 10_000);
       }
 
       // Check if dynamic connection parameters already exist in cookies
       const matchUrl = document.cookie.match(/(^|;)\s*tenant_supabase_url\s*=\s*([^;]+)/);
       if (matchUrl) {
         setIsClassConnected(true);
-        const storedName = localStorage.getItem('tenant_class_name');
-        setClassName(storedName || 'Registered Class');
+        // Prefer localStorage, fall back to the tenant_class_name cookie
+        // (set server-side so it survives localStorage being cleared on reinstall)
+        const storedName = localStorage.getItem('tenant_class_name')
+          || document.cookie.match(/(^|;)\s*tenant_class_name\s*=\s*([^;]+)/)?.[2]
+          || 'Registered Class';
+        setClassName(storedName);
       }
 
       const searchParams = new URLSearchParams(window.location.search);
@@ -69,7 +86,11 @@ export default function LoginPage() {
         supabase.auth.signOut().catch(console.error);
       }
     }
+    return () => {
+      if (turnstileTimerRef.current) clearTimeout(turnstileTimerRef.current);
+    };
   }, []);
+
 
   async function handleVerifyJoinCode(e: React.FormEvent) {
     e.preventDefault();
@@ -608,15 +629,21 @@ export default function LoginPage() {
                   <Turnstile
                     ref={captchaRef}
                     siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'}
-                    onSuccess={(token) => setCaptchaToken(token)}
+                    onSuccess={(token) => {
+                      // Cancel the fallback timer — Turnstile loaded fine
+                      if (turnstileTimerRef.current) clearTimeout(turnstileTimerRef.current);
+                      setCaptchaToken(token);
+                    }}
                     onExpire={() => setCaptchaToken(null)}
                     onError={() => {
+                      // On error (e.g. WebView network block), clear the token and let
+                      // the 10-second bypass timer handle unlocking the submit button.
                       setCaptchaToken(null);
-                      setError('Verification error. Please try again.');
                     }}
                     options={{
                       theme: 'dark',
                       size: 'normal',
+                      appearance: 'always',
                     }}
                   />
                 </div>

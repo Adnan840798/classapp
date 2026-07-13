@@ -1,8 +1,8 @@
 import { HubDeadlines } from '@/components/features/hub/HubDeadlines';
 
-export const revalidate = 0; // force dynamic rendering
-
-export default async function StudentDeadlinesPage() {
+// Static shell — all data comes from StudentHubContext (preloaded in layout).
+// No server-side data = Next.js can prefetch this page and serve it instantly.
+export default function StudentDeadlinesPage() {
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-in">
       {/* Page Header */}

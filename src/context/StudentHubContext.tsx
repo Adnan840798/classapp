@@ -1,29 +1,34 @@
 'use client';
 
 /**
- * StudentHubContext — Preloaded data hub for student pages.
+ * StudentHubContext — Preloaded + live-updated data hub for student pages.
  *
  * HOW IT WORKS:
- *   1. student/layout.tsx fetches ALL data in one parallel Promise.all server-side:
- *      announcements, deadlines, results, public resources, semester config,
- *      holiday days, class routine, and the user's own private notes.
- *   2. StudentHubProvider receives all 8 data sets as props and stores them in context.
- *   3. Every downstream page (Timeline, Announcements, Deadlines, Results, Notes, Profile)
- *      reads from useStudentHub() — zero extra DB round-trips after first load.
+ *   1. student/layout.tsx fetches ALL data in one parallel Promise.all server-side.
+ *   2. StudentHubProvider seeds React state from those props (instant first render).
+ *   3. A single Supabase Realtime channel subscribes to postgres_changes on:
+ *        announcements, deadlines, exam_results, notes
+ *      When the CR inserts/updates/deletes → payload arrives over WebSocket →
+ *      the matching setState call patches the list in-memory → React re-renders
+ *      all student pages instantly with no refresh and no extra DB call.
  *
- * FALLBACK:
- *   If a student navigates directly to e.g. /student/deadlines without going
- *   through the layout (direct URL), isHydrated = false and the page fetches its own data.
+ * STATIC PAGE COMPATIBILITY:
+ *   Static page shells (timeline, deadlines, announcements, results, notes) are
+ *   prefetched by Next.js and render from context — zero server round-trips on
+ *   navigation. Realtime updates patch the context state, so students always see
+ *   the latest data without leaving the page.
  *
  * SECURITY:
  *   - Context only holds data already authorized by the server (RLS-filtered).
  *   - Public resources are pre-filtered to is_public=true, is_pending=false.
- *   - Private notes are scoped to the authenticated user — fetched fresh by
- *     getMyPrivateNotes() in the layout using the user's own session.
+ *   - Realtime events are also RLS-filtered by Supabase before broadcast.
+ *   - Private notes are intentionally excluded from the live channel (user-specific).
  */
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { Announcement, Deadline, ExamResult, Note } from '@/types';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export interface StudentHubData {
   announcements: Announcement[];
@@ -70,20 +75,114 @@ interface StudentHubProviderProps {
 }
 
 /**
- * Wrap the student layout output with this provider to preload all hub data.
- * Child pages receive instant data when they call useStudentHub().
+ * Wrap the student layout output with this provider to preload all hub data
+ * and subscribe to live updates from the CR.
  */
 export function StudentHubProvider({
   children,
-  announcements,
-  deadlines,
-  results,
-  publicResources,
+  announcements: initialAnnouncements,
+  deadlines: initialDeadlines,
+  results: initialResults,
+  publicResources: initialResources,
   semesterConfig,
   holidayDays,
   classRoutine,
   privateNotes,
 }: StudentHubProviderProps) {
+  const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
+  const [deadlines, setDeadlines]         = useState<Deadline[]>(initialDeadlines);
+  const [results, setResults]             = useState<ExamResult[]>(initialResults);
+  const [publicResources, setPublicResources] = useState<Note[]>(initialResources);
+
+  // Track the channel ref so we can clean it up on unmount
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+
+    const channel = supabase
+      .channel('student-hub-realtime')
+
+      // ── Announcements ──────────────────────────────────────
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload) => {
+        const item = payload.new as Announcement;
+        setAnnouncements((prev) => [item, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'announcements' }, (payload) => {
+        const item = payload.new as Announcement;
+        setAnnouncements((prev) => prev.map((a) => (a.id === item.id ? item : a)));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'announcements' }, (payload) => {
+        const id = payload.old.id as string;
+        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+      })
+
+      // ── Deadlines ──────────────────────────────────────────
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'deadlines' }, (payload) => {
+        const item = payload.new as Deadline;
+        setDeadlines((prev) => [item, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'deadlines' }, (payload) => {
+        const item = payload.new as Deadline;
+        setDeadlines((prev) => prev.map((d) => (d.id === item.id ? item : d)));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'deadlines' }, (payload) => {
+        const id = payload.old.id as string;
+        setDeadlines((prev) => prev.filter((d) => d.id !== id));
+      })
+
+      // ── Exam Results ───────────────────────────────────────
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'exam_results' }, (payload) => {
+        const item = payload.new as ExamResult;
+        setResults((prev) => [item, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_results' }, (payload) => {
+        const item = payload.new as ExamResult;
+        setResults((prev) => prev.map((r) => (r.id === item.id ? item : r)));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'exam_results' }, (payload) => {
+        const id = payload.old.id as string;
+        setResults((prev) => prev.filter((r) => r.id !== id));
+      })
+
+      // ── Public Resources (notes table, is_public=true, is_pending=false) ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notes' }, (payload) => {
+        const item = payload.new as Note;
+        // Only surface publicly-approved resources
+        if (item.is_public && !item.is_pending) {
+          setPublicResources((prev) => [item, ...prev]);
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes' }, (payload) => {
+        const item = payload.new as Note;
+        setPublicResources((prev) => {
+          // Resource became public → add to list
+          if (item.is_public && !item.is_pending) {
+            const exists = prev.some((r) => r.id === item.id);
+            return exists ? prev.map((r) => (r.id === item.id ? item : r)) : [item, ...prev];
+          }
+          // Resource became private/pending → remove from list
+          return prev.filter((r) => r.id !== item.id);
+        });
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notes' }, (payload) => {
+        const id = payload.old.id as string;
+        setPublicResources((prev) => prev.filter((r) => r.id !== id));
+      })
+
+      .subscribe((status) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[StudentHubContext] Realtime status:', status);
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []); // Only once — channel lives as long as the student layout is mounted
+
   const value: StudentHubData = {
     announcements,
     deadlines,
@@ -104,7 +203,7 @@ export function StudentHubProvider({
 }
 
 /**
- * useStudentHub — read preloaded student hub data.
+ * useStudentHub — read preloaded + live-updated student hub data.
  *
  * Always check `isHydrated` before using the data:
  *   const { announcements, isHydrated } = useStudentHub();

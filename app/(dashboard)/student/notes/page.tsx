@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { HubResources } from '@/components/features/hub/HubResources';
 
-export const revalidate = 0; // force dynamic rendering
-
-export default async function StudentNotesPage() {
+// Static shell — all data comes from StudentHubContext (preloaded in layout).
+// No server-side data = Next.js can prefetch this page and serve it instantly.
+export default function StudentNotesPage() {
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

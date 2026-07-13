@@ -1,7 +1,5 @@
 import { SemesterTimelineWrapper } from '@/components/timeline/SemesterTimelineWrapper';
 
-export const revalidate = 0; // force dynamic rendering
-
 /**
  * StudentTimelinePage — serves as a trivially simple shell.
  *
