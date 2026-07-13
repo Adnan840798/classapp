@@ -10,6 +10,7 @@ import {
   FileText,
   ZoomIn,
   ZoomOut,
+  ExternalLink,
   File,
   ImageIcon,
   Loader2,
