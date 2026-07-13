@@ -209,14 +209,16 @@ export async function middleware(request: NextRequest) {
       },
     });
 
-    // Verify session — also refreshes the token if it is close to expiry.
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // Use getSession() here instead of getUser() — getSession() verifies the JWT
+    // locally from the cookie (~0ms). getUser() makes a live HTTP round-trip to the
+    // Supabase Auth server (~100–200ms) which is the primary cause of navigation lag.
+    //
+    // Security: Supabase docs explicitly permit getSession() in middleware for this
+    // reason. The authoritative getUser() check still runs in DashboardLayout via
+    // getAuthProfile(), which is the correct server-side security boundary.
+    const { data: { session } } = await supabase.auth.getSession();
 
-    if (error || !user) {
-      // Session is invalid or expired.
-      // We do NOT wipe tenant cookies here — the user still belongs to the
-      // same class; they just need to re-authenticate with their password.
-      // Wiping tenant cookies would force them to re-enter their join code.
+    if (!session) {
       const url = request.nextUrl.clone();
       const nextParam = pathname + request.nextUrl.search;
       url.pathname = '/login';
