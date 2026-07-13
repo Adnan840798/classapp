@@ -26,7 +26,7 @@
  */
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { Announcement, Deadline, ExamResult, Note } from '@/types';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -104,56 +104,56 @@ export function StudentHubProvider({
       .channel('student-hub-realtime')
 
       // ── Announcements ──────────────────────────────────────
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Announcement;
         setAnnouncements((prev) => [item, ...prev]);
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'announcements' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'announcements' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Announcement;
         setAnnouncements((prev) => prev.map((a) => (a.id === item.id ? item : a)));
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'announcements' }, (payload) => {
-        const id = payload.old.id as string;
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'announcements' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+        const id = (payload.old as any).id as string;
         setAnnouncements((prev) => prev.filter((a) => a.id !== id));
       })
 
       // ── Deadlines ──────────────────────────────────────────
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'deadlines' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'deadlines' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Deadline;
         setDeadlines((prev) => [item, ...prev]);
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'deadlines' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'deadlines' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Deadline;
         setDeadlines((prev) => prev.map((d) => (d.id === item.id ? item : d)));
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'deadlines' }, (payload) => {
-        const id = payload.old.id as string;
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'deadlines' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+        const id = (payload.old as any).id as string;
         setDeadlines((prev) => prev.filter((d) => d.id !== id));
       })
 
       // ── Exam Results ───────────────────────────────────────
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'exam_results' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'exam_results' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as ExamResult;
         setResults((prev) => [item, ...prev]);
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_results' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_results' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as ExamResult;
         setResults((prev) => prev.map((r) => (r.id === item.id ? item : r)));
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'exam_results' }, (payload) => {
-        const id = payload.old.id as string;
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'exam_results' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+        const id = (payload.old as any).id as string;
         setResults((prev) => prev.filter((r) => r.id !== id));
       })
 
       // ── Public Resources (notes table, is_public=true, is_pending=false) ──
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notes' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notes' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Note;
         // Only surface publicly-approved resources
         if (item.is_public && !item.is_pending) {
           setPublicResources((prev) => [item, ...prev]);
         }
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
         const item = payload.new as Note;
         setPublicResources((prev) => {
           // Resource became public → add to list
@@ -165,8 +165,8 @@ export function StudentHubProvider({
           return prev.filter((r) => r.id !== item.id);
         });
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notes' }, (payload) => {
-        const id = payload.old.id as string;
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notes' }, (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+        const id = (payload.old as any).id as string;
         setPublicResources((prev) => prev.filter((r) => r.id !== id));
       })
 
