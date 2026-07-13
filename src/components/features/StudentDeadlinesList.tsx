@@ -105,8 +105,8 @@ function DeadlineCard({
         </div>
 
         {/* Right section: Due Date + Action Button */}
-        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-t-0 sm:items-end">
-          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
+        <div className="flex flex-row items-end justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-t-0">
+          <div className="flex flex-col items-start sm:items-end gap-1.5">
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold flex items-center gap-1 whitespace-nowrap">
               <Calendar className="w-3.5 h-3.5 text-muted-foreground/80 flex-shrink-0" />
               {muted ? 'Was due:' : 'Due:'} {formatDateTime(deadline.due_date)}
@@ -117,21 +117,23 @@ function DeadlineCard({
               {muted ? 'Expired' : formatDaysRemaining(deadline.daysRemaining)}
             </span>
           </div>
-          <button
-            onClick={() => {
-              onNavigate(deadline.id);
-              router.push(`/student/deadlines/${deadline.id}`);
-            }}
-            disabled={qaNavigatingId === deadline.id}
-            className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap self-start sm:self-auto disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
-          >
-            Question &amp; Answer
-            {qaNavigatingId === deadline.id ? (
-              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
-            ) : (
-              <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
-            )}
-          </button>
+          <div className="flex items-center justify-end">
+            <button
+              onClick={() => {
+                onNavigate(deadline.id);
+                router.push(`/student/deadlines/${deadline.id}`);
+              }}
+              disabled={qaNavigatingId === deadline.id}
+              className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
+            >
+              Question &amp; Answer
+              {qaNavigatingId === deadline.id ? (
+                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
+              ) : (
+                <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

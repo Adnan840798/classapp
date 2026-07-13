@@ -110,7 +110,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
+                      <div className="flex flex-row items-end justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
                         <div className="flex flex-col items-start sm:items-end">
                           <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                             {announcement.creator?.full_name || 'CR'}
@@ -119,7 +119,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                             {formatDateTime(announcement.created_at)}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
                           {announcement.attachment_url && (
                             <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                               <button
@@ -214,7 +214,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                         </div>
 
                         {/* Right: Author/Date + Actions */}
-                        <div className="flex flex-col gap-2.5 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0 sm:items-end">
+                        <div className="flex flex-row items-end justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
                           <div className="flex flex-col items-start sm:items-end">
                             <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
@@ -223,8 +223,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
-
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap justify-end">
                             {announcement.attachment_url && (
                               <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
                                 <button
