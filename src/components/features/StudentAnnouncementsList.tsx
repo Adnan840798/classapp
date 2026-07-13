@@ -84,74 +84,92 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
               {isPinnedExpanded && (
                 <div className="flex flex-col gap-3 animate-fade-in">
 
-                {pinnedAnnouncements.map((announcement) => (
-                  <div
-                    key={`pinned-${announcement.id}`}
-                    className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
-                    style={{
-                      background: 'linear-gradient(90deg, rgba(6,182,212,0.06) 0%, hsl(var(--card)) 100%)',
-                      border: '1px solid rgba(6, 182, 212, 0.35)',
-                    }}
-                  >
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-cyan-600" />
+                  {pinnedAnnouncements.map((announcement) => (
+                    <div
+                      key={`pinned-${announcement.id}`}
+                      className="relative rounded-xl overflow-hidden transition-all duration-150 hover:translate-x-0.5"
+                      style={{
+                        background: 'linear-gradient(90deg, rgba(6,182,212,0.06) 0%, hsl(var(--card)) 100%)',
+                        border: '1px solid rgba(6, 182, 212, 0.35)',
+                      }}
+                    >
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-cyan-600" />
 
-                    <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0">
-                          <Pin className="w-5 h-5 text-cyan-500" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
-                            {announcement.title}
-                          </h3>
-                          <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words mt-1.5">
-                            {announcement.body}
-                          </p>
-                        </div>
-                      </div>
+                      <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex flex-col gap-3 flex-1 min-w-0">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0">
+                              <Pin className="w-5 h-5 text-cyan-500" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
+                                {announcement.title}
+                              </h3>
+                              <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words mt-1.5">
+                                {announcement.body}
+                              </p>
+                            </div>
+                          </div>
 
-                      <div className="flex flex-row items-end justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
-                        <div className="flex flex-col items-start sm:items-end">
-                          <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
-                            {announcement.creator?.full_name || 'CR'}
-                          </span>
-                          <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
-                            {formatDateTime(announcement.created_at)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap justify-end">
-                          {announcement.attachment_url && (
-                            <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
-                              <button
-                                title="View Attachment"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
-                              >
-                                <FileText className="w-3 h-3 flex-shrink-0" />
-                                <span>Attachment</span>
-                              </button>
-                            </AttachmentViewer>
+                           {announcement.attachment_url && (
+                            <div className="mt-1 sm:hidden">
+                              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                <button
+                                  title="View Attachment"
+                                  className="inline-flex items-center gap-1 px-2 py-2 rounded-lg text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
+                                  <span>Attachment</span>
+                                </button>
+                              </AttachmentViewer>
+                            </div>
                           )}
-                          <button
-                            onClick={() => {
-                              setQaNavigatingId(announcement.id);
-                              router.push(`/student/announcements/${announcement.id}`);
-                            }}
-                            disabled={qaNavigatingId === announcement.id}
-                            className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
-                          >
-                            Question &amp; Answer
-                            {qaNavigatingId === announcement.id ? (
-                              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
-                            ) : (
-                              <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+ 
+                        <div className="flex flex-row items-center justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
+                          <div className="flex flex-col items-start sm:items-end">
+                            <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
+                              {announcement.creator?.full_name || 'CR'}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium mt-1">
+                              {formatDateTime(announcement.created_at)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-end gap-2">
+                            {announcement.attachment_url && (
+                              <div className="hidden sm:block">
+                                <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                  <button
+                                    title="View Attachment"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                  >
+                                    <FileText className="w-3 h-3 flex-shrink-0" />
+                                    <span>Attachment</span>
+                                  </button>
+                                </AttachmentViewer>
+                              </div>
                             )}
-                          </button>
+                            <button
+                              onClick={() => {
+                                setQaNavigatingId(announcement.id);
+                                router.push(`/student/announcements/${announcement.id}`);
+                              }}
+                              disabled={qaNavigatingId === announcement.id}
+                              className="group flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
+                            >
+                              Question &amp; Answer
+                              {qaNavigatingId === announcement.id ? (
+                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
+                              ) : (
+                                <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -191,30 +209,46 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
 
                       <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {/* Left: Icon + Info */}
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{
-                              background: 'rgba(16,185,129,0.1)',
-                              border: '1px solid hsl(var(--primary) / 0.25)',
-                            }}
-                          >
-                            <Megaphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                              <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
-                                {announcement.title}
-                              </h3>
+                        <div className="flex flex-col gap-3 flex-1 min-w-0">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{
+                                background: 'rgba(16,185,129,0.1)',
+                                border: '1px solid hsl(var(--primary) / 0.25)',
+                              }}
+                            >
+                              <Megaphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">
-                              {announcement.body}
-                            </p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                                <h3 className="text-sm font-extrabold text-foreground break-words leading-snug">
+                                  {announcement.title}
+                                </h3>
+                              </div>
+                              <p className="text-xs text-zinc-700 dark:text-zinc-400 whitespace-pre-line leading-relaxed break-words">
+                                {announcement.body}
+                              </p>
+                            </div>
                           </div>
-                        </div>
 
+                          {announcement.attachment_url && (
+                            <div className="mt-1 sm:hidden">
+                              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                <button
+                                  title="View Attachment"
+                                  className="inline-flex items-center gap-1 px-2 py-2 rounded-lg text-[10px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
+                                  <span>Attachment</span>
+                                </button>
+                              </AttachmentViewer>
+                            </div>
+                          )}
+                        </div>
+ 
                         {/* Right: Author/Date + Actions */}
-                        <div className="flex flex-row items-end justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
+                        <div className="flex flex-row items-center justify-between w-full sm:flex-col sm:w-auto sm:items-end gap-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
                           <div className="flex flex-col items-start sm:items-end">
                             <span className="text-[10px] text-zinc-700 dark:text-zinc-400 font-bold leading-none">
                               {announcement.creator?.full_name || 'CR'}
@@ -223,17 +257,19 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                               {formatDateTime(announcement.created_at)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 flex-wrap justify-end">
+                          <div className="flex items-center justify-end gap-2">
                             {announcement.attachment_url && (
-                              <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
-                                <button
-                                  title="View Attachment"
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
-                                >
-                                  <FileText className="w-3 h-3 flex-shrink-0" />
-                                  <span>Attachment</span>
-                                </button>
-                              </AttachmentViewer>
+                              <div className="hidden sm:block">
+                                <AttachmentViewer url={announcement.attachment_url} fileName={`${announcement.title}_attachment`}>
+                                  <button
+                                    title="View Attachment"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap"
+                                  >
+                                    <FileText className="w-3 h-3 flex-shrink-0" />
+                                    <span>Attachment</span>
+                                  </button>
+                                </AttachmentViewer>
+                              </div>
                             )}
                             <button
                               onClick={() => {
@@ -241,7 +277,7 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                                 router.push(`/student/announcements/${announcement.id}`);
                               }}
                               disabled={qaNavigatingId === announcement.id}
-                              className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
+                              className="group flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
                             >
                               Question &amp; Answer
                               {qaNavigatingId === announcement.id ? (

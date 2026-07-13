@@ -300,7 +300,7 @@ export function DayDetailPanel({
           </div>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto detail-scroll px-5 py-5 space-y-6">
+          <div className="flex-1 overflow-y-auto detail-scroll px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] space-y-6">
 
             {/* ── OVERVIEW TAB ── */}
             {activeTab === 'overview' && (

@@ -272,7 +272,7 @@ export function Header() {
               transform: isSwiping ? `translateX(-${swipeTranslation}px)` : undefined,
               transition: isSwiping ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
-            className="absolute left-0 top-0 bottom-0 w-64 bg-card border-r border-border p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] flex flex-col justify-between slide-in-left-animation"
+            className="absolute left-0 top-0 bottom-0 w-64 bg-card border-r border-border p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex flex-col justify-between slide-in-left-animation"
           >
             <style jsx>{`
               .slide-in-left-animation {
