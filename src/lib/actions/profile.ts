@@ -159,31 +159,46 @@ export async function updateUserRole(targetUserId: string, newRole: 'student' | 
       return { error: 'Access denied. Only Class Representatives or Admins can manage accounts.' };
     }
 
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const isTenant = !!cookieStore.get('tenant_supabase_url')?.value;
+
     let edgeSuccess = false;
     let edgeErrorMsg = '';
 
     try {
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      const fnUrl = `${tenantUrl}/functions/v1/manage-student`;
+      const fnRes = await fetch(fnUrl, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': tenantAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: {
+        body: JSON.stringify({
           action: 'update-role',
           targetUserId,
           newRole,
-        },
+        }),
       });
 
-      if (!edgeError && (!edgeData || !edgeData.error)) {
+      const edgeData = await fnRes.json();
+      if (fnRes.ok && edgeData && !edgeData.error) {
         edgeSuccess = true;
       } else {
-        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to update role.';
+        edgeErrorMsg = edgeData?.error || 'Failed to update role via Edge Function.';
       }
     } catch (err: any) {
       edgeErrorMsg = err.message || 'Edge function call failed';
     }
 
     if (!edgeSuccess) {
+      if (isTenant) {
+        console.error('Tenant Edge function role update failed:', edgeErrorMsg);
+        return { error: edgeErrorMsg };
+      }
+
       console.warn('Edge function invoke failed, attempting direct service role fallback:', edgeErrorMsg);
       const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
       const adminClient = await getSupabaseAdminClient();
@@ -242,30 +257,45 @@ export async function deleteUserAccount(targetUserId: string) {
       return { error: 'You cannot delete your own account.' };
     }
 
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const isTenant = !!cookieStore.get('tenant_supabase_url')?.value;
+
     let edgeSuccess = false;
     let edgeErrorMsg = '';
 
     try {
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      const fnUrl = `${tenantUrl}/functions/v1/manage-student`;
+      const fnRes = await fetch(fnUrl, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`
+          'Content-Type': 'application/json',
+          'apikey': tenantAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: {
+        body: JSON.stringify({
           action: 'delete-student',
-          studentId: targetUserId
-        }
+          studentId: targetUserId,
+        }),
       });
 
-      if (!edgeError && (!edgeData || !edgeData.error)) {
+      const edgeData = await fnRes.json();
+      if (fnRes.ok && edgeData && !edgeData.error) {
         edgeSuccess = true;
       } else {
-        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to delete account.';
+        edgeErrorMsg = edgeData?.error || 'Failed to delete account via Edge Function.';
       }
     } catch (err: any) {
       edgeErrorMsg = err.message || 'Edge function call failed';
     }
 
     if (!edgeSuccess) {
+      if (isTenant) {
+        console.error('Tenant Edge function delete account failed:', edgeErrorMsg);
+        return { error: edgeErrorMsg };
+      }
+
       console.warn('Edge function invoke failed, attempting direct service role fallback for delete:', edgeErrorMsg);
       const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
       const adminClient = await getSupabaseAdminClient();
@@ -334,16 +364,25 @@ export async function createStudentAccount(input: {
       return { error: `University ID "${university_id}" is already registered to another account.` };
     }
 
+    const cookieStore = await cookies();
+    const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const isTenant = !!cookieStore.get('tenant_supabase_url')?.value;
+
     let edgeSuccess = false;
     let edgeErrorMsg = '';
     let edgeUserId = '';
 
     try {
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('manage-student', {
+      const fnUrl = `${tenantUrl}/functions/v1/manage-student`;
+      const fnRes = await fetch(fnUrl, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`
+          'Content-Type': 'application/json',
+          'apikey': tenantAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: {
+        body: JSON.stringify({
           action: 'create-student',
           email,
           password: input.password,
@@ -351,20 +390,26 @@ export async function createStudentAccount(input: {
           universityId: university_id,
           batch: input.batch?.trim() || 'N/A',
           department: input.department?.trim() || 'N/A',
-        }
+        }),
       });
 
-      if (!edgeError && (!edgeData || !edgeData.error)) {
+      const edgeData = await fnRes.json();
+      if (fnRes.ok && edgeData && !edgeData.error) {
         edgeSuccess = true;
         edgeUserId = edgeData.userId;
       } else {
-        edgeErrorMsg = edgeData?.error || edgeError?.message || 'Failed to create student account.';
+        edgeErrorMsg = edgeData?.error || 'Failed to create student account via Edge Function.';
       }
     } catch (err: any) {
       edgeErrorMsg = err.message || 'Edge function call failed';
     }
 
     if (!edgeSuccess) {
+      if (isTenant) {
+        console.error('Tenant Edge function create account failed:', edgeErrorMsg);
+        return { error: edgeErrorMsg };
+      }
+
       console.warn('Edge function invoke failed, attempting direct service role fallback for creation:', edgeErrorMsg);
       const { getSupabaseAdminClient } = await import('@/lib/supabase/server');
       const adminClient = await getSupabaseAdminClient();
