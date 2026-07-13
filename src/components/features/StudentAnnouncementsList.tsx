@@ -137,13 +137,13 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                               router.push(`/student/announcements/${announcement.id}`);
                             }}
                             disabled={qaNavigatingId === announcement.id}
-                            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                            className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
                           >
                             Question &amp; Answer
                             {qaNavigatingId === announcement.id ? (
-                              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
                             ) : (
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                              <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
                             )}
                           </button>
                         </div>
@@ -242,13 +242,13 @@ export function StudentAnnouncementsList({ announcements }: { announcements: Ann
                                 router.push(`/student/announcements/${announcement.id}`);
                               }}
                               disabled={qaNavigatingId === announcement.id}
-                              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-zinc-800 dark:text-zinc-200 border border-border bg-muted/20 hover:bg-muted/40 transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                              className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
                             >
                               Question &amp; Answer
                               {qaNavigatingId === announcement.id ? (
-                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+                                <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
                               ) : (
-                                <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                                <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
                               )}
                             </button>
                           </div>

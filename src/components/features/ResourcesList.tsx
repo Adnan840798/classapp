@@ -128,20 +128,20 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 w-full justify-between">
         {/* Search Bar */}
-        <div className="relative flex-1 max-w-md w-full">
+        <div className="relative flex-1 max-w-md w-full group">
           <input
             type="text"
             placeholder="Search resources..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="form-input w-full pl-10 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm"
+            className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm text-foreground bg-muted/15 dark:bg-muted/20 border border-primary/40 dark:border-primary/30 focus:border-primary focus:bg-background/80 dark:focus:bg-card/50 rounded-2xl outline-none transition-all duration-300 shadow-[0_0_8px_rgba(52,211,153,0.04),inset_0_2px_4px_rgba(0,0,0,0.02)] dark:shadow-[0_0_10px_rgba(52,211,153,0.07),inset_0_2px_4px_rgba(0,0,0,0.15)] focus:shadow-[0_0_15px_rgba(52,211,153,0.15)] placeholder:text-muted-foreground/60 font-medium"
           />
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/70 transition-colors duration-300" />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center p-0.5"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center p-0.5 hover:scale-110 active:scale-95 transition-all duration-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -321,9 +321,9 @@ export function ResourcesList({ initialNotes, currentUserId, notesPath }: Resour
                               url={note.attachment_url}
                               fileName={`${note.title}.${note.attachment_type === 'pdf' ? 'pdf' : note.attachment_type === 'pptx' ? 'pptx' : 'jpg'}`}
                             >
-                              <button className="flex items-center justify-center p-2.5 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/25 bg-amber-500/5 hover:bg-amber-500/10 transition-all cursor-pointer">
-                                <FileText className="w-3.5 h-3.5" />
-                                <span className="ml-1">
+                              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#121214] bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)] hover:shadow-[0_6px_16px_rgba(245,158,11,0.35)] hover:from-amber-300 hover:to-amber-500 active:scale-[0.97] transition-all cursor-pointer whitespace-nowrap">
+                                <FileText className="w-3 h-3 flex-shrink-0" />
+                                <span>
                                   {note.attachment_type === 'pdf' 
                                     ? 'View PDF' 
                                     : note.attachment_type === 'pptx' 

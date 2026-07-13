@@ -151,12 +151,12 @@ export function DayDetailPanel({
 
   const handleTouchEnd = () => {
     if (!touchStart) return;
-    
+
     // Close if swipe distance exceeds 80px
     if (isDragging && translationX > 80) {
       onClose();
     }
-    
+
     setTouchStart(null);
     setTranslationX(0);
     setIsDragging(false);
@@ -169,7 +169,7 @@ export function DayDetailPanel({
     'TUE': 'Tuesday',
     'WED': 'Wednesday',
   };
-  
+
   const displayDayName = fullDayNames[dayName.toUpperCase()] || dayName;
 
   const displayDateLabel = dateLabel
@@ -249,11 +249,10 @@ export function DayDetailPanel({
                 <button
                   onClick={handleHolidayToggle}
                   disabled={isTogglingHoliday}
-                  className={`mt-3 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                    isHoliday
-                      ? 'bg-slate-500/10 border-slate-500/30 text-slate-600 dark:text-slate-400'
-                      : 'bg-amber-500/10 border-amber-500/30 text-zinc-800 dark:text-amber-400'
-                  }`}
+                  className={`mt-3 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${isHoliday
+                    ? 'bg-slate-500/10 border-slate-500/30 text-slate-600 dark:text-slate-400'
+                    : 'bg-amber-500/10 border-amber-500/30 text-zinc-800 dark:text-amber-400'
+                    }`}
                 >
                   {isTogglingHoliday ? (
                     '…'
@@ -349,7 +348,12 @@ export function DayDetailPanel({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-[14px] font-bold text-foreground">
-                      Deadlines ({deadlines.length})
+                      Deadlines
+                      {deadlines.length > 0 && (
+                        <span className="text-muted-foreground font-normal ml-1.5">
+                          • {deadlines.length}
+                        </span>
+                      )}
                     </h3>
                     <div className="flex items-center gap-3">
                       {isCR && (
@@ -399,7 +403,12 @@ export function DayDetailPanel({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-[14px] font-bold text-foreground">
-                      Announcements ({announcements.length})
+                      Announcements
+                      {announcements.length > 0 && (
+                        <span className="text-muted-foreground font-normal ml-1.5">
+                          • {announcements.length}
+                        </span>
+                      )}
                     </h3>
                     <div className="flex items-center gap-3">
                       {isCR && (
@@ -454,7 +463,12 @@ export function DayDetailPanel({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-[14px] font-bold text-foreground">
-                      Results ({results.length})
+                      Results
+                      {results.length > 0 && (
+                        <span className="text-muted-foreground font-normal ml-1.5">
+                          • {results.length}
+                        </span>
+                      )}
                     </h3>
                     <div className="flex items-center gap-3">
                       {isCR && (

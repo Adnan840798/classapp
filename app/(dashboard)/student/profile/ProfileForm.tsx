@@ -448,11 +448,12 @@ export function ProfileForm({
           <div className="flex flex-col items-center gap-1.5">
             <h3 className="font-bold text-base text-foreground tracking-tight">{profile.full_name}</h3>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-mono">{profile.university_id}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              <span className="text-xs text-foreground font-mono">{profile.university_id}</span>
+              <span className="text-muted-foreground/45 text-[10px] select-none">•</span>
+              <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
                 profile.role === 'cr' || profile.role === 'admin'
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+                  ? 'text-primary'
+                  : 'text-sky-600 dark:text-sky-400'
               }`}>
                 {profile.role.toUpperCase()}
               </span>

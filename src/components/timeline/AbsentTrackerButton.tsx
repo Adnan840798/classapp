@@ -169,7 +169,7 @@ export function AbsentTrackerButton() {
           <UserX className="w-4 h-4" />
         </div>
         <span className="text-amber-700 dark:text-amber-400 group-hover:dark:text-white font-semibold text-sm transition-colors">
-          Abs Count
+          Absent Count
         </span>
       </button>
 

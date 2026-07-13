@@ -10,7 +10,6 @@ import {
   FileText,
   ZoomIn,
   ZoomOut,
-  ExternalLink,
   File,
   ImageIcon,
   Loader2,
@@ -242,22 +241,6 @@ export function AttachmentViewer({ url, fileName, children }: AttachmentViewerPr
             >
               <Download className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline ml-1.5">Download</span>
-            </button>
-            <button
-              onClick={() => {
-                const targetUrl = kind === 'presentation'
-                  ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resolvedUrl)}`
-                  : resolvedUrl;
-                if (typeof window !== 'undefined' && (window as any).Capacitor) {
-                  window.open(targetUrl, '_system');
-                } else {
-                  window.open(targetUrl, '_blank', 'noopener,noreferrer');
-                }
-              }}
-              title="Open in browser"
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
-            >
-              <ExternalLink className="w-4 h-4" />
             </button>
             <button
               onClick={() => setOpen(false)}

@@ -123,13 +123,13 @@ function DeadlineCard({
               router.push(`/student/deadlines/${deadline.id}`);
             }}
             disabled={qaNavigatingId === deadline.id}
-            className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap self-start sm:self-auto disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${theme.btnClass}`}
+            className="group flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 hover:bg-slate-650 dark:hover:bg-slate-750 active:scale-[0.98] transition-all whitespace-nowrap self-start sm:self-auto disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-black/20"
           >
             Question &amp; Answer
             {qaNavigatingId === deadline.id ? (
-              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
+              <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin text-amber-400" />
             ) : (
-              <ArrowRight className="w-3 h-3 flex-shrink-0" />
+              <ArrowRight className="w-3 h-3 flex-shrink-0 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
             )}
           </button>
         </div>
