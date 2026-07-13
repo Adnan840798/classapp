@@ -247,7 +247,8 @@ export function Header() {
             )}
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Mobile Drawer Slide-out navigation menu */}
       {isMobileMenuOpen && (
