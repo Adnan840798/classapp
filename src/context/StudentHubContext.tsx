@@ -170,7 +170,7 @@ export function StudentHubProvider({
         setPublicResources((prev) => prev.filter((r) => r.id !== id));
       })
 
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (process.env.NODE_ENV === 'development') {
           console.log('[StudentHubContext] Realtime status:', status);
         }
