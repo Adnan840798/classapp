@@ -15,7 +15,7 @@ function normalizeBdNumber(num: string | null | undefined): string | null {
   if (!num) return null;
   const cleaned = num.trim();
   if (cleaned === '') return null;
-  
+
   const digits = cleaned.replace(/\D/g, ''); // strip all non-digits
   if (digits.length === 10 && digits.startsWith('1')) {
     return '+880' + digits;
@@ -78,7 +78,7 @@ export async function updateProfile(formData: FormData) {
     // Handle avatar upload if provided
     let profile_pic_url: string | null = null;
     const avatarFile = formData.get('avatar') as File | null;
-    
+
     if (avatarFile && avatarFile.size > 0) {
       if (!avatarFile.type.startsWith('image/')) {
         return { error: 'Only images are accepted for profile picture.' };
@@ -88,7 +88,7 @@ export async function updateProfile(formData: FormData) {
       }
 
       const path = generateStoragePath(user.id, avatarFile.name);
-      
+
       // Upload image
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKETS.AVATARS)
@@ -470,6 +470,10 @@ export async function resetFirstTimePassword(newPassword: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Not authenticated. Please log in again.' };
 
+    if (user.email && user.email.trim().toLowerCase() === 'tester@gmail.com') {
+      return { error: 'As it is a testing account, this action is disabled for this account' };
+    }
+
     // Step 1: Update the password in Supabase Auth using the user's own session.
     // This is the correct approach — updateUser() operates on the currently
     // signed-in user and doesn't require the service role.
@@ -517,6 +521,10 @@ export async function changePassword(currentPassword: string, newPassword: strin
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !user.email) return { error: 'Not authenticated. Please log in again.' };
 
+    if (user.email.trim().toLowerCase() === 'tester@gmail.com') {
+      return { error: 'this is a testing account, this action is disabled for this account' };
+    }
+
     // Re-authenticate to verify the current password is correct
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: user.email,
@@ -551,6 +559,10 @@ export async function requestPasswordReset(email: string) {
   try {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return { error: 'Email is required.' };
+
+    if (normalizedEmail === 'tester@gmail.com') {
+      return { error: 'this is a testing account, this action is disabled for this account' };
+    }
 
     const supabase = await getSupabaseServerClient();
 
@@ -662,6 +674,10 @@ export async function requestPasswordResetOtp(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return { error: 'Email is required.' };
 
+    if (normalizedEmail === 'tester@gmail.com') {
+      return { error: 'this is a testing account, this action is disabled for this account' };
+    }
+
     const cookieStore = await cookies();
     const tenantUrl = cookieStore.get('tenant_supabase_url')?.value || process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const tenantAnonKey = cookieStore.get('tenant_supabase_anon_key')?.value || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -701,6 +717,10 @@ export async function verifyAndResetPassword(email: string, otpCode: string, new
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !otpCode || !newPassword) {
       return { error: 'All fields are required.' };
+    }
+
+    if (normalizedEmail === 'tester@gmail.com') {
+      return { error: 'this is a testing account, this action is disabled for this account' };
     }
     if (newPassword.length < 8) {
       return { error: 'Password must be at least 8 characters long.' };
@@ -820,7 +840,7 @@ export async function updateAvatar(formData: FormData) {
     }
 
     const path = generateStoragePath(user.id, avatarFile.name);
-    
+
     // Upload image
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKETS.AVATARS)
