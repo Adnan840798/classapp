@@ -12,8 +12,6 @@ import {
   Smartphone,
   CheckCircle2,
   Mail,
-  BookOpen,
-  ShieldCheck,
 } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { LandingHeaderActions } from '@/components/layout/LandingHeaderActions';
@@ -28,38 +26,38 @@ const FEATURES = [
   {
     icon: CalendarDays,
     color: 'hsl(160 84% 45%)',
-    title: 'Live Class Timeline',
-    desc: 'Daily routine with real-time room, schedule, and teacher updates.',
+    title: 'Live Class Schedule',
+    desc: 'See your daily routine updated instantly. Get updated about the upcoming events in a organized way.',
   },
   {
     icon: Bell,
     color: 'hsl(38 90% 55%)',
-    title: 'Deadline Priority Feed',
-    desc: 'Color-coded feed to track urgent tasks and upcoming submissions.',
+    title: 'Deadline Feed',
+    desc: 'Never miss an assignment. All tasks are color-coded by urgency (Red for urgent, Yellow for warning) so you know what to submit first.',
   },
   {
     icon: MessageSquare,
     color: 'hsl(280 70% 60%)',
-    title: 'Announcements & Telegram',
-    desc: 'Instant notice broadcasts mirrored directly to your Telegram channel.',
+    title: 'Noticeboard & Telegram Sync',
+    desc: 'Important announcements and files posted on the portal are sent automatically to your class Telegram group, keeping everyone updated.',
   },
   {
     icon: BookMarked,
     color: 'hsl(210 80% 60%)',
-    title: 'Shared Class Resources',
-    desc: 'Create private study notes and share public Google Drive links.',
+    title: 'Shared Notes & Drive Links',
+    desc: 'Access class slide links, books, and student-shared notes. Class representatives check every post first to keep resources clean and relevant.',
   },
   {
     icon: Award,
     color: 'hsl(340 80% 58%)',
-    title: 'Exam Marksheets',
-    desc: 'Access exam results and grading sheets published by class representatives.',
+    title: 'Results and Marksheets',
+    desc: 'Find your marks for quizzes, midterms, and lab sessions instantly.You can see all the results of the semister in one place .',
   },
   {
     icon: Users,
     color: 'hsl(190 75% 50%)',
-    title: 'Role-Based Accounts',
-    desc: 'Secure student onboarding, verification, and CR controls.',
+    title: 'Private Class Space',
+    desc: 'Keep your batch info secure and private. Only verified classmates can join, keeping class updates and links safe from outsiders.',
   },
 ];
 
@@ -211,89 +209,48 @@ export default async function RootPage() {
             return (
               <div
                 key={i}
-                className="flex flex-col gap-3 p-5 rounded-2xl border transition-all duration-200 hover:translate-y-[-2px] hover:shadow-sm"
+                className="flex flex-col gap-3.5 p-5 rounded-2xl border transition-all duration-200 hover:translate-y-[-2px] hover:shadow-sm"
                 style={{
                   background: `color-mix(in srgb, ${f.color} var(--feat-bg-ratio), hsl(var(--card)))`,
                   borderColor: `color-mix(in srgb, ${f.color} var(--feat-border-ratio), hsl(var(--border) / 0.5))`,
                 }}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: `color-mix(in srgb, ${f.color} var(--feat-bg-ratio), hsl(var(--card)))`,
-                    border: `1px solid color-mix(in srgb, ${f.color} var(--feat-border-ratio), hsl(var(--border) / 0.5))`,
-                  }}
-                >
-                  <Icon className="w-5 h-5" style={{ color: f.color }} />
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: `color-mix(in srgb, ${f.color} var(--feat-bg-ratio), hsl(var(--card)))`,
+                      border: `1px solid color-mix(in srgb, ${f.color} var(--feat-border-ratio), hsl(var(--border) / 0.5))`,
+                    }}
+                  >
+                    <Icon className="w-5 h-5" style={{ color: f.color }} />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-foreground leading-tight">{f.title}</h3>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{f.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.desc}</p>
-                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* ── User Manuals ──────────────────────────────────── */}
+      {/* ── Demo Video Section ───────────────────────────── */}
       <section className="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-14 pb-16 sm:pb-24">
         <div className="text-center mb-8">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-foreground">
-            Learn how to use ClassApp
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground">
+            How does ClassApp work?
           </h2>
-          <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            Comprehensive guides for both students and class representatives.
-          </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Student Guide */}
-          <Link
-            href="/manual/student"
-            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.08)] bg-gradient-to-br from-emerald-500/[0.04] to-card dark:from-emerald-500/[0.08] dark:to-card/40 border border-emerald-500/15 dark:border-emerald-500/25"
-          >
-            <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
-              style={{ background: 'rgba(52,211,153,0.12)' }} />
-            <div className="flex items-center gap-3 relative">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30">
-                <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Student Guide</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Everything you can do as a student</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground/80 leading-relaxed relative">
-              Timelines, deadlines, announcements, Q&amp;A threads, results, and resource downloads — all explained.
-            </p>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors relative">
-              View Student Manual <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </Link>
-
-          {/* CR Guide */}
-          <Link
-            href="/manual/cr"
-            className="group relative rounded-2xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_12px_40px_rgba(52,211,153,0.08)] bg-gradient-to-br from-emerald-500/[0.04] to-card dark:from-emerald-500/[0.08] dark:to-card/40 border border-emerald-500/15 dark:border-emerald-500/25"
-          >
-            <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-40"
-              style={{ background: 'rgba(52,211,153,0.12)' }} />
-            <div className="flex items-center gap-3 relative">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">CR Guide</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Full control as a Class Representative</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground/80 leading-relaxed relative">
-              Managing timelines, posting announcements, publishing results, and administering student accounts — fully documented.
-            </p>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors relative">
-              View CR Manual <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </Link>
+        <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border border-emerald-500/20 shadow-2xl bg-zinc-950/20 backdrop-blur-sm aspect-video w-full">
+          <video
+            className="w-full h-full object-cover"
+            src="https://ocdacnolqqiumgzlmprz.supabase.co/storage/v1/object/public/public-assets/Classapp.mp4"
+            controls
+            muted
+            loop
+            playsInline
+            autoPlay
+          />
         </div>
       </section>
 
