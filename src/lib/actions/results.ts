@@ -149,8 +149,8 @@ export async function publishResult(formData: FormData) {
     // ── If no file was attached, send a text-only Telegram post ─
     if (!file || file.size === 0) {
       try {
-        const telegramTitle = `📊 Result Published`;
-        const telegramBody = `<b>Exam:</b> ${escapeHTML(parsed.data.exam_name)}\n\nResults have been published. Students can check their results in the app.`;
+        const telegramTitle = `📊 Result Published: ${parsed.data.exam_name}`;
+        const telegramBody = `Results have been published in the app.`;
         const telegramResult = await sendTelegramMessage(telegramTitle, telegramBody);
         if (!telegramResult.success) {
           console.warn('Telegram result post failed (non-fatal):', telegramResult.error);
@@ -166,7 +166,7 @@ export async function publishResult(formData: FormData) {
     revalidatePath('/student/results');
     revalidatePath('/cr/timeline');
     revalidatePath('/student/timeline');
-    
+
     if (redirectTo === 'timeline') {
       redirect('/cr/timeline');
     } else {

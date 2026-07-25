@@ -5,6 +5,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { sendWebPush, sendFCMPush } from '@/lib/actions/push';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 const DeadlineSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -87,6 +88,22 @@ export async function createDeadline(formData: FormData) {
       });
     } catch (fcmErr) {
       console.error('FCM push notification failed (non-fatal):', fcmErr);
+    }
+
+    // ── Post to Telegram channel ─────────────────────────────
+    try {
+      const telegramBody = parsed.data.description
+        ? `${parsed.data.description}\n\n📅 Due: ${new Date(due_date).toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', dateStyle: 'medium', timeStyle: 'short' })}`
+        : `📅 Due: ${new Date(due_date).toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', dateStyle: 'medium', timeStyle: 'short' })}`;
+      const telegramResult = await sendTelegramMessage(
+        `📅 Deadline | ${parsed.data.subject}: ${parsed.data.title}`,
+        telegramBody
+      );
+      if (!telegramResult.success) {
+        console.warn('Telegram deadline post failed (non-fatal):', telegramResult.error);
+      }
+    } catch (err) {
+      console.warn('Telegram deadline post failed (non-fatal):', err);
     }
 
     const redirectTo = formData.get('redirect_to') as string;
